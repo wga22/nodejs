@@ -23,7 +23,7 @@ var http = require('http');
 //var mysql      = require('mysql');
 var teslams = require('teslams');
 var oResults = {};
-var nFieldsToLoad = 3;
+var nFieldsToLoad = 3;		//how many different function calls to make
 
 //MAIN
 //testing();
@@ -184,36 +184,6 @@ function main()
 			teslams.get_drive_state( vid, storeVals );
 			console.log("get_vehicle_state");
 			teslams.get_vehicle_state( vid, storeVals );
-		
-
-			
-			// USE teslams.get_charge_state( vid, pr );
-			// USE teslams.get_drive_state( vid, pr );
-			// USE teslams.get_vehicle_state( vid, pr );
-
-			// teslams.wake_up( vid, pr );
-			//
-			// get some info
-			//
-			// teslams.mobile_enabled( vid, pr );
-			// teslams.get_climate_state( vid, pr );
-			 
-			// teslams.get_gui_settings( vid, pr );
-			//
-			// cute but annoying stuff while debugging
-			//
-			// teslams.flash( vid, pr ); 
-			// teslams.honk( vid, pr ); 
-			// teslams.open_charge_port( vid, pr ) 
-			//
-			// control some stuff
-			//
-			// teslams.door_lock( { id: vid, lock: "lock" }, pr );
-			// teslams.sun_roof( { id: vid, roof: "close" }, pr );
-			// teslams.auto_conditioning( { id: vid, climate: "off" }, pr ); 
-			// teslams.charge_range( { id: vid, range: "standard" }, pr ); 
-			// teslams.charge_state( { id: vid, charge: "on" }, pr ); 
-			// teslams.set_temperature( { id: vid, dtemp: 20 }, pr ); 
 		}
 	  }
 	);
@@ -221,15 +191,16 @@ function main()
 	
 }
 
-
-
-
 // Generic callback function to print the return value
-function storeVals( jsonVals ) {
+function storeVals( jsonVals ) 
+{
+	//print the values
 	pr(jsonVals);
 	//oResults.extend(jsonVals);
+	//append these results to the main JSON object with results
 	oResults = merge_options(oResults, jsonVals);
 	nFieldsToLoad--;
+	//when you are on the last of 3 field sets, then write them all to thingspeak
 	if(nFieldsToLoad <=0)
 	{
 		writeValuesToThingSpeak(oResults);
@@ -250,7 +221,8 @@ function pr( jsonVals ) {
  */
 function merge_options(obj1,obj2)
 {
-    var obj3 = {};
+    //create a new object, to contain all the attributes from both of the original objects
+	var obj3 = {};
     for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
     for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
     return obj3;
@@ -313,5 +285,36 @@ get_drive_state
   longitude: -77.069788,
   heading: 266,
   gps_as_of: 1444400448 }
+  
+  
+  			// USE teslams.get_charge_state( vid, pr );
+			// USE teslams.get_drive_state( vid, pr );
+			// USE teslams.get_vehicle_state( vid, pr );
+
+			// teslams.wake_up( vid, pr );
+			//
+			// get some info
+			//
+			// teslams.mobile_enabled( vid, pr );
+			// teslams.get_climate_state( vid, pr );
+			 
+			// teslams.get_gui_settings( vid, pr );
+			//
+			// cute but annoying stuff while debugging
+			//
+			// teslams.flash( vid, pr ); 
+			// teslams.honk( vid, pr ); 
+			// teslams.open_charge_port( vid, pr ) 
+			//
+			// control some stuff
+			//
+			// teslams.door_lock( { id: vid, lock: "lock" }, pr );
+			// teslams.sun_roof( { id: vid, roof: "close" }, pr );
+			// teslams.auto_conditioning( { id: vid, climate: "off" }, pr ); 
+			// teslams.charge_range( { id: vid, range: "standard" }, pr ); 
+			// teslams.charge_state( { id: vid, charge: "on" }, pr ); 
+			// teslams.set_temperature( { id: vid, dtemp: 20 }, pr ); 
+  
+  
 */
 
