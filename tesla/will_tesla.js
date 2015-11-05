@@ -21,7 +21,7 @@ var util = require('util');
 var http = require('http');
 //var express    = require("express");
 //var mysql      = require('mysql');
-var teslams = require('teslams.js');
+var teslams = require('teslams');
 var oResults = {};
 var nFieldsToLoad = 3;
 
@@ -52,12 +52,20 @@ INSERT INTO `teslaresponse`(`createtime`, `est_battery_range`, `battery_level`, 
 	aFields.push(validField(tslaVals, "heading", "heading") );
 	aFields.push(validField(tslaVals, "gps_as_of", "heading") );
 	
+	//its a problem if no fields are valid!
+	var sFields = aFields.join("");
 	//&field1=80&field2=0&field3=321&field4=239.02&field5=155.79&field6=275.09&field7=33&field8=23&status=6.3
-
+	if(sFields.length == 0)
+	{
+		console.log("ERROR - No fields retrieved");
+		return -1;
+	}
+	
+	
 	var options = {
 	  host: 'api.thingspeak.com',
 	  port: 80,
-	  path: '/update?api_key=MD1PLM36IK1LO9NZ' + aFields.join(""),
+	  path: ('/update?api_key=MD1PLM36IK1LO9NZ' + sFields),
 	  method: 'GET'
 	};
 
@@ -78,7 +86,7 @@ INSERT INTO `teslaresponse`(`createtime`, `est_battery_range`, `battery_level`, 
 	req.write('data\n');
 	req.write('data\n');
 	req.end();
-	console.log("fields: " + aFields.join(""));
+	console.log("fields: " + sFields);
 }
 
 
