@@ -120,8 +120,8 @@ https://nodejs.org/docs/v0.5.2/api/http.html#http.request
 	aFields.push(validField(tslaVals, "longitude", "field8") );
 	aFields.push(validField(tslaVals, "car_version", "status") );
 	
-	
-	
+	console.log(aFields.join(""));
+	//return;
 	//&field1=80&field2=0&field3=321&field4=239.02&field5=155.79&field6=275.09&field7=33&field8=23&status=6.3
 
 	var options = {
