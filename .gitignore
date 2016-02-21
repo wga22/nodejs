@@ -43,3 +43,4 @@ Temporary Items
 .apdisk
 config.json
 vacuum/node_modules/*
+vacuum/vacuumconfig.json

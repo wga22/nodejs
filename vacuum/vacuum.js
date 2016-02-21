@@ -36,7 +36,7 @@ function main()
 	// edit the config.json file to contain your details
 	var fs = require('fs');
 	try {
-		var jsonString = fs.readFileSync("./config.json").toString();
+		var jsonString = fs.readFileSync("./vacuumconfig.json").toString();
 		var cfg = JSON.parse(jsonString);
 		if(
 			util.isNullOrUndefined(cfg.api)
