@@ -16,7 +16,7 @@ Object.defineProperty(Object.prototype, "extend", {
 	}
 });
 
-var util = require('util');
+//var util = require('util');
 var http = require('http');
 var request = require('request');
 
@@ -39,10 +39,10 @@ function main()
 		var jsonString = fs.readFileSync("./vacuumconfig.json").toString();
 		var cfg = JSON.parse(jsonString);
 		if(
-			util.isNullOrUndefined(cfg.api)
-			|| util.isNullOrUndefined(cfg.mbtcamnt)
-			|| util.isNullOrUndefined(cfg.username)
-			|| util.isNullOrUndefined(cfg.tpapi)
+			isNullOrUndefined(cfg.api)
+			|| isNullOrUndefined(cfg.mbtcamnt)
+			|| isNullOrUndefined(cfg.username)
+			|| isNullOrUndefined(cfg.tpapi)
 			)
 		{
 			throw "all config fields must be defined: api,mbtcamnt, username, tpapi ";
@@ -181,13 +181,17 @@ function merge_options(obj1,obj2)
 
 function validField(oObj, sField, sFieldName)
 {
-	if(!util.isNullOrUndefined(oObj) && !util.isNullOrUndefined(oObj[sField]))
+	if(!isNullOrUndefined(oObj) && !isNullOrUndefined(oObj[sField]))
 	{
 		return "&" + sFieldName + "=" + oObj[sField];
 	}
 	return "";
 }
 
+function isNullOrUndefined(oObj)
+{
+	return !((oObj && true) || oObj == 0)
+}
 
 
 /*
