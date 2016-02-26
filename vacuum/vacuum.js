@@ -22,8 +22,9 @@ var request = require('request');
 
 //globals
 var config = {};
-var oValsForTP = {"bal":0, u_hashrate1hr: "0", valstoload:2}
+var oValsForTP = {"bal":0, u_hashrate1hr: "0", "difficulty":"0", valstoload:3}
 var nMaxWait = 60;	//60 seconds, top
+var nDIFFICULTYURL = "https://blockchain.info/q/getdifficulty";
 //var express    = require("express");
 //var mysql      = require('mysql');
 
@@ -57,6 +58,9 @@ function main()
 	
 	//load bal
 	loadBalance();
+	
+	//load difficulty
+	loadDifficulty();
 	
 	//write to thingspeak
 	waitForResults();
@@ -117,14 +121,41 @@ function loadBalance(oVals)
 	  }
 	  oValsForTP.valstoload = oValsForTP.valstoload - 1;
 	});
-
 }
+
+function loadDifficulty()
+{
+	request(nDIFFICULTYURL, function (error, response, body) {
+	  if (!error && response.statusCode == 200) {
+		console.log(body);
+		var nDiff = parseFloat(body);
+		console.log(nDiff);
+		//cr;
+		if(nDiff >=0)
+		{
+			oValsForTP.difficulty = nDiff; 
+		}
+		else
+		{
+			oValsForTP.difficulty = -1;
+		}
+	  }
+	  oValsForTP.valstoload = oValsForTP.valstoload - 1;
+	});
+
+
+
+	
+}
+
+
 
 function writeValuesToThingSpeak()
 {
 	var aFields = [];
 	aFields.push(validField(oValsForTP, "bal", "field1") );
 	aFields.push(validField(oValsForTP, "u_hashrate1hr", "field2") );
+	aFields.push(validField(oValsForTP, "difficulty", "field3") );
 	
 	console.log(aFields.join(""));
 
@@ -154,7 +185,6 @@ function writeValuesToThingSpeak()
 	req.end();
 	console.log("fields: " + aFields.join(""));
 }
-
 
 
 // Generic callback function to print the return value
