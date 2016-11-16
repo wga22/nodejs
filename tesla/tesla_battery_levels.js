@@ -22,8 +22,6 @@ var http = require('http');
 //var express    = require("express");
 //var mysql      = require('mysql');
 var teslams = require('teslams');
-var oResults = {};
-var nFieldsToLoad = 3;		//how many different function calls to make
 
 //MAIN
 //testing();
@@ -31,7 +29,8 @@ main();
 
 function main()
 {
-    function pr(stuff) {
+    function pr(stuff) 
+	{
     }
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
 	var fs = require('fs');
@@ -48,6 +47,16 @@ function main()
 		process.exit(1);
 	}
 
+	teslams.get_vid( { email: creds.email, password: creds.password }, getChargeDetails); 
+}
+
+function getChargeDetails(vid)
+{
+	teslams.get_charge_state( vid, setChargeLevel );
+}
+
+function setChargeLevel(jsonVals)
+{
 	/*
 	objectives:
 	Sun - 60
@@ -59,40 +68,39 @@ function main()
 	Sat	- 50
 	*/
 	
-	
-	
-	teslams.get_vid( { email: creds.email, password: creds.password }, function ( vid ) {
-		if (vid == undefined) {
-			console.log("Error: Undefined vehicle id");
-		} else {
-			//
-			// Remember node.js is all async and non-blocking so any uncommented lines below will generate requests in parallel
-			// Uncomment too many lines at once and you will get yourself blocked by the Tesla DoS protection systems.
-			//
-			//TODO, how to get multiple parts?
-
-			console.log("get charge state");
-			//teslams.honk(vid, pr);
-			var nToday = (new Date()).getDay();
-			var sPercent = '90';
-			switch( nToday)
-			{
-				case 0 : sPercent = '65'; break;
-				case 1 : sPercent = '70'; break;
-				case 2 : sPercent = '80'; break;
-				case 3 : sPercent = '70'; break;
-				case 4 : sPercent = '100'; break;
-				case 5 : sPercent = '90'; break;
-				case 6 : sPercent = '50'; break;
-			}
-			console.log('Day of week: ' + nToday);
-			console.log('Set percent to : ' + sPercent);
-			teslams.charge_range({ id: vid, range: 'set', percent: sPercent }, pr);
-			//teslams.set_charge_state(  );
-		}
-	  }
-	);
+	var nCurrentLevel = jsonVals.battery_level;
+	console.log("get charge state:" + nCurrentLevel);
+	//teslams.honk(vid, pr);
+	var nToday = (new Date()).getDay();
+	var sPercent = '90';
+	switch( nToday)
+	{
+		case 0 : sPercent = '65'; break;
+		case 1 : sPercent = '70'; break;
+		case 2 : sPercent = '80'; break;
+		case 3 : sPercent = '70'; break;
+		case 4 : sPercent = (handleMax(nCurrentLevel, 70) + ''); break;
+		case 5 : sPercent = '90'; break;
+		case 6 : sPercent = '50'; break;
+	}
+	console.log('Day of week: ' + nToday);
+	console.log('Set percent to : ' + sPercent);
 }
+
+function handleMax(a_nChargeLvl, a_nPrev)
+{
+	//if the previous level is still there today, must mean car is dormant
+	var nLevel = 100;
+	if(a_nPrev <= (a_nChargeLvl+4))
+	{
+		console.log("doesn't merit charging the car more, since looks like it was sitting");
+		console.log("previous:" + a_nPrev + " current level:" + a_nChargeLvl);
+		nLevel = a_nPrev;
+	}
+	return nLevel;
+	
+}
+
 
 /**
  * Overwrites obj1's values with obj2's and adds obj2's if non existent in obj1
