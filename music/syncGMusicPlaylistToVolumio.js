@@ -20,11 +20,23 @@ main();
 function main()
 {
 	loadCreds();
+	console.log(creds.email);
+	
 	var pm = new PlayMusic();
 	pm.init(creds, function(err) {
 		if(err) console.error(err);
-		// place code here
-	})
+
+		pm.getPlayLists(function(err, data) {
+        console.log(data.data.items);
+    });
+
+    // gets all playlists, and all entries on each
+    pm.getPlayListEntries(function(err, data) {
+        console.log(data.data.items);
+    });
+
+
+		})
 }
 
 function loadCreds()
@@ -32,11 +44,13 @@ function loadCreds()
 	try {
 
 		var jsonString = fs.readFileSync("./config.json").toString();
-		var config = JSON.parse(jsonString);
-		creds = { 
-			email: config.username, 
-			password: config.password 
-		};
+		creds = JSON.parse(jsonString);
+		
+		if(creds.email === null || creds.password === null)
+		{
+			throw {desc: "error loading creds"};
+		}
+		
 	} catch (err) {
 		console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
