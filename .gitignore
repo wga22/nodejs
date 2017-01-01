@@ -46,3 +46,4 @@ vacuum/node_modules/*
 tesla/node_modules/*
 node_modules/*
 vacuum/vacuumconfig.json
+*.txt
