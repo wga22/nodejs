@@ -22,16 +22,18 @@ var http = require('http');
 //var express    = require("express");
 //var mysql      = require('mysql');
 var teslams = require('teslams');
+var vid = null;
 
 //MAIN
 //testing();
 main();
-
+function pr(stuff) 
+{
+	console.log("Calling PR");
+}
 function main()
 {
-    function pr(stuff) 
-	{
-    }
+
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
 	var fs = require('fs');
 	try {
@@ -50,9 +52,10 @@ function main()
 	teslams.get_vid( { email: creds.email, password: creds.password }, getChargeDetails); 
 }
 
-function getChargeDetails(vid)
+function getChargeDetails(a_vid)
 {
-	teslams.get_charge_state( vid, setChargeLevel );
+	vid = a_vid;
+	teslams.get_charge_state( a_vid, setChargeLevel );
 }
 
 function setChargeLevel(jsonVals)
@@ -68,23 +71,36 @@ function setChargeLevel(jsonVals)
 	Sat	- 50
 	*/
 	
-	var nCurrentLevel = jsonVals.battery_level;
-	console.log("get charge state:" + nCurrentLevel);
-	//teslams.honk(vid, pr);
-	var nToday = (new Date()).getDay();
-	var sPercent = '90';
-	switch( nToday)
+	if (jsonVals.battery_range !== undefined) 
 	{
-		case 0 : sPercent = '65'; break;
-		case 1 : sPercent = '70'; break;
-		case 2 : sPercent = '80'; break;
-		case 3 : sPercent = '70'; break;
-		case 4 : sPercent = (handleMax(nCurrentLevel, 70) + ''); break;
-		case 5 : sPercent = '90'; break;
-		case 6 : sPercent = '50'; break;
+		var nCurrentLevel = jsonVals.battery_level;
+		//jsonVals.metric_battery_range = (jsonVals.battery_range * 1.609344).toFixed(2);
+		console.log("Current Charge Level:" + nCurrentLevel);
+		console.log("Current Range:" + jsonVals.battery_range);
+		//teslams.honk(vid, pr);
+		var nToday = (new Date()).getDay();
+		var nPercent = 90;
+		switch( nToday)
+		{
+			case 0 : nPercent = 65; break;
+			case 1 : nPercent = 70; break;
+			case 2 : nPercent = 80; break;
+			case 3 : nPercent = 70; break;
+			case 4 : nPercent = handleMax(nCurrentLevel, 70); break;
+			case 5 : nPercent = 90; break;
+			case 6 : nPercent = 50; break;
+		}
+		console.log('Day of week: ' + nToday);
+		console.log('Set percent to : ' + nPercent);
+		teslams.charge_range( { id: vid, range: 'set', percent: (nPercent) }, pr );
 	}
-	console.log('Day of week: ' + nToday);
-	console.log('Set percent to : ' + sPercent);
+	else
+	{
+		console.log("Issue getting values...");
+		console.log(jsonVals);
+	}
+
+	
 }
 
 function handleMax(a_nChargeLvl, a_nPrev)
