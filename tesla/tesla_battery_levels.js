@@ -48,7 +48,7 @@ function main()
 		console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
 	}
-
+	console.log("-----Running-----");
 	teslams.get_vid( { email: creds.email, password: creds.password }, getChargeDetails); 
 }
 
