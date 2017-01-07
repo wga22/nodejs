@@ -18,7 +18,8 @@ Object.defineProperty(Object.prototype, "extend", {
 
 
 var util = require('util');
-var http = require('ftp');
+var http = require('ftp');	//https://github.com/mscdex/node-ftp
+var fs = require('fs');	//https://nodejs.org/api/fs.html
 
 //MAIN
 main();
@@ -32,14 +33,57 @@ function main()
 		var jsonString = fs.readFileSync("./config.json").toString();
 		var config = JSON.parse(jsonString);
 		console.log("-----Running-----");
-		ftpTest(config);
+		//ftpTest(config);
+		ftpHTMLFiles(config);
 	} catch (err) {
 		console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
 	}
-	
-	
+	//listFilesToMove();	
 }
+
+function getFilesToMove(sPath)
+{
+	var aFiles = fs.readdirSync(sPath);
+	var aHTMLFiles = aFiles.filter(function(val){return val.match(/html/i)});
+	for(var x in aHTMLFiles)
+	{
+		//aHTMLFiles[x]
+		console.log(aHTMLFiles[x]);
+	}
+	return aHTMLFiles;
+}
+
+
+function ftpHTMLFiles(jsonCreds)
+{
+	function onConnectReady()
+	{
+		var sLocalPath = jsonCreds.localHTMLPath;
+		var aFilesToMove = getFilesToMove(sLocalPath);
+		for(var x in aFilesToMove)
+		{
+			var sLocalFile = (sLocalPath +'/'+ aFilesToMove[x]);
+			console.log(sLocalFile + " - > " + jsonCreds.remotePath);
+			c.put(sLocalFile, jsonCreds.remotePath +aFilesToMove[x] , throwErr);
+		}
+
+	}
+
+	function throwErr(err)
+	{
+		if (err) throw err;
+		c.end();
+	}
+	var Client = require('ftp');
+	var fs = require('fs');
+
+	var c = new Client();
+	c.on('ready', onConnectReady);
+	// connect to localhost:21 as anonymous
+	c.connect(jsonCreds);
+}
+
 
 function ftpTest(jsonCreds)
 {
@@ -58,19 +102,7 @@ function ftpTest(jsonCreds)
 	// connect to localhost:21 as anonymous
 	c.connect(jsonCreds);
 }
-function handleMax(a_nChargeLvl, a_nPrev)
-{
-	//if the previous level is still there today, must mean car is dormant
-	var nLevel = 100;
-	if(a_nPrev <= (a_nChargeLvl+4))
-	{
-		console.log("doesn't merit charging the car more, since looks like it was sitting");
-		console.log("previous:" + a_nPrev + " current level:" + a_nChargeLvl);
-		nLevel = a_nPrev;
-	}
-	return nLevel;
-	
-}
+
 
 
 /**
