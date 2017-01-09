@@ -134,6 +134,18 @@ function validField(oObj, sField, sFieldName)
 
 /*
 NOTES: 
+
+{
+        "host": "willallencoding.scienceontheweb.net",
+        "user": "1583755",
+        "password": "xxxxx",
+		"localHTMLPath" : "C:/Users/Will/Documents/development/github/pure_html",
+		"remotePath" : "/willallencoding.scienceontheweb.net/"
+}
+
+
+
+
   var Client = require('ftp');
   var fs = require('fs');
 
