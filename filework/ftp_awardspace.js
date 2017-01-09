@@ -30,7 +30,7 @@ function main()
 	var fs = require('fs');
 	try {
 
-		var jsonString = fs.readFileSync("./config.json").toString();
+		var jsonString = fs.readFileSync("./ftp_config.json").toString();
 		var config = JSON.parse(jsonString);
 		console.log("-----Running-----");
 		//ftpTest(config);
