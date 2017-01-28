@@ -20,6 +20,14 @@ Architecture
 	have loop, with 1 minute sleep, and refresh the lcd each 1 minute
 
 
+useful URLs - details:
+ http://hfboards.hockeysfuture.com/showthread.php?t=1596119
+
+data feeds:
+http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
+
+
+ http://live.nhl.com/GameData/GCScoreboard/yyyy-mm-dd.jsonp	
 */
 
 
