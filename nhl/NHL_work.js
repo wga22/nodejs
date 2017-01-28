@@ -1,5 +1,28 @@
 #!/usr/bin/env node
 
+/*
+NOTES:
+display
+	current/latest score
+	standings
+	latest action
+	time and date
+	
+sound and light
+	end of game, play the winner's buzzer
+	my team, play the buzzer
+	
+challenges
+	when a game isnt listed on the game list
+	
+Architecture
+	cron on bootup (since will have date and time) - will run full time
+	have loop, with 1 minute sleep, and refresh the lcd each 1 minute
+
+
+*/
+
+
 Object.defineProperty(Object.prototype, "extend", {
 	enumerable: false,
 	value: function(from) {
@@ -20,6 +43,13 @@ Object.defineProperty(Object.prototype, "extend", {
 var util = require('util');
 var http = require('http');
 var ConfigJSON = {myteam: "WSH"};
+var REFRESHTIME = 60000;	//1 minute
+var oLCDData = {lastactiondesc: "", date: (new Date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
+var oLatestGame = {};
+var fTesting = true;
+var aoMyTeamGames = [];
+var nNextGame = 0;
+var nCurrentGame = 0;
 
 var THISSEASON = null;
 //MAIN
@@ -27,11 +57,106 @@ main();
 
 function main()
 {
-	//load config
+	//init data
 	ConfigJSON = loadConfig();
 	//load the games
 	loadURLasJSON(NHLurl(), loadGames);
-	//
+}
+
+function loadGames(aoGames)
+{
+	//https://www.reddit.com/r/nhl/comments/2i13xa/places_to_get_raw_statistics/
+	//http://live.nhl.com/GameData/SeasonSchedule-20162017.json
+	console.log("loaded all the games: " + aoGames.length);
+	var sMyTeam = ConfigJSON.myteam;
+	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
+	console.log("filtered just the "+sMyTeam+" games: " + aoMyTeamGames.length);
+	getDetailsFromLastGame();
+}
+
+function gameDetailsURL(sGameID)
+{
+	//http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
+	return "http://live.nhl.com/GameData/"+NHLSeason()+"/"+sGameID+"/PlayByPlay.json";
+}
+
+function getDetailsFromLastGame()
+{	
+	var dToday = new Date();
+	var x=0;
+	for(; x < aoMyTeamGames.length && parseDateStr(aoMyTeamGames[x].est) < dToday; x++)
+	{
+		//nothing
+	}
+	x--; //back up to the previous game
+	//console.log(x + " ?? " + aoMyTeamGames.length)
+	var sGameID = aoMyTeamGames[x].id;
+	console.log("most recent game is: " + sGameID);
+	var sGameURL = gameDetailsURL(sGameID);
+	console.log("loading details from recent game: " + sGameURL);
+	//http://live.nhl.com/GameData/20162017/2016020741/PlayByPlay.json
+	loadURLasJSON(sGameURL, populateLastGame);
+}
+
+function populateLastGame(a_oLastGame)
+{
+	pr(a_oLastGame);
+	oLatestGame = a_oLastGame;
+	//pr(a_oLastGame.data.game.plays);
+	sleepAndRefresh();
+}
+
+function sleepAndRefresh()
+{
+	refreshLCD();
+	//console.log("WWWWWW");
+	setTimeout(sleepAndRefresh, REFRESHTIME);
+}
+
+function refreshLCD()
+{
+	//loadRecentGame();
+	//set time
+	oLCDData.date = new Date();
+	//draw LCD
+	drawLCD();
+}
+
+function drawLCD()
+{
+	//time date
+	// current/last score
+	//last event
+	//current standings
+	//var oLCDData = {lastactiondesc: "", date: (new date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
+	console.log("...............");
+	pr(oLCDData);
+}
+
+function loadRecentGame()
+{
+	var nCurrentTime = (new Date()).getTime();
+	//game is either in progress, or show previous game stats
+	if(nNextGame < nCurrentTime)	//the next game is in the past, so figure out when the next game is
+	{
+		nNextGame = timeOfNextGame();
+		loadURLasJSON(sURL, drawLCD);	
+	}
+	else	//load pre
+	{
+		
+	}
+}
+
+function timeOfNextGame()
+{
+	var nTimeOfNextGame = 0;
+	
+	for(var x=0; x < aoMyTeamGames.length; x++)
+	{
+		
+	}
+	return nTimeOfNextGame;
 }
 
 function NHLurl()
@@ -44,37 +169,11 @@ function fGameIsToday(dDateNow, dDateGame)
 {
 	//console.log(dDateGame.toString() + " > " + dDateNow.getYear() + "="+  dDateGame.getYear()  + "  &"+ dDateNow.getMonth()  + "="+ dDateGame.getMonth()  + " & "+  dDateNow.getDate() + 
 	//"="+ dDateGame.getDate())
+	
 	return dDateNow.getYear() === dDateGame.getYear() && dDateNow.getMonth() === dDateGame.getMonth() && dDateNow.getDate() === dDateGame.getDate();
 }
 
-function loadGames(aoGames)
-{
-//https://www.reddit.com/r/nhl/comments/2i13xa/places_to_get_raw_statistics/
-	//http://live.nhl.com/GameData/SeasonSchedule-20162017.json
-	
-	var sMyTeam = ConfigJSON.myteam;
-	var aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam})
-	var dToday = new Date();
-	for(var x=0; x < aoMyTeamGames.length; x++)
-	{
-		var dGameDate = parseDateStr(aoMyTeamGames[x].est);
-		//console.log(aoMyTeamGames[x].est);
-		if(fGameIsToday(dToday, dGameDate))
-		{
-			//http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
-			// http://live.nhl.com/GameData/20162017/2016020733/gc/gcbx.jsonp
-			console.log(dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
-			//console.log(aoMyTeamGames[x].id);
-			waitForGame(aoMyTeamGames[x].id);
-			return;
-		}
-		else
-		{
-			//console.log(dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
-		}
-	}
-	//console.log("fields: " + aoGames.length);
-}
+
 
 function waitForGame(sGameID)
 {
@@ -135,11 +234,12 @@ function parseDateStr(a_sDate)
 
 function NHLSeason()
 {
+	//TODO: handle when the "previous" game is from last season
 	if(THISSEASON === null)
 	{
 		var dToday = new Date();
-		var sYear1 = 1900 + (dToday.getMonth() < 7 ? (dToday.getYear()-1)  : (dToday.getYear())); 
-		var sYear2 = 1900 + (dToday.getMonth() < 7 ? (dToday.getYear()) : (dToday.getYear()+1));
+		var sYear1 = 1900 + (dToday.getMonth() < 9 ? (dToday.getYear()-1)  : (dToday.getYear())); 
+		var sYear2 = 1900 + (dToday.getMonth() < 9 ? (dToday.getYear()) : (dToday.getYear()+1));
 		THISSEASON = sYear1 +""+ sYear2;
 	}
 	return THISSEASON;
@@ -190,7 +290,7 @@ function loadURLasJSON(sURL, funcCallback)
 
 		res.on('end', function(){
 			var oObj = JSON.parse(body);
-			console.log("Got a response: ");
+			//console.log("Got a response: ");
 			funcCallback(oObj);
 		});
 	}).on('error', function(e){
@@ -198,81 +298,32 @@ function loadURLasJSON(sURL, funcCallback)
 	});
 }
 
+function WHATEVER()
+{		
+	var dToday = new Date();
+	for(var x=0; x < aoMyTeamGames.length; x++)
+	{
+		var dGameDate = parseDateStr(aoMyTeamGames[x].est);
+		//console.log(aoMyTeamGames[x].est);
+		if(fGameIsToday(dToday, dGameDate))
+		{
+			//http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
+			// http://live.nhl.com/GameData/20162017/2016020733/gc/gcbx.jsonp
+			console.log(dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
+			//console.log(aoMyTeamGames[x].id);
+			waitForGame(aoMyTeamGames[x].id);
+			return;
+		}
+		else
+		{
+			//console.log(dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
+		}
+	}
+	return oOutputData();
+}
+
 /*
 NOTES: 
-get_charge_state:
-	{ charging_state: null,
-  charge_limit_soc: 84,
-  charge_limit_soc_std: 90,
-  charge_limit_soc_min: 50,
-  charge_limit_soc_max: 100,
-  charge_to_max_range: false,
-  battery_heater_on: null,
-  not_enough_power_to_heat: null,
-  max_range_charge_counter: 0,
-  fast_charger_present: false,
-  fast_charger_type: '<invalid>',
-  battery_range: 185.97,
-  est_battery_range: 204.26,
-  ideal_battery_range: 232.06,
-  battery_level: 78,
-  usable_battery_level: 78,
-  battery_current: 0,
-  charge_energy_added: 22.66,
-  charge_miles_added_rated: 79,
-  charge_miles_added_ideal: 98.5,
-  charger_voltage: 1,
-  charger_pilot_current: null,
-  charger_actual_current: 0,
-  charger_power: 0,
-  time_to_full_charge: 0,
-  trip_charging: null,
-  charge_rate: 0,
-  charge_port_door_open: false,
-  motorized_charge_port: true,
-  scheduled_charging_start_time: null,
-  scheduled_charging_pending: false,
-  user_charge_enable_request: null,
-  charge_enable_request: true,
-  eu_vehicle: false,
-  charger_phases: null }
-get_drive_state
-{ shift_state: null,
-  speed: null,
-  latitude: 38.895555,
-  longitude: -77.069788,
-  heading: 266,
-  gps_as_of: 1444400448 }
-  
-  
-  			// USE teslams.get_charge_state( vid, pr );
-			// USE teslams.get_drive_state( vid, pr );
-			// USE teslams.get_vehicle_state( vid, pr );
-
-			// teslams.wake_up( vid, pr );
-			//
-			// get some info
-			//
-			// teslams.mobile_enabled( vid, pr );
-			// teslams.get_climate_state( vid, pr );
-			 
-			// teslams.get_gui_settings( vid, pr );
-			//
-			// cute but annoying stuff while debugging
-			//
-			// teslams.flash( vid, pr ); 
-			// teslams.honk( vid, pr ); 
-			// teslams.open_charge_port( vid, pr ) 
-			//
-			// control some stuff
-			//
-			// teslams.door_lock( { id: vid, lock: "lock" }, pr );
-			// teslams.sun_roof( { id: vid, roof: "close" }, pr );
-			// teslams.auto_conditioning( { id: vid, climate: "off" }, pr ); 
-			// teslams.charge_range( { id: vid, range: "standard" }, pr ); 
-			// teslams.charge_state( { id: vid, charge: "on" }, pr ); 
-			// teslams.set_temperature( { id: vid, dtemp: 20 }, pr ); 
-  
   
 */
 

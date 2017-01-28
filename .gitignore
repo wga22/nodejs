@@ -49,3 +49,4 @@ vacuum/vacuumconfig.json
 *.txt
 *.json
 nhl/npm-debug.log
+temp/nodejs.zip
