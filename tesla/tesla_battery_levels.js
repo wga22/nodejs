@@ -74,21 +74,28 @@ function setChargeLevel(jsonVals)
 	if (jsonVals.battery_range !== undefined) 
 	{
 		var nCurrentLevel = jsonVals.battery_level;
+		//if lots of miles have been added via charging, or the battery level is low, means previous day was big day, so make sure set to 100 for the next day on the weekend
+		var fCarUsedHeavilyPreviousDay =jsonVals.charge_miles_added_rated > 70 || jsonVals.battery_level < 50;
 		//jsonVals.metric_battery_range = (jsonVals.battery_range * 1.609344).toFixed(2);
-		console.log("Current Charge Level:" + nCurrentLevel);
-		console.log("Current Range:" + jsonVals.battery_range);
+		console.log("Current Charge Level:" + nCurrentLevel + " Current Range: " + jsonVals.battery_range);
+		console.log("Charge added so far: " + jsonVals.charge_miles_added_rated);
+		
 		//teslams.honk(vid, pr);
 		var nToday = (new Date()).getDay();
 		var nPercent = 90;
 		switch( nToday)
 		{
-			case 0 : nPercent = 65; break;
-			case 1 : nPercent = 70; break;
-			case 2 : nPercent = 80; break;
-			case 3 : nPercent = 70; break;
-			case 4 : nPercent = handleMax(nCurrentLevel, 70); break;
-			case 5 : nPercent = 90; break;
-			case 6 : nPercent = 50; break;
+			case 0 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90); 
+				console.log("Setting to 100% since previous day was heavy use, and still weekend travel");
+				break;	//Sunday (runs ~1am sunday)
+			case 1 : nPercent = 70; break;	//Monday
+			case 2 : nPercent = 75; break;	//tuesday
+			case 3 : nPercent = 60; break;	// wednesday
+			case 4 : nPercent = 80; break;	//Thursday
+			case 5 : nPercent = 95; ; break;	//friday
+			case 6 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90); 
+				console.log("Setting to 100% since previous day was heavy use, and still weekend travel");
+				break;	//saturday
 		}
 		console.log('Day of week: ' + nToday);
 		console.log('Set percent to : ' + nPercent);
@@ -103,20 +110,23 @@ function setChargeLevel(jsonVals)
 	
 }
 
+/*
+//mothballed since doesnt make sense to compare previous level, since car is likely charging,
+// and should be back to same level by time program runs
 function handleMax(a_nChargeLvl, a_nPrev)
 {
 	//if the previous level is still there today, must mean car is dormant
 	var nLevel = 100;
 	if(a_nPrev <= (a_nChargeLvl+4))
 	{
-		console.log("doesn't merit charging the car more, since looks like it was sitting");
+		console.log("Looks like car wasnt useddoesn't merit charging the car more, since looks like it was sitting");
 		console.log("previous:" + a_nPrev + " current level:" + a_nChargeLvl);
 		nLevel = a_nPrev;
 	}
 	return nLevel;
 	
 }
-
+*/
 
 /**
  * Overwrites obj1's values with obj2's and adds obj2's if non existent in obj1
