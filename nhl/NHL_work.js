@@ -19,10 +19,21 @@ Architecture
 	cron on bootup (since will have date and time) - will run full time
 	have loop, with 1 minute sleep, and refresh the lcd each 1 minute
 
+	initializeTheGamesList
+	Loop each Minute
+	{
+		if: beforegame, show date, time and previous score/standings
+		if: duringgame: show time, GAME time, score
+		if: aftergame: figure out when next game is
+	}
 
 useful URLs - details:
  http://hfboards.hockeysfuture.com/showthread.php?t=1596119
+ http://whatsyourtech.ca/2013/06/14/we-scored-app-roars-when-your-nhl-team-scores/
 
+Sound files
+	http://wejustscored.com/audio/wsh.mp3
+	http://wejustscored.com/audio/<TEAM>.mp3
 data feeds:
 http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
 
@@ -58,8 +69,6 @@ var fTesting = true;
 var aoMyTeamGames = [];
 var nNextGame = 0;
 var nCurrentGame = 0;
-
-var THISSEASON = null;
 //MAIN
 main();
 
@@ -68,18 +77,61 @@ function main()
 	//init data
 	ConfigJSON = loadConfig();
 	//load the games
-	loadURLasJSON(NHLurl(), loadGames);
+	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
 }
 
-function loadGames(aoGames)
+function initializeTheGamesList(aoGames)
 {
 	//https://www.reddit.com/r/nhl/comments/2i13xa/places_to_get_raw_statistics/
 	//http://live.nhl.com/GameData/SeasonSchedule-20162017.json
 	console.log("loaded all the games: " + aoGames.length);
 	var sMyTeam = ConfigJSON.myteam;
 	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
-	console.log("filtered just the "+sMyTeam+" games: " + aoMyTeamGames.length);
-	getDetailsFromLastGame();
+	console.log("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
+
+	printSchedule();
+	//getAudioFiles();
+	//kick things off!
+	//updateDisplayEachMinute();
+
+}
+
+
+function updateDisplayEachMinute()
+{
+	var currentGameState = getCurrentGameState();
+	var dToday = new Date();
+	if(getCurrentGameState.BEFOREGAME === currentGameState)
+	{
+		//before game, just show the standings, and score from previous game
+	
+	}
+	else if(getCurrentGameState.INGAME === currentGameState)
+	{
+		//load details
+	}
+	else if(getCurrentGameState.AFTERGAME === currentGameState)
+	{
+		//after game, so hold onto the last values until another game starts
+		//figure out when the next game will be
+		//TODO, break if you cannot find an upcoming game!  could be end of season?
+	}
+	console.log(dToday.toString() + " currentgame state: " + currentGameState);
+	setTimeout(updateDisplayEachMinute, REFRESHTIME);
+}
+
+getCurrentGameState.INGAME = 1;
+getCurrentGameState.BEFOREGAME = 2;
+getCurrentGameState.AFTERGAME = 3;
+function getCurrentGameState()
+{
+	var dToday = new Date();
+	for(var x=0; x < aoMyTeamGames.length; x++)
+	{
+		var dGameDate = parseDateStr(aoMyTeamGames[x].est);
+		//console.log(aoMyTeamGames[x].est);
+		console.log((dGameDate < dToday ? "PAST" : "future") +  dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
+	}
 }
 
 function gameDetailsURL(sGameID)
@@ -167,11 +219,6 @@ function timeOfNextGame()
 	return nTimeOfNextGame;
 }
 
-function NHLurl()
-{
-	var sYears =  NHLSeason();
-	return "http://live.nhl.com/GameData/SeasonSchedule-"+sYears+".json"	
-}
 
 function fGameIsToday(dDateNow, dDateGame)
 {
@@ -222,6 +269,64 @@ function checkOutTheGame(oGameStats)
 }
 
 
+//// NHL specific functions
+
+
+function printSchedule()
+{		
+	var dToday = new Date();
+	for(var x=0; x < aoMyTeamGames.length; x++)
+	{
+		var dGameDate = parseDateStr(aoMyTeamGames[x].est);
+		//console.log(aoMyTeamGames[x].est);
+		console.log((dGameDate < dToday ? "PAST" : "future") +  dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
+	}
+}
+
+function getAudioFiles()
+{
+	var oTeams = {};
+	return //no need to grab these again
+	for(var x=0; x < aoMyTeamGames.length; x++)
+	{
+		oTeams[aoMyTeamGames[x].a] = true;
+		//console.log((dGameDate < dToday ? "PAST" : "future") +  dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
+	}
+
+	var exec = require('child_process').exec;
+	for(var t in oTeams)
+	{
+		var mp3URL = "http://wejustscored.com/audio/"+(t+"").toLowerCase() +".mp3"
+		console.log(mp3URL);
+		var cmd = "wget " + mp3URL;
+		exec(cmd, function(error, stdout, stderr) { console.log("downloaded...." + cmd)});
+	}
+}
+
+getNHLSeasonString.THISSEASON = null;
+function getNHLSeasonString()
+{
+	//TODO: handle when the "previous" game is from last season
+	if(getNHLSeasonString.THISSEASON == null)
+	{
+		var dToday = new Date();
+		var sYear1 = 1900 + (dToday.getMonth() < 9 ? (dToday.getYear()-1)  : (dToday.getYear())); 
+		var sYear2 = 1900 + (dToday.getMonth() < 9 ? (dToday.getYear()) : (dToday.getYear()+1));
+		getNHLSeasonString.THISSEASON = sYear1 +""+ sYear2;
+		//console.log("UGGHH" + getNHLSeasonString.THISSEASON)
+	}
+	return getNHLSeasonString.THISSEASON;
+}
+
+function getNHLSeasonURL()
+{
+	var sYears =  getNHLSeasonString();
+	return "http://live.nhl.com/GameData/SeasonSchedule-"+sYears+".json"	
+}
+
+
+////////////HELPER FUNCTIONS //////////////////
+
 function parseDateStr(a_sDate)
 {
 	//20170318 19:00:00
@@ -240,22 +345,45 @@ function parseDateStr(a_sDate)
 	return dDate;
 }
 
-function NHLSeason()
-{
-	//TODO: handle when the "previous" game is from last season
-	if(THISSEASON === null)
-	{
-		var dToday = new Date();
-		var sYear1 = 1900 + (dToday.getMonth() < 9 ? (dToday.getYear()-1)  : (dToday.getYear())); 
-		var sYear2 = 1900 + (dToday.getMonth() < 9 ? (dToday.getYear()) : (dToday.getYear()+1));
-		THISSEASON = sYear1 +""+ sYear2;
-	}
-	return THISSEASON;
+
+// Generic callback function to print the return value
+function pr( jsonVals ) {
+	console.log( util.inspect( jsonVals ) );
+	//writeValuesToThingSpeak(jsonVals)
 }
 
+function loadURLasJSON(sURL, funcCallback)
+{
+	http.get(sURL, function(res){
+		var body = '';
+
+		res.on('data', function(chunk){
+			body += chunk;
+		});
+
+		res.on('end', function()
+		{
+			var oObj = {};
+			try
+			{
+				oObj = JSON.parse(body);				
+			}
+			catch(e) {console.log("Something unexpected with the response from " + sURL);}
+			//console.log("Got a response: ");
+			funcCallback(oObj);
+		});
+	}).on('error', function(e){
+		  console.log("Got an error: ", e);
+	});
+}
 
 function loadConfig()
 {
+	/* SAMPLE FILE
+	{
+		"myteam": "WSH"
+	}
+	*/
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
 	var fs = require('fs');
 	var oJSON =  {};
@@ -270,14 +398,7 @@ function loadConfig()
 }
 
 
-// Generic callback function to print the return value
-function pr( jsonVals ) {
-	console.log( util.inspect( jsonVals ) );
-	//writeValuesToThingSpeak(jsonVals)
-}
-
-
-
+////////////////  JUNK  ////////////////////
 function validField(oObj, sField, sFieldName)
 {
 	if(!util.isNullOrUndefined(oObj) && !util.isNullOrUndefined(oObj[sField]))
@@ -286,26 +407,6 @@ function validField(oObj, sField, sFieldName)
 	}
 	return "";
 }
-
-function loadURLasJSON(sURL, funcCallback)
-{
-	http.get(sURL, function(res){
-		var body = '';
-
-		res.on('data', function(chunk){
-			body += chunk;
-		});
-
-		res.on('end', function(){
-			var oObj = JSON.parse(body);
-			//console.log("Got a response: ");
-			funcCallback(oObj);
-		});
-	}).on('error', function(e){
-		  console.log("Got an error: ", e);
-	});
-}
-
 function WHATEVER()
 {		
 	var dToday = new Date();
