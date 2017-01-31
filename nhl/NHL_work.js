@@ -2,18 +2,20 @@
 
 /*
 NOTES:
-display
+Potential display ideas (* = mandatory)
 	current/latest score
 	standings
 	latest action
 	time and date
+	game time
 	
 sound and light
-	end of game, play the winner's buzzer
-	my team, play the buzzer
+	end of game, play the winner's buzzer (mp3 files), and spin light
+	upon goal for my team, play the buzzer
 	
 challenges
 	when a game isnt listed on the game list
+	end of season
 	
 Architecture
 	cron on bootup (since will have date and time) - will run full time
@@ -25,6 +27,7 @@ Architecture
 		if: beforegame, show date, time and previous score/standings
 		if: duringgame: show time, GAME time, score
 		if: aftergame: figure out when next game is
+		if: after season? wait until september?
 	}
 
 useful URLs - details:
