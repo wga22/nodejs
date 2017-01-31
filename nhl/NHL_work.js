@@ -39,7 +39,17 @@ http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
 
 
  http://live.nhl.com/GameData/GCScoreboard/yyyy-mm-dd.jsonp	
-*/
+
+ UNsorted
+	http://app.cgy.nhl.yinzcam.com/V2/Stats/Standings
+	http://hfboards.hockeysfuture.com/showthread.php?t=1596119
+	http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
+	http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
+	http://live.nhl.com/GameData/20162017/2016020733/gc/gcbx.jsonp
+	https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#q=nhl+live+game+json
+ 
+ 
+ */
 
 
 Object.defineProperty(Object.prototype, "extend", {
