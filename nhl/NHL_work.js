@@ -75,12 +75,14 @@ Object.defineProperty(Object.prototype, "extend", {
 var util = require('util');
 var http = require('http');
 var ConfigJSON = {myteam: "WSH"};
-var REFRESHTIME = 60000;	//1 minute
+var MILLISPERMINUTE = 60000;	//1 minute
+var MILLISPERHOUR = MILLISPERMINUTE * 60;
 var oLCDData = {lastactiondesc: "", date: (new Date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
 var oLatestGame = {};
 var fTesting = true;
 var aoMyTeamGames = [];
-var nNextGame = 0;
+var oPrevGameResults = {};
+var oPrevAndNextGames = {};
 var nCurrentGame = 0;
 //MAIN
 main();
@@ -102,155 +104,174 @@ function initializeTheGamesList(aoGames)
 	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
 	console.log("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
 
-	printSchedule();
+	//printSchedule();
 	//getAudioFiles();
 	//kick things off!
-	//updateDisplayEachMinute();
+	oPrevAndNextGames = getPreviousAndNextGames();
+	//getPreviousGameStats();
+	//getNextGameStart();
+	updateDisplayEachMinute();
 
 }
-
 
 function updateDisplayEachMinute()
 {
-	var currentGameState = getCurrentGameState();
 	var dToday = new Date();
-	if(getCurrentGameState.BEFOREGAME === currentGameState)
-	{
-		//before game, just show the standings, and score from previous game
 	
-	}
-	else if(getCurrentGameState.INGAME === currentGameState)
+	oPrevGameResults = new GameResults(oPrevAndNextGames.previousGame, ConfigJSON.myteam);
+	oPrevGameResults.showResults(dToday);
+	
+	//time to move on to a new game
+	if(oPrevAndNextGames && oPrevAndNextGames.nextGame <= dToday)
 	{
-		//load details
+		console.log("time to move on to a new game");
+		oPrevAndNextGames = getPreviousAndNextGames();
+		oPrevGameResults = new GameResults(oPrevAndNextGames.previousGame, ConfigJSON.myteam);
 	}
-	else if(getCurrentGameState.AFTERGAME === currentGameState)
-	{
-		//after game, so hold onto the last values until another game starts
-		//figure out when the next game will be
-		//TODO, break if you cannot find an upcoming game!  could be end of season?
-	}
-	console.log(dToday.toString() + " currentgame state: " + currentGameState);
-	setTimeout(updateDisplayEachMinute, REFRESHTIME);
+	
+	//console.log(dToday.toString() + " currentgame state: " + currentGameState);
+	setTimeout(updateDisplayEachMinute, MILLISPERMINUTE);
 }
 
-getCurrentGameState.INGAME = 1;
-getCurrentGameState.BEFOREGAME = 2;
-getCurrentGameState.AFTERGAME = 3;
-function getCurrentGameState()
+
+
+function GameResults(oPrevGameInfo, myteam)
+ {
+	//instance variables
+	this.myteam = myteam;
+	this.oPrevGameInfo = oPrevGameInfo;
+	this.lastGoalScoredEventID = '';
+	this.homeScore=null;
+	this.awayScore=null;
+	this.homeTeamID = null;
+	this.awayTeamID = null;
+	this.homeTeam = null
+	this.awayTeam = null;
+	this.gameStart = oPrevGameInfo.gameTime;
+	this.gameStop = new Date(oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));
+	this.gameStats = null;
+	this.displayResults = displayResults;
+	
+	function displayResults()
+	{
+		//pr(this.gameStats);
+		console.log("-------------");
+		console.log(this.awayScore + " vs " + this.homeScore);
+		console.log(this.awayTeam + " vs " + this.homeTeam);
+	}	
+}
+GameResults.MAXGAMEDURATION = 6;
+GameResults.MAXWAITFORGAMEDATA = 100
+GameResults.prototype._loadGameUpdates = function ()
 {
+	//http://live.nhl.com/GameData/20162017/2016020755/PlayByPlay.json
+	var sURL = gameDetailsURL(this.oPrevGameInfo.id);
+	console.log("_loadGameUpdates: " + sURL)
+	http.get(sURL, function(res){
+	var body = '';
+
+	res.on('data', function(chunk){
+		body += chunk;
+	});
+
+	res.on('end', function()
+	{
+		var oObj = {};
+		try
+		{
+			oObj = JSON.parse(body);				
+		}
+		catch(e) {console.log("Something unexpected with the response from " + sURL);}
+		//console.log("Got a response: ");
+		oPrevGameResults.setGameStats(oObj);
+		oPrevGameResults.displayResults();
+	});
+	}).on('error', function(e){
+		  console.log("Got an error: ", e);
+	});
+}
+
+GameResults.prototype.setGameStats = function(oRes)
+{
+	console.log("setting data");
+	this.gameStats = oRes;
+	this.homeScore=0;
+	this.awayScore=0;
+	this.homeTeamID = parseInt(this.gameStats.data.game.hometeamid);
+	var hid = parseInt(this.gameStats.data.game.hometeamid);
+	this.awayTeamID = parseInt(this.gameStats.data.game.awayteamid);
+	var aid = parseInt(this.gameStats.data.game.awayteamid);
+	this.homeTeam = this.gameStats.data.game.hometeamnick
+	this.awayTeam = this.gameStats.data.game.awayteamnick;
+	
+	var aPlays = this.gameStats.data.game.plays.play;
+	var aGoals = aPlays.filter(function(item){return item.type === "Goal"});
+	var aAwayTeamGoals = aGoals.filter(function(g){return (parseInt(g.teamid)==aid)});
+	var aHomeTeamGoals = aGoals.filter(function(g){return parseInt(g.teamid)==hid});
+	this.homeScore = aHomeTeamGoals.length;
+	this.awayScore = aAwayTeamGoals.length;
+	//console.log(this.awayScore + " xxvs " + this.homeScore);
+	//console.log(this.awayTeam + " xxvs " + this.homeTeam);
+	/*
+	TODO - set the buzzer!
+	var oLatestGoal = aMyTeamGoals[aMyTeamGoals.length];
+	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID)
+	{
+		console.log("PLAY HORN!");
+	}
+	*/
+}
+GameResults.prototype.showResults = function()
+{
+	var dDate = new Date();
+	if(dDate < this.gameStop  || this.gameStats == null)	//determine if we need to load in actual game results
+	{
+		console.log("game is going on OR we didnt have data yet!");
+		this.gameStats = null;
+		this._loadGameUpdates();
+	}
+	else
+	{
+		console.log("no game going on, and data is loaded")
+		this.displayResults();  //just reuse old data, nothing new going on
+	}
+}
+///////end GameResults///////////
+
+
+function getPreviousAndNextGames()
+{
+	var oRes = {};
+	var oPrevGame = null;
 	var dToday = new Date();
 	for(var x=0; x < aoMyTeamGames.length; x++)
 	{
 		var dGameDate = parseDateStr(aoMyTeamGames[x].est);
-		//console.log(aoMyTeamGames[x].est);
-		console.log((dGameDate < dToday ? "PAST" : "future") +  dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
+		if(dGameDate > dToday)//game is upcoming
+		{
+			oRes.nextGame = aoMyTeamGames[x];
+			oRes.nextGame.gameTime = parseDateStr(oRes.nextGame.est)
+			console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
+
+			oRes.previousGame = aoMyTeamGames[x-1];
+			oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
+			console.log("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
+			break;
+		}
 	}
+	return oRes;
 }
+
+
+
 
 function gameDetailsURL(sGameID)
 {
 	//http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
-	return "http://live.nhl.com/GameData/"+NHLSeason()+"/"+sGameID+"/PlayByPlay.json";
-}
-
-function getDetailsFromLastGame()
-{	
-	var dToday = new Date();
-	var x=0;
-	for(; x < aoMyTeamGames.length && parseDateStr(aoMyTeamGames[x].est) < dToday; x++)
-	{
-		//nothing
-	}
-	x--; //back up to the previous game
-	//console.log(x + " ?? " + aoMyTeamGames.length)
-	var sGameID = aoMyTeamGames[x].id;
-	console.log("most recent game is: " + sGameID);
-	var sGameURL = gameDetailsURL(sGameID);
-	console.log("loading details from recent game: " + sGameURL);
-	//http://live.nhl.com/GameData/20162017/2016020741/PlayByPlay.json
-	loadURLasJSON(sGameURL, populateLastGame);
-}
-
-function populateLastGame(a_oLastGame)
-{
-	pr(a_oLastGame);
-	oLatestGame = a_oLastGame;
-	//pr(a_oLastGame.data.game.plays);
-	sleepAndRefresh();
-}
-
-function sleepAndRefresh()
-{
-	refreshLCD();
-	//console.log("WWWWWW");
-	setTimeout(sleepAndRefresh, REFRESHTIME);
-}
-
-function refreshLCD()
-{
-	//loadRecentGame();
-	//set time
-	oLCDData.date = new Date();
-	//draw LCD
-	drawLCD();
-}
-
-function drawLCD()
-{
-	//time date
-	// current/last score
-	//last event
-	//current standings
-	//var oLCDData = {lastactiondesc: "", date: (new date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
-	console.log("...............");
-	pr(oLCDData);
-}
-
-function loadRecentGame()
-{
-	var nCurrentTime = (new Date()).getTime();
-	//game is either in progress, or show previous game stats
-	if(nNextGame < nCurrentTime)	//the next game is in the past, so figure out when the next game is
-	{
-		nNextGame = timeOfNextGame();
-		loadURLasJSON(sURL, drawLCD);	
-	}
-	else	//load pre
-	{
-		
-	}
-}
-
-function timeOfNextGame()
-{
-	var nTimeOfNextGame = 0;
-	
-	for(var x=0; x < aoMyTeamGames.length; x++)
-	{
-		
-	}
-	return nTimeOfNextGame;
+	return "http://live.nhl.com/GameData/"+getNHLSeasonString()+"/"+sGameID+"/PlayByPlay.json";
 }
 
 
-function fGameIsToday(dDateNow, dDateGame)
-{
-	//console.log(dDateGame.toString() + " > " + dDateNow.getYear() + "="+  dDateGame.getYear()  + "  &"+ dDateNow.getMonth()  + "="+ dDateGame.getMonth()  + " & "+  dDateNow.getDate() + 
-	//"="+ dDateGame.getDate())
-	
-	return dDateNow.getYear() === dDateGame.getYear() && dDateNow.getMonth() === dDateGame.getMonth() && dDateNow.getDate() === dDateGame.getDate();
-}
-
-
-
-function waitForGame(sGameID)
-{
-	//http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
-	//http://live.nhl.com/GameData/20162017/2016020733/gc/gcbx.jsonp
-	//var sURL = "http://live.nhl.com/GameData/"+NHLSeason()+"/"+sGameID+"/gc/gcbx.jsonp";
-	var sURL =  "http://live.nhl.com/GameData/"+NHLSeason()+"/"+sGameID+"/PlayByPlay.json";
-	loadURLasJSON(sURL, checkOutTheGame);
-}
 
 /*
 {"aoi":
@@ -270,17 +291,6 @@ function waitForGame(sGameID)
 
 
 */
-
-function checkOutTheGame(oGameStats)
-{
-	var aPlays = oGameStats.data.game.plays.play;
-	var aGoals = aPlays.filter(function(item){return item.type === "Goal"});
-	for(var x in aGoals)
-	{
-		pr(aGoals[x]);
-	}
-}
-
 
 //// NHL specific functions
 
@@ -333,8 +343,7 @@ function getNHLSeasonString()
 
 function getNHLSeasonURL()
 {
-	var sYears =  getNHLSeasonString();
-	return "http://live.nhl.com/GameData/SeasonSchedule-"+sYears+".json"	
+	return "http://live.nhl.com/GameData/SeasonSchedule-"+getNHLSeasonString()+".json"	
 }
 
 
@@ -411,7 +420,120 @@ function loadConfig()
 }
 
 
-////////////////  JUNK  ////////////////////
+
+/*
+-------------OUTPUTS:--------------------
+ 
+
+{ data:
+   { refreshInterval: 0,
+     game:
+      { awayteamid: 6,
+        awayteamname: 'Boston Bruins',
+        hometeamname: 'Washington Capitals',
+        plays: [Object],
+        awayteamnick: 'Bruins',
+        hometeamnick: 'Capitals',
+        hometeamid: 15 } } }
+
+----------------UNUSED FUNCTIONS-----------------		
+
+
+function waitForGame(sGameID)
+{
+	//http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
+	//http://live.nhl.com/GameData/20162017/2016020733/gc/gcbx.jsonp
+	//var sURL = "http://live.nhl.com/GameData/"+NHLSeason()+"/"+sGameID+"/gc/gcbx.jsonp";
+	var sURL =  "http://live.nhl.com/GameData/"+getNHLSeasonString()+"/"+sGameID+"/PlayByPlay.json";
+	loadURLasJSON(sURL, checkOutTheGame);
+}
+
+
+function checkOutTheGame(oGameStats)
+{
+	var aPlays = oGameStats.data.game.plays.play;
+	var aGoals = aPlays.filter(function(item){return item.type === "Goal"});
+	for(var x in aGoals)
+	{
+		pr(aGoals[x]);
+	}
+}
+
+
+
+
+
+function populateLastGame(a_oLastGame)
+{
+	pr(a_oLastGame);
+	oLatestGame = a_oLastGame;
+	//pr(a_oLastGame.data.game.plays);
+	sleepAndRefresh();
+}
+
+function sleepAndRefresh()
+{
+	refreshLCD();
+	//console.log("WWWWWW");
+	setTimeout(sleepAndRefresh, REFRESHTIME);
+}
+
+function refreshLCD()
+{
+	//loadRecentGame();
+	//set time
+	oLCDData.date = new Date();
+	//draw LCD
+	drawLCD();
+}
+
+function drawLCD()
+{
+	//time date
+	// current/last score
+	//last event
+	//current standings
+	//var oLCDData = {lastactiondesc: "", date: (new date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
+	console.log("...............");
+	pr(oLCDData);
+}
+
+function loadRecentGame()
+{
+	var nCurrentTime = (new Date()).getTime();
+	//game is either in progress, or show previous game stats
+	if(nNextGame < nCurrentTime)	//the next game is in the past, so figure out when the next game is
+	{
+		nNextGame = timeOfNextGame();
+		loadURLasJSON(sURL, drawLCD);	
+	}
+	else	//load pre
+	{
+		
+	}
+}
+
+function timeOfNextGame()
+{
+	var nTimeOfNextGame = 0;
+	
+	for(var x=0; x < aoMyTeamGames.length; x++)
+	{
+		
+	}
+	return nTimeOfNextGame;
+}
+
+
+function fGameIsToday(dDateNow, dDateGame)
+{
+	//console.log(dDateGame.toString() + " > " + dDateNow.getYear() + "="+  dDateGame.getYear()  + "  &"+ dDateNow.getMonth()  + "="+ dDateGame.getMonth()  + " & "+  dDateNow.getDate() + 
+	//"="+ dDateGame.getDate())
+	
+	return dDateNow.getYear() === dDateGame.getYear() && dDateNow.getMonth() === dDateGame.getMonth() && dDateNow.getDate() === dDateGame.getDate();
+}
+
+
 function validField(oObj, sField, sFieldName)
 {
 	if(!util.isNullOrUndefined(oObj) && !util.isNullOrUndefined(oObj[sField]))
@@ -420,6 +542,7 @@ function validField(oObj, sField, sFieldName)
 	}
 	return "";
 }
+		
 function WHATEVER()
 {		
 	var dToday = new Date();
@@ -442,10 +565,29 @@ function WHATEVER()
 		}
 	}
 	return oOutputData();
-}
+}		
 
-/*
-NOTES: 
+
+	function _waitForData(oElement)
+	{
+		if(oElement.retries++ < GameResults.MAXWAITFORGAMEDATA)
+		{
+			if(oElement.gameStats == null)
+			{
+				console.log("Waiting for the data....");
+				setTimeout(_waitForData, 1000, oElement);
+			}
+			else
+			{
+				console.log("HERE" + oElement.gameStart);
+				//this._displayResults();
+			}
+		}
+		else
+		{
+			console.log("retries: " + oElement.retries);
+		}
+	}
   
 */
 
