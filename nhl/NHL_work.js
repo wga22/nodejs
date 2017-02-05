@@ -110,6 +110,7 @@ function initializeTheGamesList(aoGames)
 	oPrevAndNextGames = getPreviousAndNextGames();
 	//getPreviousGameStats();
 	//getNextGameStart();
+	oPrevGameResults = new GameResults(oPrevAndNextGames.previousGame, ConfigJSON.myteam);
 	updateDisplayEachMinute();
 
 }
@@ -117,8 +118,6 @@ function initializeTheGamesList(aoGames)
 function updateDisplayEachMinute()
 {
 	var dToday = new Date();
-	
-	oPrevGameResults = new GameResults(oPrevAndNextGames.previousGame, ConfigJSON.myteam);
 	oPrevGameResults.showResults(dToday);
 	
 	//time to move on to a new game
@@ -133,31 +132,43 @@ function updateDisplayEachMinute()
 	setTimeout(updateDisplayEachMinute, MILLISPERMINUTE);
 }
 
+function Team(sCode)
+{
+	this.code = sCode;
+	this.nickname = "";
+	this.id = null;
+	this.favorite = null;
+}
+Team.prototype.isFavorite = function(id)
+{
+	this.favorite = id == this.id;
+	return id == this.id;
+}
 
-
-function GameResults(oPrevGameInfo, myteam)
+function GameResults(oPrevGameInfo, myteamcode)
  {
 	//instance variables
-	this.myteam = myteam;
 	this.oPrevGameInfo = oPrevGameInfo;
 	this.lastGoalScoredEventID = '';
 	this.homeScore=null;
 	this.awayScore=null;
-	this.homeTeamID = null;
-	this.awayTeamID = null;
-	this.homeTeam = null
-	this.awayTeam = null;
+	this.latestEvent = null;
+
+	//we only know the code at this point, dont know the id
+	this.homeTeam = new Team(oPrevGameInfo.h);
+	this.awayTeam = new Team(oPrevGameInfo.a);
 	this.gameStart = oPrevGameInfo.gameTime;
 	this.gameStop = new Date(oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));
 	this.gameStats = null;
 	this.displayResults = displayResults;
 	
-	function displayResults()
+	function displayResults(dDate)
 	{
 		//pr(this.gameStats);
-		console.log("-------------");
+		console.log("------"+smallDate(dDate)+"-------");
 		console.log(this.awayScore + " vs " + this.homeScore);
-		console.log(this.awayTeam + " vs " + this.homeTeam);
+		console.log(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
+		console.log("Gm Tm P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
 	}	
 }
 GameResults.MAXGAMEDURATION = 6;
@@ -195,45 +206,52 @@ GameResults.prototype.setGameStats = function(oRes)
 {
 	console.log("setting data");
 	this.gameStats = oRes;
-	this.homeScore=0;
-	this.awayScore=0;
-	this.homeTeamID = parseInt(this.gameStats.data.game.hometeamid);
-	var hid = parseInt(this.gameStats.data.game.hometeamid);
-	this.awayTeamID = parseInt(this.gameStats.data.game.awayteamid);
+	var hid = parseInt(this.gameStats.data.game.hometeamid); 
+	this.homeTeam.id = hid;
 	var aid = parseInt(this.gameStats.data.game.awayteamid);
-	this.homeTeam = this.gameStats.data.game.hometeamnick
-	this.awayTeam = this.gameStats.data.game.awayteamnick;
+	this.awayTeam.id =  aid;
+	this.homeTeam.nickname = this.gameStats.data.game.hometeamnick
+	this.awayTeam.nickname = this.gameStats.data.game.awayteamnick;
 	
 	var aPlays = this.gameStats.data.game.plays.play;
+	//pr(this.gameStats.data.game.plays);
 	var aGoals = aPlays.filter(function(item){return item.type === "Goal"});
 	var aAwayTeamGoals = aGoals.filter(function(g){return (parseInt(g.teamid)==aid)});
 	var aHomeTeamGoals = aGoals.filter(function(g){return parseInt(g.teamid)==hid});
 	this.homeScore = aHomeTeamGoals.length;
 	this.awayScore = aAwayTeamGoals.length;
-	//console.log(this.awayScore + " xxvs " + this.homeScore);
-	//console.log(this.awayTeam + " xxvs " + this.homeTeam);
-	/*
-	TODO - set the buzzer!
-	var oLatestGoal = aMyTeamGoals[aMyTeamGoals.length];
+	var oLatestGoal = {};
+	//console.log("LENG" + aPlays.length);
+	this.latestEvent = (aPlays.length > 0) ? aPlays[aPlays.length-1] : {period:0, time:0};
+	//pr(this.homeTeam);
+	
+	if(this.homeTeam.isFavorite(hid) && aHomeTeamGoals.length-1 >=0)
+	{
+		oLatestGoal = aHomeTeamGoals[aHomeTeamGoals.length-1];
+	}
+	else if(this.awayTeam.isFavorite(hid) && aAwayTeamGoals.length-1 >=0)
+	{
+		oLatestGoal = aAwayTeamGoals[aAwayTeamGoals.length-1];
+	}
+
 	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID)
 	{
-		console.log("PLAY HORN!");
+		console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
+		this.lastGoalScoredEventID = oLatestGoal.formalEventId;
 	}
-	*/
 }
-GameResults.prototype.showResults = function()
+GameResults.prototype.showResults = function(dDate)
 {
-	var dDate = new Date();
 	if(dDate < this.gameStop  || this.gameStats == null)	//determine if we need to load in actual game results
 	{
-		console.log("game is going on OR we didnt have data yet!");
+		console.log("game is going on OR we didnt have data yet!" + (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") + " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
 		this.gameStats = null;
 		this._loadGameUpdates();
 	}
 	else
 	{
 		console.log("no game going on, and data is loaded")
-		this.displayResults();  //just reuse old data, nothing new going on
+		this.displayResults(dDate);  //just reuse old data, nothing new going on
 	}
 }
 ///////end GameResults///////////
@@ -261,8 +279,6 @@ function getPreviousAndNextGames()
 	}
 	return oRes;
 }
-
-
 
 
 function gameDetailsURL(sGameID)
@@ -367,6 +383,21 @@ function parseDateStr(a_sDate)
 	return dDate;
 }
 
+function pad2(nMin)
+{
+	return nMin < 10 ? ("0" +nMin) : nMin 
+}
+function get12Hour(nHour)
+{
+	nTime  =  nHour % 12
+	return (nTime == 0) ? 12 : nTime;
+}
+
+function smallDate(dDate)
+{
+	if(dDate){} else {dDate = new Date()};		
+	return dDate.getMonth() + "/"+dDate.getDate()  + "/"+dDate.getYear()  + " " + get12Hour(dDate.getHours()) + ":" + pad2(dDate.getMinutes());
+}
 
 // Generic callback function to print the return value
 function pr( jsonVals ) {
