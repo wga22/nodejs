@@ -77,13 +77,11 @@ var http = require('http');
 var ConfigJSON = {myteam: "WSH"};
 var MILLISPERMINUTE = 60000;	//1 minute
 var MILLISPERHOUR = MILLISPERMINUTE * 60;
-var oLCDData = {lastactiondesc: "", date: (new Date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
-var oLatestGame = {};
+//var oLCDData = {lastactiondesc: "", date: (new Date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
 var fTesting = true;
 var aoMyTeamGames = [];
 var oPrevGameResults = {};
-var oPrevAndNextGames = {};
-var nCurrentGame = 0;
+var oGameData = {};
 //MAIN
 main();
 
@@ -107,10 +105,10 @@ function initializeTheGamesList(aoGames)
 	//printSchedule();
 	//getAudioFiles();
 	//kick things off!
-	oPrevAndNextGames = getPreviousAndNextGames();
+	oGameData = getPreviousAndNextGames();
 	//getPreviousGameStats();
 	//getNextGameStart();
-	oPrevGameResults = new GameResults(oPrevAndNextGames.previousGame, ConfigJSON.myteam);
+	oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON.myteam);
 	updateDisplayEachMinute();
 
 }
@@ -121,11 +119,12 @@ function updateDisplayEachMinute()
 	oPrevGameResults.showResults(dToday);
 	
 	//time to move on to a new game
-	if(oPrevAndNextGames && oPrevAndNextGames.nextGame <= dToday)
+	if(fDebug) console.log("new game? " + oGameData.nextGame.gameTime.getTime() + " <= " + dToday.getTime());
+	if(oGameData && !util.isNullOrUndefined(oGameData.nextGame.gameTime) && oGameData.nextGame.gameTime <= dToday)
 	{
 		console.log("time to move on to a new game");
-		oPrevAndNextGames = getPreviousAndNextGames();
-		oPrevGameResults = new GameResults(oPrevAndNextGames.previousGame, ConfigJSON.myteam);
+		oGameData = getPreviousAndNextGames();
+		oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON.myteam);
 	}
 	
 	//console.log(dToday.toString() + " currentgame state: " + currentGameState);
@@ -177,7 +176,7 @@ GameResults.prototype._loadGameUpdates = function ()
 {
 	//http://live.nhl.com/GameData/20162017/2016020755/PlayByPlay.json
 	var sURL = gameDetailsURL(this.oPrevGameInfo.id);
-	console.log("_loadGameUpdates: " + sURL)
+	if(fDebug) console.log("_loadGameUpdates: " + sURL)
 	http.get(sURL, function(res){
 	var body = '';
 
@@ -204,7 +203,7 @@ GameResults.prototype._loadGameUpdates = function ()
 
 GameResults.prototype.setGameStats = function(oRes)
 {
-	console.log("setting data");
+	if(fDebug) console.log("setting data");
 	this.gameStats = oRes;
 	var hid = parseInt(this.gameStats.data.game.hometeamid); 
 	this.homeTeam.id = hid;
@@ -222,6 +221,7 @@ GameResults.prototype.setGameStats = function(oRes)
 	this.awayScore = aAwayTeamGoals.length;
 	var oLatestGoal = {};
 	//console.log("LENG" + aPlays.length);
+	//TODO: need to figure out how to identify if the game is over
 	this.latestEvent = (aPlays.length > 0) ? aPlays[aPlays.length-1] : {period:0, time:0};
 	//pr(this.homeTeam);
 	
@@ -244,7 +244,7 @@ GameResults.prototype.showResults = function(dDate)
 {
 	if(dDate < this.gameStop  || this.gameStats == null)	//determine if we need to load in actual game results
 	{
-		console.log("game is going on OR we didnt have data yet!" + (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") + " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
+		if(fDebug) console.log("game is going on OR we didnt have data yet!" + (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") + " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
 		this.gameStats = null;
 		this._loadGameUpdates();
 	}
