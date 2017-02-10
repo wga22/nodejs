@@ -231,6 +231,7 @@ GameResults.prototype.setGameStats = function(oRes)
 		//figure out if its end of game or period, by seeing if this last event has happened a few times in a row
 		var nMinutes = parseInt(this.latestEvent.time+"");//.match(/(\d+)\:/)[1];
 		//console.log("OMG" + sMinutes)
+		this.latestEvent.time = reverseTime(this.latestEvent.time);
 		if(nMinutes > 17 && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
 		{
 			if(fTesting) console.log("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
@@ -280,6 +281,18 @@ GameResults.prototype.showResults = function(dDate)
 }
 ///////end GameResults///////////
 
+function reverseTime(a_sTime)
+{
+	var aRes = a_sTime.split(":");
+	var sRes = a_sTime;
+	if(aRes.length == 2)
+	{
+		var nMins = parseInt(aRes[0]);
+		var nSecs = parseInt(aRes[1]);
+		sRes = (nSecs>0 ? (19-nMins) : (20-nMins)) + ":" + pad2(60-nSecs); 
+	}
+	return sRes;
+}
 
 function getPreviousAndNextGames()
 {
