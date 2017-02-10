@@ -119,7 +119,7 @@ function updateDisplayEachMinute()
 	oPrevGameResults.showResults(dToday);
 	
 	//time to move on to a new game
-	if(fDebug) console.log("new game? " + oGameData.nextGame.gameTime.getTime() + " <= " + dToday.getTime());
+	if(fTesting && false) console.log("new game? " + oGameData.nextGame.gameTime.getTime() + " <= " + dToday.getTime());
 	if(oGameData && !util.isNullOrUndefined(oGameData.nextGame.gameTime) && oGameData.nextGame.gameTime <= dToday)
 	{
 		console.log("time to move on to a new game");
@@ -152,7 +152,8 @@ function GameResults(oPrevGameInfo, myteamcode)
 	this.homeScore=null;
 	this.awayScore=null;
 	this.latestEvent = null;
-
+	this.actionCount = {nCount:0, sLatestEventID:""};
+	
 	//we only know the code at this point, dont know the id
 	this.homeTeam = new Team(oPrevGameInfo.h);
 	this.awayTeam = new Team(oPrevGameInfo.a);
@@ -171,12 +172,13 @@ function GameResults(oPrevGameInfo, myteamcode)
 	}	
 }
 GameResults.MAXGAMEDURATION = 6;
-GameResults.MAXWAITFORGAMEDATA = 100
+GameResults.MAXWAITFORGAMEDATA = 100;
+GameResults.MAXRETRYEVENT = 5;
 GameResults.prototype._loadGameUpdates = function ()
 {
 	//http://live.nhl.com/GameData/20162017/2016020755/PlayByPlay.json
 	var sURL = gameDetailsURL(this.oPrevGameInfo.id);
-	if(fDebug) console.log("_loadGameUpdates: " + sURL)
+	if(fTesting && false) console.log("_loadGameUpdates: " + sURL)
 	http.get(sURL, function(res){
 	var body = '';
 
@@ -203,7 +205,7 @@ GameResults.prototype._loadGameUpdates = function ()
 
 GameResults.prototype.setGameStats = function(oRes)
 {
-	if(fDebug) console.log("setting data");
+	if(fTesting) console.log("setting data");
 	this.gameStats = oRes;
 	var hid = parseInt(this.gameStats.data.game.hometeamid); 
 	this.homeTeam.id = hid;
@@ -222,7 +224,29 @@ GameResults.prototype.setGameStats = function(oRes)
 	var oLatestGoal = {};
 	//console.log("LENG" + aPlays.length);
 	//TODO: need to figure out how to identify if the game is over
-	this.latestEvent = (aPlays.length > 0) ? aPlays[aPlays.length-1] : {period:0, time:0};
+	this.latestEvent = {period:0, time:0}
+	if(aPlays.length > 0)
+	{
+		this.latestEvent = aPlays[aPlays.length-1];
+		//figure out if its end of game or period, by seeing if this last event has happened a few times in a row
+		var nMinutes = parseInt(this.latestEvent.time+"");//.match(/(\d+)\:/)[1];
+		//console.log("OMG" + sMinutes)
+		if(nMinutes > 17 && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
+		{
+			if(fTesting) console.log("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
+			this.actionCount.nCount++;
+			if(this.actionCount.nCount >= GameResults.MAXRETRYEVENT)
+			{
+				//ok, definitely a stale activity at the end of the game
+				if(fTesting) console.log("not in middle of game");
+				this.latestEvent.time = "End";
+			}
+		}
+		else
+		{
+			this.actionCount.nCount = 0;
+		}
+	}
 	//pr(this.homeTeam);
 	
 	if(this.homeTeam.isFavorite(hid) && aHomeTeamGoals.length-1 >=0)
@@ -244,13 +268,13 @@ GameResults.prototype.showResults = function(dDate)
 {
 	if(dDate < this.gameStop  || this.gameStats == null)	//determine if we need to load in actual game results
 	{
-		if(fDebug) console.log("game is going on OR we didnt have data yet!" + (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") + " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
+		if(fTesting) console.log("game is going on OR we didnt have data yet!" + (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") + " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
 		this.gameStats = null;
 		this._loadGameUpdates();
 	}
 	else
 	{
-		console.log("no game going on, and data is loaded")
+		if(fTesting) console.log("no game going on, and data is loaded")
 		this.displayResults(dDate);  //just reuse old data, nothing new going on
 	}
 }
@@ -396,7 +420,7 @@ function get12Hour(nHour)
 function smallDate(dDate)
 {
 	if(dDate){} else {dDate = new Date()};		
-	return dDate.getMonth() + "/"+dDate.getDate()  + "/"+dDate.getYear()  + " " + get12Hour(dDate.getHours()) + ":" + pad2(dDate.getMinutes());
+	return (1+dDate.getMonth()) + "/"+dDate.getDate()  + "/"+(1900+dDate.getYear())  + " " + get12Hour(dDate.getHours()) + ":" + pad2(dDate.getMinutes());
 }
 
 // Generic callback function to print the return value
