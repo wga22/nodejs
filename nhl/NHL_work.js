@@ -120,7 +120,7 @@ function updateDisplayEachMinute()
 	
 	//time to move on to a new game
 	if(fTesting && false) console.log("new game? " + oGameData.nextGame.gameTime.getTime() + " <= " + dToday.getTime());
-	if(oGameData && !util.isNullOrUndefined(oGameData.nextGame.gameTime) && oGameData.nextGame.gameTime <= dToday)
+	if(oGameData && oGameData.nextGame && oGameData.nextGame.gameTime <= dToday)
 	{
 		console.log("time to move on to a new game");
 		oGameData = getPreviousAndNextGames();
@@ -173,7 +173,7 @@ function GameResults(oPrevGameInfo, myteamcode)
 }
 GameResults.MAXGAMEDURATION = 6;
 GameResults.MAXWAITFORGAMEDATA = 100;
-GameResults.MAXRETRYEVENT = 5;
+GameResults.MAXRETRYEVENT = 4;
 GameResults.prototype._loadGameUpdates = function ()
 {
 	//http://live.nhl.com/GameData/20162017/2016020755/PlayByPlay.json
@@ -232,9 +232,10 @@ GameResults.prototype.setGameStats = function(oRes)
 		var nMinutes = parseInt(this.latestEvent.time+"");//.match(/(\d+)\:/)[1];
 		//console.log("OMG" + sMinutes)
 		this.latestEvent.time = reverseTime(this.latestEvent.time);
+		if(fTesting) console.log(nMinutes + "end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
 		if(nMinutes > 17 && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
 		{
-			if(fTesting) console.log("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
+			//if(fTesting) console.log("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
 			this.actionCount.nCount++;
 			if(this.actionCount.nCount >= GameResults.MAXRETRYEVENT)
 			{
@@ -247,6 +248,7 @@ GameResults.prototype.setGameStats = function(oRes)
 		{
 			this.actionCount.nCount = 0;
 		}
+		this.actionCount.sLatestEventID  = this.latestEvent.formalEventId;
 	}
 	//pr(this.homeTeam);
 	
