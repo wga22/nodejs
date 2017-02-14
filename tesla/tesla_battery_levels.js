@@ -16,12 +16,13 @@ Object.defineProperty(Object.prototype, "extend", {
 	}
 });
 
-
+var fTesting = true;
 var util = require('util');
 var http = require('http');
 //var express    = require("express");
 //var mysql      = require('mysql');
 var teslams = require('teslams');
+var oDriveDetails = {};
 var vid = null;
 
 //MAIN
@@ -49,16 +50,33 @@ function main()
 		process.exit(1);
 	}
 	console.log("-----Running-----");
-	teslams.get_vid( { email: creds.email, password: creds.password }, getChargeDetails); 
+	teslams.get_vid( { email: creds.email, password: creds.password }, setVidAndGetDriveDetails); 
 }
 
-function getChargeDetails(a_vid)
+function setVidAndGetDriveDetails(a_vid)
 {
-	vid = a_vid;
-	teslams.get_charge_state( a_vid, setChargeLevel );
+	vid = a_vid;	//set global vid
+	if(fTesting) console.log("retrieved VID: " + vid);
+	try
+	{
+		teslams.get_drive_state(vid, setDriveDetailsAndGetChargeDetails)
+	}
+	catch(e)
+	{
+		console.log("ERROR: setVidAndGetDriveDetails " + e.error);
+	}
+	
 }
 
-function setChargeLevel(jsonVals)
+function setDriveDetailsAndGetChargeDetails(a_oDriveDetails)
+{
+	oDriveDetails = a_oDriveDetails;
+	if(fTesting) console.log("retrieved drive details ("+vid+")" + oDriveDetails.latitude);
+	teslams.get_charge_state( vid, setChargeLevel );
+}
+
+
+function setChargeLevel(oChargeVals)
 {
 	/*
 	objectives:
@@ -71,44 +89,66 @@ function setChargeLevel(jsonVals)
 	Sat	- 50
 	*/
 	
-	if (jsonVals.battery_range !== undefined) 
+	if (oDriveDetails && oDriveDetails.latitude && oChargeVals.battery_range !== undefined) 
 	{
-		var nCurrentLevel = jsonVals.battery_level;
-		//if lots of miles have been added via charging, or the battery level is low, means previous day was big day, so make sure set to 100 for the next day on the weekend
-		var fCarUsedHeavilyPreviousDay =jsonVals.charge_miles_added_rated > 70 || jsonVals.battery_level < 50;
-		//jsonVals.metric_battery_range = (jsonVals.battery_range * 1.609344).toFixed(2);
-		console.log("Current Charge Level:" + nCurrentLevel + " Current Range: " + jsonVals.battery_range);
-		console.log("Charge added so far: " + jsonVals.charge_miles_added_rated);
+		if(fTesting) console.log("retrieved drive details Bat Level: " + oChargeVals.battery_level);
+		var nDistance = distanceFromHome(oDriveDetails.latitude, oDriveDetails.longitude);
+		if(fTesting) console.log("distance from Home: " + nDistance);
+		var nCurrentLevel = oChargeVals.battery_level;
+		var fMaxChargeIt = (nDistance > 50);
+		//oChargeVals.metric_battery_range = (oChargeVals.battery_range * 1.609344).toFixed(2);
+		console.log("Current Charge Level:" + nCurrentLevel + " Current Range: " + oChargeVals.battery_range);
+		console.log("Charge added so far: " + oChargeVals.charge_miles_added_rated);
 		
-		//teslams.honk(vid, pr);
-		var nToday = (new Date()).getDay();
-		var nPercent = 90;
-		switch( nToday)
+		var nPercent = 90; 	// standard value
+		if(fMaxChargeIt)
 		{
-			case 0 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90); 
-				console.log("Setting to 100% since previous day was heavy use, and still weekend travel");
-				break;	//Sunday (runs ~1am sunday)
-			case 1 : nPercent = 70; break;	//Monday
-			case 2 : nPercent = 75; break;	//tuesday
-			case 3 : nPercent = 60; break;	// wednesday
-			case 4 : nPercent = 80; break;	//Thursday
-			case 5 : nPercent = 95; ; break;	//friday
-			case 6 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90); 
-				console.log("Setting to 100% since previous day was heavy use, and still weekend travel");
-				break;	//saturday
+			//if far from home, probably want full charge
+			nPercent = 100;	
 		}
-		console.log('Day of week: ' + nToday);
+		else	//set the level based on the day of week, if near home
+		{
+			var nToday = (new Date()).getDay();
+			//if lots of miles have been added via charging, or the battery level is low, means previous day was big day, so make sure set to 100 for the next day on the weekend
+			var fCarUsedHeavilyPreviousDay = (oChargeVals.charge_miles_added_rated > 70) || (oChargeVals.battery_level < 50)
+			switch(nToday)
+			{
+				case 0 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90); 
+					console.log("Setting to 100% since previous day was heavy use, and still weekend travel");
+					break;	//Sunday (runs ~1am sunday)
+				case 1 : nPercent = 70; break;	//Monday
+				case 2 : nPercent = 75; break;	//tuesday
+				case 3 : nPercent = 60; break;	// wednesday
+				case 4 : nPercent = 80; break;	//Thursday
+				case 5 : nPercent = 90; ; break;	//friday
+				case 6 : nPercent = (fMaxChargeIt ? 100 : 90); 
+					console.log("Setting to 100% since previous day was heavy use, and still weekend travel");
+					break;	//saturday
+			}
+			console.log('Day of week: ' + nToday);			
+		}
+		//teslams.honk(vid, pr);
 		console.log('Set percent to : ' + nPercent);
 		teslams.charge_range( { id: vid, range: 'set', percent: (nPercent) }, pr );
 	}
 	else
 	{
 		console.log("Issue getting values...");
-		console.log(jsonVals);
+		//console.log(oChargeVals);
 	}
 
 	
 }
+
+function distanceFromHome(a_nLat, a_nLng)
+{
+	var nHomeLat = 38.924997;
+	var nHomeLng =-77.2810247;
+	var nMilesFactor = 69;
+	return Math.sqrt(Math.pow(a_nLat-nHomeLat, 2) + Math.pow(a_nLng-nHomeLng,2))*nMilesFactor;
+}
+
+
 
 /*
 //mothballed since doesnt make sense to compare previous level, since car is likely charging,

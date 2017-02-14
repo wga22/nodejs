@@ -278,6 +278,7 @@ GameResults.prototype.showResults = function(dDate)
 	else
 	{
 		if(fTesting) console.log("no game going on, and data is loaded")
+		//TODO - show the time for next game since last game is over
 		this.displayResults(dDate);  //just reuse old data, nothing new going on
 	}
 }
