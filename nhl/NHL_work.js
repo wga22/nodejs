@@ -90,6 +90,7 @@ function main()
 	//init data
 	ConfigJSON = loadConfig();
 	//load the games
+	//console.log(smallDate(new Date()));
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
 }
 
@@ -168,7 +169,15 @@ function GameResults(oPrevGameInfo, myteamcode)
 		console.log("------"+smallDate(dDate)+"-------");
 		console.log(this.awayScore + " vs " + this.homeScore);
 		console.log(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
-		console.log("Gm Tm P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
+		//console.log("debug:" + smallDate(this.gameStop))
+		if(dDate > this.gameStop)  //after game
+		{
+			console.log("Next: " + smallDate(oGameData.nextGame.gameTime));
+		}
+		else	//during game
+		{
+			console.log("Gm Tm P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
+		}
 	}	
 }
 GameResults.MAXGAMEDURATION = 6;
@@ -232,7 +241,7 @@ GameResults.prototype.setGameStats = function(oRes)
 		var nMinutes = parseInt(this.latestEvent.time+"");//.match(/(\d+)\:/)[1];
 		//console.log("OMG" + sMinutes)
 		this.latestEvent.time = reverseTime(this.latestEvent.time);
-		if(fTesting) console.log(nMinutes + "end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
+		if(fTesting) console.log(nMinutes + " mins. End of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
 		if(nMinutes > 17 && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
 		{
 			//if(fTesting) console.log("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
@@ -436,7 +445,8 @@ function get12Hour(nHour)
 function smallDate(dDate)
 {
 	if(dDate){} else {dDate = new Date()};		
-	return (1+dDate.getMonth()) + "/"+dDate.getDate()  + "/"+(1900+dDate.getYear())  + " " + get12Hour(dDate.getHours()) + ":" + pad2(dDate.getMinutes());
+	//return (1+dDate.getMonth()) + "/"+dDate.getDate()  + "/"+(1900+dDate.getYear())  + " " + get12Hour(dDate.getHours()) + ":" + pad2(dDate.getMinutes());
+	return dDate.toLocaleDateString() +" " +  (dDate.toLocaleTimeString()).replace(/\W\d\d /, " ");	//remove the seconds
 }
 
 // Generic callback function to print the return value
