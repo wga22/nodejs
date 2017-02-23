@@ -28,9 +28,9 @@ var vid = null;
 //MAIN
 //testing();
 main();
-function pr(stuff) 
-{
-	console.log("Calling PR");
+function pr( jsonVals ) {
+	console.log( util.inspect( jsonVals ) );
+	//writeValuesToThingSpeak(jsonVals)
 }
 function main()
 {
@@ -49,7 +49,7 @@ function main()
 		console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
 	}
-	console.log("-----Running-----");
+	console.log("-----Running: "+ (new Date()).toLocaleString() + "-----");
 	teslams.get_vid( { email: creds.email, password: creds.password }, setVidAndGetDriveDetails); 
 }
 
@@ -71,7 +71,6 @@ function setVidAndGetDriveDetails(a_vid)
 function setDriveDetailsAndGetChargeDetails(a_oDriveDetails)
 {
 	oDriveDetails = a_oDriveDetails;
-	if(fTesting) console.log("retrieved drive details ("+vid+")" + oDriveDetails.latitude);
 	teslams.get_charge_state( vid, setChargeLevel );
 }
 
@@ -89,26 +88,33 @@ function setChargeLevel(oChargeVals)
 	Sat	- 50
 	*/
 	
-	if (oDriveDetails && oDriveDetails.latitude && oChargeVals.battery_range !== undefined) 
+	if (oDriveDetails && oDriveDetails.latitude && oChargeVals && oChargeVals.battery_range !== undefined) 
 	{
-		if(fTesting) console.log("retrieved drive details Bat Level: " + oChargeVals.battery_level);
 		var nDistance = distanceFromHome(oDriveDetails.latitude, oDriveDetails.longitude);
-		if(fTesting) console.log("distance from Home: " + nDistance);
-		var nCurrentLevel = oChargeVals.battery_level;
-		var fMaxChargeIt = (nDistance > 50);
-		//oChargeVals.metric_battery_range = (oChargeVals.battery_range * 1.609344).toFixed(2);
-		console.log("Current Charge Level:" + nCurrentLevel + " Current Range: " + oChargeVals.battery_range);
-		console.log("Charge added so far: " + oChargeVals.charge_miles_added_rated);
 		
+		if(fTesting)
+		{
+			console.log("Distance from Home: " + round2(nDistance));
+			console.log("Lat, Lng : " + oDriveDetails.latitude+", "+ oDriveDetails.longitude);
+			console.log("Bat Level: " + oChargeVals.battery_level);
+		}
+		var nCurrentLevel = oChargeVals.battery_level;
+		//oChargeVals.metric_battery_range = (oChargeVals.battery_range * 1.609344).toFixed(2);
+		console.log("Charge Level:" + nCurrentLevel + "%");
+		console.log("Range: " + oChargeVals.battery_range + " miles");
+		console.log("Charge added so far: " + oChargeVals.charge_miles_added_rated + " KWH");
+		//TODO: start storing in a DB the miles added?
 		var nPercent = 90; 	// standard value
-		if(fMaxChargeIt)
+		if(nDistance > 50)	//if more than 50 miles from home, assume full charge is desired
 		{
 			//if far from home, probably want full charge
-			nPercent = 100;	
+			nPercent = 100;
+			console.log('Setting range based on distance from home ' + round2(nDistance) + " miles to " + nPercent + "%");
 		}
 		else	//set the level based on the day of week, if near home
 		{
 			var nToday = (new Date()).getDay();
+			var aDaysOfWeek = ['Sun','Mon','Tues','Wed','Thurs','Fri','Sat']
 			//if lots of miles have been added via charging, or the battery level is low, means previous day was big day, so make sure set to 100 for the next day on the weekend
 			var fCarUsedHeavilyPreviousDay = (oChargeVals.charge_miles_added_rated > 70) || (oChargeVals.battery_level < 50)
 			switch(nToday)
@@ -125,19 +131,22 @@ function setChargeLevel(oChargeVals)
 					console.log("Setting to 100% since previous day was heavy use, and still weekend travel");
 					break;	//saturday
 			}
-			console.log('Day of week: ' + nToday);			
+			console.log('Setting range based on ' + aDaysOfWeek[nToday] + " to " + nPercent + "%");			
 		}
-		//teslams.honk(vid, pr);
-		console.log('Set percent to : ' + nPercent);
-		teslams.charge_range( { id: vid, range: 'set', percent: (nPercent) }, pr );
+		//console.log('Set percent to : ' + nPercent);
+		teslams.charge_range( { id: vid, range: 'set', percent: (nPercent) }, success );
 	}
 	else
 	{
 		console.log("Issue getting values...");
 		//console.log(oChargeVals);
 	}
+}
 
-	
+function success()
+{
+	console.log("Successful exit");
+	process.exit(0);
 }
 
 function distanceFromHome(a_nLat, a_nLng)
@@ -148,6 +157,10 @@ function distanceFromHome(a_nLat, a_nLng)
 	return Math.sqrt(Math.pow(a_nLat-nHomeLat, 2) + Math.pow(a_nLng-nHomeLng,2))*nMilesFactor;
 }
 
+function round2(nNum)
+{
+	return Math.round(nNum * 100)/100;
+}
 
 
 /*

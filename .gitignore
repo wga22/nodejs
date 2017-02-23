@@ -51,3 +51,4 @@ vacuum/vacuumconfig.json
 nhl/npm-debug.log
 temp/nodejs.zip
 *.mp3
+*.log
