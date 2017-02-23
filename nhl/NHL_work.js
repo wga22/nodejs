@@ -273,7 +273,7 @@ GameResults.prototype.setGameStats = function(oRes)
 	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID)
 	{
 		console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
-		playHorn();
+		playHorn(ConfigJSON.myteam);
 		this.lastGoalScoredEventID = oLatestGoal.formalEventId;
 	}
 }
@@ -337,9 +337,18 @@ function gameDetailsURL(sGameID)
 	return "http://live.nhl.com/GameData/"+getNHLSeasonString()+"/"+sGameID+"/PlayByPlay.json";
 }
 
-function playHorn()
+function playHorn(sTeam)
 {
-  console.log("\007");
+	console.log("\007");
+	var Player = require('player');
+	sTeam = sTeam.toLowercase();
+	// create player instance 
+	var player = new Player('./horns/'+sTeam+'.mp3');
+
+	// play now and callback when playend 
+	player.play(function(err, player){
+	console.log('playend!');
+	});  
 }
 
 /*
