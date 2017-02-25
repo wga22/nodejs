@@ -71,7 +71,9 @@ Object.defineProperty(Object.prototype, "extend", {
 	}
 });
 
-
+var lame = require('lame');
+var fs = require('fs');
+var Speaker = require('speaker');
 var util = require('util');
 var http = require('http');
 var ConfigJSON = {myteam: "WSH"};
@@ -339,16 +341,19 @@ function gameDetailsURL(sGameID)
 
 function playHorn(sTeam)
 {
-	console.log("\007");
-	var Player = require('player');
-	sTeam = sTeam.toLowercase();
-	// create player instance 
-	var player = new Player('./horns/'+sTeam+'.mp3');
-
-	// play now and callback when playend 
-	player.play(function(err, player){
-	console.log('playend!');
-	});  
+	//console.log("\007");
+	sTeam = sTeam.toLowerCase();
+	fs.createReadStream("./horns/"+sTeam+".mp3")
+		.pipe(new lame.Decoder())
+		.on('format', function (format) {
+	try {
+		this.pipe(new Speaker(format));
+	} catch (e) {
+		console.log("asdfas");
+		console.log(e.message);
+		return false;
+	}
+	});
 }
 
 /*
