@@ -81,6 +81,7 @@ function waitForResults()
 		//writevalues
 		writeValuesToThingSpeak();
 		console.log("success!");
+		process.exit(0);
 	}
 }
 
@@ -89,7 +90,7 @@ function loadMiningStats()
 	var miningURL = "http://www.kano.is/index.php?k=api&username="+config.username+"&api="+config.api+"&json=y";
 	request(miningURL, function (error, response, body) {
 	  if (!error && response.statusCode == 200) {
-		console.log(body);
+		console.log("kano mining:" + body);
 		var ojStats = JSON.parse(body);
 		if(ojStats.u_hashrate1hr >=0)
 		{
@@ -108,7 +109,7 @@ function loadBalance(oVals)
 {
 	request(config.mbtcamnt, function (error, response, body) {
 	  if (!error && response.statusCode == 200) {
-		console.log(body);
+		console.log("balance: " + body);
 		var nBal = parseInt(body);
 		if(nBal >=0)
 		{
@@ -127,9 +128,9 @@ function loadDifficulty()
 {
 	request(nDIFFICULTYURL, function (error, response, body) {
 	  if (!error && response.statusCode == 200) {
-		console.log(body);
+		console.log("diff: "  + body);
 		var nDiff = parseFloat(body);
-		console.log(nDiff);
+		//console.log(nDiff);
 		//cr;
 		if(nDiff >=0)
 		{
@@ -188,9 +189,9 @@ function writeValuesToThingSpeak()
 
 
 // Generic callback function to print the return value
-function pr( jsonVals ) {
+function pr( jsonVals ) 
+{
 	console.log( util.inspect( jsonVals ) );
-	//writeValuesToThingSpeak(jsonVals)
 }
 
 /**
