@@ -81,7 +81,7 @@ function waitForResults()
 		//writevalues
 		writeValuesToThingSpeak();
 		console.log("success!");
-		process.exit(0);
+		//process.exit(0);
 	}
 }
 
@@ -184,7 +184,7 @@ function writeValuesToThingSpeak()
 	req.write('data\n');
 	req.write('data\n');
 	req.end();
-	console.log("fields: " + aFields.join(""));
+	console.log("Wrote to TP fields: " + aFields.join(""));
 }
 
 
