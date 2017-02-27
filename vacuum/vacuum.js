@@ -22,7 +22,7 @@ var request = require('request');
 
 //globals
 var config = {};
-var oValsForTP = {"bal":0, u_hashrate1hr: "0", "difficulty":"0", valstoload:3}
+var oValsForTP = {"bal":-1, u_hashrate1hr: "0", "difficulty":"0", valstoload:3}
 var nMaxWait = 60;	//60 seconds, top
 var nDIFFICULTYURL = "https://blockchain.info/q/getdifficulty";
 //var express    = require("express");
@@ -41,7 +41,6 @@ function main()
 		var cfg = JSON.parse(jsonString);
 		if(
 			isNullOrUndefined(cfg.api)
-			|| isNullOrUndefined(cfg.mbtcamnt)
 			|| isNullOrUndefined(cfg.username)
 			|| isNullOrUndefined(cfg.tpapi)
 			)
@@ -55,11 +54,11 @@ function main()
 	}
 	//load mining stats
 	loadMiningStats();
-	return;
 	
 	//load bal
-	loadBalance();
-	
+	if(!isNullOrUndefined(cfg.mbtcamnt))	{loadBalance(config.mbtcamnt);}
+	if(!isNullOrUndefined(cfg.mbtcamnt2))	{loadBalance(config.mbtcamnt2);}
+	if(!isNullOrUndefined(cfg.mbtcamnt2))	{loadBalance(config.mbtcamnt3);}
 	//load difficulty
 	loadDifficulty();
 	
@@ -119,47 +118,19 @@ function loadMiningStats()
 	});	
 }
 
-function loadMiningStatsOld()
-{
-	
-	var agent = new HttpsProxyAgent(
-	{
-		proxyHost: '192.168.5.8',
-		proxyPort: 3128
-	});
-	
-	
-	var miningURL = "http://www.kano.is/index.php?k=api&username="+config.username+"&api="+config.api+"&json=y";
-	request(miningURL, function (error, response, body) {
-	  if (!error && response.statusCode == 200) {
-		console.log("kano mining:" + body);
-		var ojStats = JSON.parse(body);
-		if(ojStats.u_hashrate1hr >=0)
-		{
-			oValsForTP.u_hashrate1hr = ojStats.u_hashrate1hr; 
-		}
-		else
-		{
-			oValsForTP.u_hashrate1hr = -1;
-		}
-	  }
-	  oValsForTP.valstoload = oValsForTP.valstoload - 1;
-	});	
-}
 
-function loadBalance(oVals)
+function loadBalance(sURL)
 {
-	request(config.mbtcamnt, function (error, response, body) {
-	  if (!error && response.statusCode == 200) {
+	console.log(sURL);
+	request(sURL, function (error, response, body) {
+	  if (!error && response.statusCode == 200) 
+	  {
 		console.log("balance: " + body);
 		var nBal = parseInt(body);
-		if(nBal >=0)
+		oValsForTP.bal = ((oValsForTP.bal === -1) ? 0 : oValsForTP.bal);	//clear original value if still -1
+		if(nBal > 0)
 		{
-			oValsForTP.bal = nBal; 
-		}
-		else
-		{
-			oValsForTP.bal = -1;
+			oValsForTP.bal += nBal; 
 		}
 	  }
 	  oValsForTP.valstoload = oValsForTP.valstoload - 1;
