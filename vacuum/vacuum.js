@@ -55,6 +55,7 @@ function main()
 	}
 	//load mining stats
 	loadMiningStats();
+	return;
 	
 	//load bal
 	loadBalance();
@@ -85,8 +86,49 @@ function waitForResults()
 	}
 }
 
+function getProxyURL()
+{
+	//var user = '';
+	//var passwd = '';
+	//var host = '';
+	//var proxyUrl = "http://" + user + ":" + password + "@" + host + ":" + port;
+	var proxyUrl = !isNullOrUndefined(config.proxyurl) ? config.proxyurl : "http://104.196.234.77:80/";
+	return proxyUrl;
+}
+
+
 function loadMiningStats()
 {
+	var proxiedRequest = request.defaults({'proxy': getProxyURL()});
+	
+	var miningURL = "http://www.kano.is/index.php?k=api&username="+config.username+"&api="+config.api+"&json=y";
+	proxiedRequest(miningURL, function (error, response, body) {
+	  if (!error && response.statusCode == 200) {
+		console.log("kano mining:" + body);
+		var ojStats = JSON.parse(body);
+		if(ojStats.u_hashrate1hr >=0)
+		{
+			oValsForTP.u_hashrate1hr = ojStats.u_hashrate1hr; 
+		}
+		else
+		{
+			oValsForTP.u_hashrate1hr = -1;
+		}
+	  }
+	  oValsForTP.valstoload = oValsForTP.valstoload - 1;
+	});	
+}
+
+function loadMiningStatsOld()
+{
+	
+	var agent = new HttpsProxyAgent(
+	{
+		proxyHost: '192.168.5.8',
+		proxyPort: 3128
+	});
+	
+	
 	var miningURL = "http://www.kano.is/index.php?k=api&username="+config.username+"&api="+config.api+"&json=y";
 	request(miningURL, function (error, response, body) {
 	  if (!error && response.statusCode == 200) {
@@ -143,10 +185,6 @@ function loadDifficulty()
 	  }
 	  oValsForTP.valstoload = oValsForTP.valstoload - 1;
 	});
-
-
-
-	
 }
 
 
