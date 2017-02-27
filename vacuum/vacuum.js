@@ -22,7 +22,7 @@ var request = require('request');
 
 //globals
 var config = {};
-var oValsForTP = {"bal":-1, u_hashrate1hr: "0", "difficulty":"0", valstoload:3}
+var oValsForTP = {"bal":-1, u_hashrate1hr: "0", "difficulty":"0", valstoload:0}
 var nMaxWait = 60;	//60 seconds, top
 var nDIFFICULTYURL = "https://blockchain.info/q/getdifficulty";
 //var express    = require("express");
@@ -53,13 +53,15 @@ function main()
 		process.exit(1);
 	}
 	//load mining stats
+	oValsForTP.valstoload++;
 	loadMiningStats();
 	
 	//load bal
-	if(!isNullOrUndefined(cfg.mbtcamnt))	{loadBalance(config.mbtcamnt);}
-	if(!isNullOrUndefined(cfg.mbtcamnt2))	{loadBalance(config.mbtcamnt2);}
-	if(!isNullOrUndefined(cfg.mbtcamnt2))	{loadBalance(config.mbtcamnt3);}
+	if(!isNullOrUndefined(cfg.mbtcamnt))	{loadBalance(config.mbtcamnt); oValsForTP.valstoload++;}
+	if(!isNullOrUndefined(cfg.mbtcamnt2))	{loadBalance(config.mbtcamnt2); oValsForTP.valstoload++;}
+	if(!isNullOrUndefined(cfg.mbtcamnt2))	{loadBalance(config.mbtcamnt3); oValsForTP.valstoload++;}
 	//load difficulty
+	oValsForTP.valstoload++;
 	loadDifficulty();
 	
 	//write to thingspeak
