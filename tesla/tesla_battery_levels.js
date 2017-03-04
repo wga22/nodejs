@@ -49,7 +49,6 @@ function main()
 		process.exit(1);
 	}
 	console.log("-----Running: "+ (new Date()).toLocaleString() + "-----");
-	//teslams.set_proxy('http://199.119.127.175:80/');
 	teslams.get_vid( { email: creds.email, password: creds.password }, setVidAndGetDriveDetails);
 }
 
