@@ -36,8 +36,8 @@ function main()
 
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
 	var fs = require('fs');
-	try {
-
+	try 
+	{
 		var jsonString = fs.readFileSync("./config.json").toString();
 		var config = JSON.parse(jsonString);
 		var creds = { 
@@ -49,7 +49,8 @@ function main()
 		process.exit(1);
 	}
 	console.log("-----Running: "+ (new Date()).toLocaleString() + "-----");
-	teslams.get_vid( { email: creds.email, password: creds.password }, setVidAndGetDriveDetails); 
+	//teslams.set_proxy('http://199.119.127.175:80/');
+	teslams.get_vid( { email: creds.email, password: creds.password }, setVidAndGetDriveDetails);
 }
 
 function setVidAndGetDriveDetails(a_vid)
@@ -64,29 +65,17 @@ function setVidAndGetDriveDetails(a_vid)
 	{
 		console.log("ERROR: setVidAndGetDriveDetails " + e.error);
 	}
-	
 }
 
 function setDriveDetailsAndGetChargeDetails(a_oDriveDetails)
 {
 	oDriveDetails = a_oDriveDetails;
-	teslams.get_charge_state( vid, setChargeLevel );
+	teslams.get_charge_state( vid, setChargeValues );
 }
 
-
-function setChargeLevel(oChargeVals)
+//based on distance from home or day of week, pick a good max charge level
+function setChargeValues(oChargeVals)
 {
-	/*
-	objectives:
-	Sun - 60
-	Mon - 70
-	Tues - 80
-	Wed - 70
-	Thurs - 100
-	Fri - 90
-	Sat	- 50
-	*/
-	
 	if (oDriveDetails && oDriveDetails.latitude && oChargeVals && oChargeVals.battery_range !== undefined) 
 	{
 		var nDistance = distanceFromHome(oDriveDetails.latitude, oDriveDetails.longitude);
@@ -115,37 +104,33 @@ function setChargeLevel(oChargeVals)
 			var nToday = (new Date()).getDay();
 			var aDaysOfWeek = ['Sun','Mon','Tues','Wed','Thurs','Fri','Sat']
 			//if lots of miles have been added via charging, or the battery level is low, means previous day was big day, so make sure set to 100 for the next day on the weekend
-			var fCarUsedHeavilyPreviousDay = (oChargeVals.charge_miles_added_rated > 70) || (oChargeVals.battery_level < 50)
+			var fCarUsedHeavilyPreviousDay = (oChargeVals.charge_miles_added_rated > 70) || (oChargeVals.battery_level < 50);
 			switch(nToday)
 			{
-				case 0 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90); 
-					console.log("Setting to 100% since previous day was heavy use, and still weekend travel");
-					break;	//Sunday (runs ~1am sunday)
+				case 0 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90); console.log("44"); break;	//Sunday (runs ~1am sunday)
 				case 1 : nPercent = 70; break;	//Monday
 				case 2 : nPercent = 75; break;	//tuesday
 				case 3 : nPercent = 60; break;	// wednesday
 				case 4 : nPercent = 80; break;	//Thursday
-				case 5 : nPercent = 90; ; break;	//friday
-				case 6 : nPercent = (fMaxChargeIt ? 100 : 90); 
-					console.log("Setting to 100% since previous day was heavy use, and still weekend travel");
-					break;	//saturday
+				case 5 : nPercent = 90; break;	//friday
+				case 6 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90);break; //saturday
 			}
 			console.log('Setting range based on ' + aDaysOfWeek[nToday] + " to " + nPercent + "%");			
 		}
-		//console.log('Set percent to : ' + nPercent);
+		console.log('Set percent to : ' + nPercent);
 		teslams.charge_range( { id: vid, range: 'set', percent: (nPercent) }, success );
 	}
 	else
 	{
 		console.log("Issue getting values...");
-		//console.log(oChargeVals);
+		//pr(oChargeVals);
 	}
 }
 
 function success()
 {
 	console.log("Successful exit");
-	process.exit(0);
+	//process.exit(0);
 }
 
 function distanceFromHome(a_nLat, a_nLng)
@@ -282,6 +267,17 @@ get_drive_state
 			// teslams.charge_state( { id: vid, charge: "on" }, pr ); 
 			// teslams.set_temperature( { id: vid, dtemp: 20 }, pr ); 
   
+
+function set_proxy( sProxy ) 
+{
+	if(sProxy && sProxy !== undefined && sProxy.length > 0)
+	{
+		//exports.proxy = sProxy;
+		request.defaults({'proxy': sProxy});		
+	}
+}
+exports.set_proxy = set_proxy;
+
   
 */
 
