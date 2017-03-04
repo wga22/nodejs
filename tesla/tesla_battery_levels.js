@@ -18,7 +18,6 @@ Object.defineProperty(Object.prototype, "extend", {
 
 var fTesting = true;
 var util = require('util');
-var http = require('http');
 //var express    = require("express");
 //var mysql      = require('mysql');
 var teslams = require('teslams');

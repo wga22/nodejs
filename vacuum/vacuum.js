@@ -25,6 +25,7 @@ var config = {};
 var oValsForTP = {"bal":-1, u_hashrate1hr: "0", "difficulty":"0", valstoload:0}
 var nMaxWait = 60;	//60 seconds, top
 var nDIFFICULTYURL = "https://blockchain.info/q/getdifficulty";
+var fTesting = false;
 //var express    = require("express");
 //var mysql      = require('mysql');
 
@@ -81,8 +82,11 @@ function waitForResults()
 	if(oValsForTP.valstoload==0)
 	{
 		//writevalues
-		writeValuesToThingSpeak();
-		console.log("success!");
+		if(!fTesting)
+		{
+			writeValuesToThingSpeak();
+		}
+		//console.log("success!");
 		//process.exit(0);
 	}
 }
@@ -98,13 +102,12 @@ function getProxyURL()
 }
 
 
-function loadMiningStats()
+function loadMiningStats(fWithoutProxy)
 {
-	var proxiedRequest = request.defaults({'proxy': getProxyURL()});
-	
-	var miningURL = "http://www.kano.is/index.php?k=api&username="+config.username+"&api="+config.api+"&json=y";
-	proxiedRequest(miningURL, function (error, response, body) {
-	  if (!error && response.statusCode == 200) {
+	function getKano(error, response, body) 
+	{
+	  if (!error && response.statusCode == 200) 
+	  {
 		console.log("kano mining:" + body);
 		var ojStats = JSON.parse(body);
 		if(ojStats.u_hashrate1hr >=0)
@@ -115,19 +118,37 @@ function loadMiningStats()
 		{
 			oValsForTP.u_hashrate1hr = -1;
 		}
+		oValsForTP.valstoload = oValsForTP.valstoload - 1;
 	  }
-	  oValsForTP.valstoload = oValsForTP.valstoload - 1;
-	});	
+	  else
+	  {
+		  //oValsForTP.u_hashrate1hr = -1;
+		  loadMiningStats(true);
+		  console.log("issue getting details from kano: " + miningURL );
+	  }
+	  
+	}
+	var miningURL = "http://www.kano.is/index.php?k=api&username="+config.username+"&api="+config.api+"&json=y";
+	if(fWithoutProxy)	//allow function to be called two different ways
+	{
+		console.log("Miningstats: proxy didnt seem to work, using direct");
+		request(miningURL, getKano);
+	}
+	else
+	{
+		var proxiedRequest = request.defaults({'proxy': getProxyURL()});
+		proxiedRequest(miningURL, getKano);		
+	}
 }
 
 
 function loadBalance(sURL)
 {
-	console.log(sURL);
+	//console.log(sURL);
 	request(sURL, function (error, response, body) {
 	  if (!error && response.statusCode == 200) 
 	  {
-		console.log("balance: " + body);
+		console.log(sURL + " -> balance = " + body);
 		var nBal = parseInt(body);
 		oValsForTP.bal = ((oValsForTP.bal === -1) ? 0 : oValsForTP.bal);	//clear original value if still -1
 		if(nBal > 0)
@@ -143,10 +164,8 @@ function loadDifficulty()
 {
 	request(nDIFFICULTYURL, function (error, response, body) {
 	  if (!error && response.statusCode == 200) {
-		console.log("diff: "  + body);
+		console.log(nDIFFICULTYURL + " -> diff: "  + body);
 		var nDiff = parseFloat(body);
-		//console.log(nDiff);
-		//cr;
 		if(nDiff >=0)
 		{
 			oValsForTP.difficulty = nDiff; 
@@ -169,7 +188,7 @@ function writeValuesToThingSpeak()
 	aFields.push(validField(oValsForTP, "u_hashrate1hr", "field2") );
 	aFields.push(validField(oValsForTP, "difficulty", "field3") );
 	
-	console.log(aFields.join(""));
+	//console.log(aFields.join(""));
 
 	var options = {
 	  host: 'api.thingspeak.com',
@@ -178,12 +197,14 @@ function writeValuesToThingSpeak()
 	  method: 'GET'
 	};
 
-	var req = http.request(options, function(res) {
-	  console.log('STATUS: ' + res.statusCode);
-	  console.log('HEADERS: ' + JSON.stringify(res.headers));
+	var req = http.request(options, function(res) 
+	{
+	  //console.log('STATUS: ' + res.statusCode);
+	  //console.log('HEADERS: ' + JSON.stringify(res.headers));
 	  res.setEncoding('utf8');
-	  res.on('data', function (chunk) {
-		console.log('BODY: ' + chunk);
+	  res.on('data', function (chunk) 
+	  {
+		//console.log('BODY: ' + chunk);
 	  });
 	});
 
@@ -195,7 +216,7 @@ function writeValuesToThingSpeak()
 	req.write('data\n');
 	req.write('data\n');
 	req.end();
-	console.log("Wrote to TP fields: " + aFields.join(""));
+	console.log("Wrote to TP fields: " + aFields.join("  "));
 }
 
 
