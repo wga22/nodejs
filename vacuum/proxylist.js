@@ -38,13 +38,22 @@ function main()
 
 function parseIPs(a_sPage)
 {
-	var reIP = /(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4}/g
+	var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\D+80/g
 	var aIPMatch = [];
 	while ((aIPMatch = reIP.exec(a_sPage)) !== null) 
 	{
-		console.log(aIPMatch[0]);
-		aIPList.push(aIPMatch[0]);
+		console.log(aIPMatch[1]);
+		aIPList.push(aIPMatch[1]);
 	}
+	
+	
+	var nRand = Math.floor((Math.random()*1000) % aIPList.length);
+	console.log(nRand + " out of  " + aIPList.length);
+	var proxyURL = aIPList[nRand];	//pull a random one
+	var exec = require('child_process').exec;
+	var cmd = "export http_proxy=\"http://" + proxyURL + ":80/\"";
+	console.log(cmd);
+	exec(cmd, function(error, stdout, stderr) { console.log("new proxy set...." + cmd)});
 }
 
 function findIps(sURL)

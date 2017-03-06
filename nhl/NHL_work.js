@@ -506,12 +506,12 @@ function loadConfig()
 	}
 	*/
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
-	var fs = require('fs');
 	var oJSON =  {};
-	try {
-			var jsonString = fs.readFileSync("./config.json").toString();
-			oJSON = JSON.parse(jsonString);
-		} catch (err) {
+	try 
+	{
+		var jsonString = fs.readFileSync("./config.json").toString();
+		oJSON = JSON.parse(jsonString);
+	} catch (err) {
 			console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");
 			process.exit(1);
 	}
