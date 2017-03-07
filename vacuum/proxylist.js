@@ -38,7 +38,9 @@ function main()
 
 function parseIPs(a_sPage)
 {
-	var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\D+80/g
+	//just get elite
+	var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\<\/td\>(\<td\>\D+\<\/td\>){2}\<td\>elite proxy\<\/td\>/g
+	//var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\D+80/g
 	var aIPMatch = [];
 	while ((aIPMatch = reIP.exec(a_sPage)) !== null) 
 	{
@@ -54,6 +56,23 @@ function parseIPs(a_sPage)
 	var cmd = "export http_proxy=\"http://" + proxyURL + ":80/\"";
 	console.log(cmd);
 	exec(cmd, function(error, stdout, stderr) { console.log("new proxy set...." + cmd)});
+
+/*
+
+<tr><td>162.243.95.205</td><td>8080</td><td>US</td><td>United States</td><td>anonymous</td><td>no</td><td>yes</td><td>10 minutes ago</td></tr>
+<tr><td>138.197.87.168</td><td>8080</td><td>US</td><td>United States</td><td>anonymous</td><td>no</td><td>yes</td><td>10 minutes ago</td></tr>
+<tr><td>67.205.168.235</td><td>80</td><td>US</td><td>United States</td><td>transparent</td><td>no</td><td>no</td><td>12 minutes ago</td></tr>
+<tr><td>50.184.179.137</td><td>3128</td><td>US</td><td>United States</td><td>transparent</td><td>no</td><td>no</td><td>12 minutes ago</td></tr>
+<tr><td>52.15.65.126</td><td>3128</td><td>US</td><td>United States</td><td>transparent</td><td>no</td><td>no</td><td>12 minutes ago</td></tr>
+<tr><td>192.34.63.112</td><td>80</td><td>US</td><td>United States</td><td>transparent</td><td>no</td><td>no</td><td>18 minutes ago</td></tr>
+<tr><td>74.117.159.232</td><td>2594</td><td>US</td><td>United States</td><td>transparent</td><td>no</td><td>no</td><td>18 minutes ago</td></tr>
+<tr><td>162.230.215.138</td><td>3128</td><td>US</td><td>United States</td><td>transparent</td><td>no</td><td>no</td><td>20 minutes ago</td></tr>
+<tr><td>67.205.143.252</td><td>8080</td><td>US</td><td>United States</td><td>anonymous</td><td>no</td><td>yes</td><td>21 minutes ago</td></tr>
+<tr><td>47.89.41.164</td><td>80</td><td>US</td><td>United States</td><td>anonymous</td><td>no</td><td>no</td><td>21 minutes ago</td></tr>
+
+
+*/
+	
 }
 
 function findIps(sURL)
@@ -84,24 +103,6 @@ function round2(nNum)
 	return Math.round(nNum * 100)/100;
 }
 
-
-/*
-//mothballed since doesnt make sense to compare previous level, since car is likely charging,
-// and should be back to same level by time program runs
-function handleMax(a_nChargeLvl, a_nPrev)
-{
-	//if the previous level is still there today, must mean car is dormant
-	var nLevel = 100;
-	if(a_nPrev <= (a_nChargeLvl+4))
-	{
-		console.log("Looks like car wasnt useddoesn't merit charging the car more, since looks like it was sitting");
-		console.log("previous:" + a_nPrev + " current level:" + a_nChargeLvl);
-		nLevel = a_nPrev;
-	}
-	return nLevel;
-	
-}
-*/
 
 /**
  * Overwrites obj1's values with obj2's and adds obj2's if non existent in obj1
