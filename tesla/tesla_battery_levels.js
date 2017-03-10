@@ -45,7 +45,7 @@ function main()
 			password: config.password 
 		};
 	} catch (err) {
-		console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");
+		console.warn("The file 'tesla_config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
 	}
 	console.log("-----Running: "+ (new Date()).toLocaleString() + "-----");
