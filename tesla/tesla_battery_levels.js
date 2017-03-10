@@ -38,7 +38,7 @@ function main()
 	var fs = require('fs');
 	try 
 	{
-		var jsonString = fs.readFileSync("./config.json").toString();
+		var jsonString = fs.readFileSync("./tesla_config.json").toString();
 		var config = JSON.parse(jsonString);
 		var creds = { 
 			email: config.username, 
