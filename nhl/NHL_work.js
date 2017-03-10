@@ -509,7 +509,7 @@ function loadConfig()
 	var oJSON =  {};
 	try 
 	{
-		var jsonString = fs.readFileSync("./config.json").toString();
+		var jsonString = fs.readFileSync("./nhl_config.json").toString();
 		oJSON = JSON.parse(jsonString);
 	} catch (err) {
 			console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");

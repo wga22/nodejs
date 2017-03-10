@@ -231,11 +231,16 @@ function merge_options(obj1,obj2)
 
 function validField(oObj, sField, sFieldName)
 {
-	if(!util.isNullOrUndefined(oObj) && !util.isNullOrUndefined(oObj[sField]))
+	if(!isNullOrUndefined(oObj) && !isNullOrUndefined(oObj[sField]))
 	{
 		return "&" + sFieldName + "=" + oObj[sField];
 	}
 	return "";
+}
+
+function isNullOrUndefined(oObj)
+{
+	return !((oObj && true) || oObj == 0)
 }
 
 
