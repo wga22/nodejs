@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+//pulls best proxy from the proxy list site
+//USAGE: export `node proxylist.js`
 
 Object.defineProperty(Object.prototype, "extend", {
 	enumerable: false,
@@ -16,7 +18,7 @@ Object.defineProperty(Object.prototype, "extend", {
 	}
 });
 
-var fTesting = true;
+var fTesting = false;
 var util = require('util');
 var https = require('https');
 var http = require('http');
@@ -39,24 +41,29 @@ function main()
 function parseIPs(a_sPage)
 {
 	//just get elite
-	var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\<\/td\>(\<td\>\D+\<\/td\>){2}\<td\>elite proxy\<\/td\>/g
+	var eliteRE = /.*elite proxy/g;
+	var htmlRE = /(\<\/?[a-z]+\>){1,3}/g;
 	//var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\D+80/g
 	var aIPMatch = [];
-	while ((aIPMatch = reIP.exec(a_sPage)) !== null) 
+	while ((aIPMatch = eliteRE.exec(a_sPage)) !== null) 
 	{
-		console.log(aIPMatch[1]);
-		aIPList.push(aIPMatch[1]);
+		//if(fTesting) console.log(aIPMatch[0]);
+		var aRow = aIPMatch[0].split(htmlRE);
+		if(fTesting) console.log(aRow.length + " - " + aRow[2] +":" + aRow[4]);
+		aIPList.push(aRow[2] +":" + aRow[4]);
 	}
+	
+	//var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\<\/td\>(\<td\>\D+\<\/td\>){2}\<td\>elite proxy\<\/td\>/g
+
 	
 	
 	var nRand = Math.floor((Math.random()*1000) % aIPList.length);
-	console.log(nRand + " out of  " + aIPList.length);
+	if(fTesting) console.log(nRand + " out of  " + aIPList.length);
 	var proxyURL = aIPList[nRand];	//pull a random one
-	var exec = require('child_process').exec;
-	var cmd = "export http_proxy=\"http://" + proxyURL + ":80/\"";
-	console.log(cmd);
-	exec(cmd, function(error, stdout, stderr) { console.log("new proxy set...." + cmd)});
-
+	console.log("http://" + proxyURL + "/");
+	//executeCommand(a_proxyURL)
+	//just write out the URL instead
+	
 /*
 
 <tr><td>162.243.95.205</td><td>8080</td><td>US</td><td>United States</td><td>anonymous</td><td>no</td><td>yes</td><td>10 minutes ago</td></tr>
@@ -72,6 +79,15 @@ function parseIPs(a_sPage)
 
 
 */
+	
+}
+
+function executeCommand(a_proxyURL)
+{
+	//this turned out to not be useful since node runs under it's own environment, and this value gets lost
+	var exec = require('child_process').exec;
+	var cmd = "export http_proxy='" + a_proxyURL + "'";
+	exec(cmd, function(error, stdout, stderr) { console.log("new proxy set...." + cmd)});
 	
 }
 
