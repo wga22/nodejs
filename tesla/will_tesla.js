@@ -155,6 +155,7 @@ https://nodejs.org/docs/v0.5.2/api/http.html#http.request
 function main()
 {
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
+	console.log("-----will_tesla.js : "+ (new Date()).toLocaleString() + "-----");
 	var fs = require('fs');
 	try {
 

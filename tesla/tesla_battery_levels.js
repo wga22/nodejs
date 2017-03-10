@@ -35,6 +35,7 @@ function main()
 {
 
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
+	console.log("-----tesla_batt_levels.js : "+ (new Date()).toLocaleString() + "-----");
 	var fs = require('fs');
 	try 
 	{

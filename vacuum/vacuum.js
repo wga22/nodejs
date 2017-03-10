@@ -36,6 +36,7 @@ main();
 function main()
 {
 	// edit the config.json file to contain your details
+	console.log("-----vacuum.js : "+ (new Date()).toLocaleString() + "-----");
 	var fs = require('fs');
 	try {
 		var jsonString = fs.readFileSync("./vacuumconfig.json").toString();
