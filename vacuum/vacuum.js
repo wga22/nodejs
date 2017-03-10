@@ -55,7 +55,7 @@ function main()
 	}
 	//load mining stats
 	oValsForTP.valstoload++;
-	loadMiningStats(true);	//for now using environment variable
+	loadMiningStats(false);	//for now using environment variable
 	
 	//load bal
 	if(!isNullOrUndefined(cfg.mbtcamnt))	{loadBalance(config.mbtcamnt); oValsForTP.valstoload++;}
@@ -102,7 +102,7 @@ function getProxyURL()
 }
 
 
-function loadMiningStats(fWithoutProxy)
+function loadMiningStats(fWithProxy)
 {
 	function getKano(error, response, body) 
 	{
@@ -118,25 +118,25 @@ function loadMiningStats(fWithoutProxy)
 		{
 			oValsForTP.u_hashrate1hr = -1;
 		}
-		oValsForTP.valstoload = oValsForTP.valstoload - 1;
 	  }
-	  else	//if the proxy fails try without
+	  else
 	  {
 		  //oValsForTP.u_hashrate1hr = -1;
-		  loadMiningStats(true);
+		  //loadMiningStats(false);
 		  console.log("issue getting details from kano: " + miningURL );
 	  }
+	  oValsForTP.valstoload = oValsForTP.valstoload - 1;
 	}
 	var miningURL = "http://www.kano.is/index.php?k=api&username="+config.username+"&api="+config.api+"&json=y";
-	if(fWithoutProxy)	//allow function to be called two different ways
+	if(fWithProxy)	//allow function to be called two different ways
 	{
-		console.log("Miningstats: proxy didnt seem to work, using direct");
-		request(miningURL, getKano);
+		var proxiedRequest = request.defaults({'proxy': getProxyURL()});
+		proxiedRequest(miningURL, getKano);	
 	}
 	else
 	{
-		var proxiedRequest = request.defaults({'proxy': getProxyURL()});
-		proxiedRequest(miningURL, getKano);		
+		console.log("Miningstats: using direct");
+		request(miningURL, getKano);
 	}
 }
 

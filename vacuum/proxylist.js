@@ -54,8 +54,6 @@ function parseIPs(a_sPage)
 	}
 	
 	//var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\<\/td\>(\<td\>\D+\<\/td\>){2}\<td\>elite proxy\<\/td\>/g
-
-	
 	
 	var nRand = Math.floor((Math.random()*1000) % aIPList.length);
 	if(fTesting) console.log(nRand + " out of  " + aIPList.length);
@@ -76,8 +74,6 @@ function parseIPs(a_sPage)
 <tr><td>162.230.215.138</td><td>3128</td><td>US</td><td>United States</td><td>transparent</td><td>no</td><td>no</td><td>20 minutes ago</td></tr>
 <tr><td>67.205.143.252</td><td>8080</td><td>US</td><td>United States</td><td>anonymous</td><td>no</td><td>yes</td><td>21 minutes ago</td></tr>
 <tr><td>47.89.41.164</td><td>80</td><td>US</td><td>United States</td><td>anonymous</td><td>no</td><td>no</td><td>21 minutes ago</td></tr>
-
-
 */
 	
 }
@@ -107,12 +103,7 @@ function findIps(sURL)
 	}).on('error', function(e){
 		  console.log("Got an error: ", e);
 	});
-
-	
-	
 }
-
-
 
 function round2(nNum)
 {
