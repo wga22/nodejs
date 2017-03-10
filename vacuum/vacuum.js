@@ -55,7 +55,7 @@ function main()
 	}
 	//load mining stats
 	oValsForTP.valstoload++;
-	loadMiningStats();
+	loadMiningStats(true);	//for now using environment variable
 	
 	//load bal
 	if(!isNullOrUndefined(cfg.mbtcamnt))	{loadBalance(config.mbtcamnt); oValsForTP.valstoload++;}
@@ -120,13 +120,12 @@ function loadMiningStats(fWithoutProxy)
 		}
 		oValsForTP.valstoload = oValsForTP.valstoload - 1;
 	  }
-	  else
+	  else	//if the proxy fails try without
 	  {
 		  //oValsForTP.u_hashrate1hr = -1;
 		  loadMiningStats(true);
 		  console.log("issue getting details from kano: " + miningURL );
 	  }
-	  
 	}
 	var miningURL = "http://www.kano.is/index.php?k=api&username="+config.username+"&api="+config.api+"&json=y";
 	if(fWithoutProxy)	//allow function to be called two different ways
