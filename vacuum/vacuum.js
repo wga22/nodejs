@@ -61,7 +61,7 @@ function main()
 	//load bal
 	if(!isNullOrUndefined(cfg.mbtcamnt))	{loadBalance(config.mbtcamnt); oValsForTP.valstoload++;}
 	if(!isNullOrUndefined(cfg.mbtcamnt2))	{loadBalance(config.mbtcamnt2); oValsForTP.valstoload++;}
-	if(!isNullOrUndefined(cfg.mbtcamnt2))	{loadBalance(config.mbtcamnt3); oValsForTP.valstoload++;}
+	if(!isNullOrUndefined(cfg.mbtcamnt3))	{loadBalance(config.mbtcamnt3); oValsForTP.valstoload++;}
 	//load difficulty
 	oValsForTP.valstoload++;
 	loadDifficulty();
