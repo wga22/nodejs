@@ -49,14 +49,15 @@ function main()
 		{
 			throw "all config fields must be defined: api,mbtcamnt, username, tpapi ";
 		}
-		fTesting = (config.debug == "1" || config.debug == "true");
+		fTesting = (cfg.debug == 1 || cfg.debug == "1" || cfg.debug == "true");
+		//console.log("FT:" + fTesting);
 		config = cfg;
 	} catch (err) {
 		console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...\n" + err);
 		process.exit(1);
 	}
 	//load mining stats
-	oValsForTP.valstoload++;
+	oValsForTP.valstoload++;	//add one for each new call out
 	loadMiningStats(false);	//for now using environment variable
 	
 	//load bal
@@ -130,6 +131,7 @@ function loadMiningStats(fWithProxy)
 	  oValsForTP.valstoload = oValsForTP.valstoload - 1;
 	}
 	var miningURL = "http://www.kano.is/index.php?k=api&username="+config.username+"&api="+config.api+"&json=y";
+	if(fTesting) console.log(miningURL);
 	if(fWithProxy)	//allow function to be called two different ways
 	{
 		var proxiedRequest = request.defaults({'proxy': getProxyURL()});

@@ -91,7 +91,7 @@ function main()
 {
 	//init data
 	ConfigJSON = loadConfig();
-	fTesting = (config.debug == "1" || config.debug == "true");
+	fTesting = (ConfigJSON.debug == "1" || ConfigJSON.debug == "true");
 	//load the games
 	//console.log(smallDate(new Date()));
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
