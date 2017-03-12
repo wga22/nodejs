@@ -24,6 +24,7 @@ var http = require('http');
 var teslams = require('teslams');
 var oResults = {};
 var nFieldsToLoad = 3;		//how many different function calls to make
+var fTesting = true;
 
 //MAIN
 //testing();
@@ -69,12 +70,14 @@ INSERT INTO `teslaresponse`(`createtime`, `est_battery_range`, `battery_level`, 
 	  method: 'GET'
 	};
 
-	var req = http.request(options, function(res) {
-	  console.log('STATUS: ' + res.statusCode);
-	  console.log('HEADERS: ' + JSON.stringify(res.headers));
+	var req = http.request(options, function(res) 
+	{
+	  if(fTesting) console.log('STATUS: ' + res.statusCode);
+	  if(fTesting) console.log('HEADERS: ' + JSON.stringify(res.headers));
 	  res.setEncoding('utf8');
-	  res.on('data', function (chunk) {
-		console.log('BODY: ' + chunk);
+	  res.on('data', function (chunk) 
+	  {
+		if(fTesting) console.log('BODY: ' + chunk);
 	  });
 	});
 
@@ -120,7 +123,7 @@ https://nodejs.org/docs/v0.5.2/api/http.html#http.request
 	aFields.push(validField(tslaVals, "longitude", "field8") );
 	aFields.push(validField(tslaVals, "car_version", "status") );
 	
-	console.log(aFields.join(""));
+	//console.log(aFields.join(""));
 	//return;
 	//&field1=80&field2=0&field3=321&field4=239.02&field5=155.79&field6=275.09&field7=33&field8=23&status=6.3
 
@@ -131,12 +134,14 @@ https://nodejs.org/docs/v0.5.2/api/http.html#http.request
 	  method: 'GET'
 	};
 
-	var req = http.request(options, function(res) {
-	  console.log('STATUS: ' + res.statusCode);
-	  console.log('HEADERS: ' + JSON.stringify(res.headers));
+	var req = http.request(options, function(res) 
+	{
+	  if(fTesting) console.log('STATUS: ' + res.statusCode);
+	  if(fTesting) console.log('HEADERS: ' + JSON.stringify(res.headers));
 	  res.setEncoding('utf8');
-	  res.on('data', function (chunk) {
-		console.log('BODY: ' + chunk);
+	  res.on('data', function (chunk) 
+	  {
+		if(fTesting) console.log('BODY: ' + chunk);
 	  });
 	});
 
@@ -165,6 +170,7 @@ function main()
 			email: config.username, 
 			password: config.password 
 		};
+		fTesting = (config.debug == "1" || config.debug == "true");
 	} catch (err) {
 		console.warn("The file 'tesla_config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
@@ -179,11 +185,11 @@ function main()
 			// Uncomment too many lines at once and you will get yourself blocked by the Tesla DoS protection systems.
 			//
 			//TODO, how to get multiple parts?
-			console.log("get charge state");
+			if(fTesting) console.log("get charge state");
 			teslams.get_charge_state( vid, storeVals );
-			console.log("get_drive_state");
+			if(fTesting) console.log("get_drive_state");
 			teslams.get_drive_state( vid, storeVals );
-			console.log("get_vehicle_state");
+			if(fTesting) console.log("get_vehicle_state");
 			teslams.get_vehicle_state( vid, storeVals );
 		}
 	  }
@@ -196,7 +202,7 @@ function main()
 function storeVals( jsonVals ) 
 {
 	//print the values
-	pr(jsonVals);
+	if(fTesting) pr(jsonVals);
 	//oResults.extend(jsonVals);
 	//append these results to the main JSON object with results
 	oResults = merge_options(oResults, jsonVals);

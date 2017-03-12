@@ -16,7 +16,7 @@ Object.defineProperty(Object.prototype, "extend", {
 	}
 });
 
-var fTesting = true;
+var fTesting = false;	//gets set based on config values
 var util = require('util');
 //var express    = require("express");
 //var mysql      = require('mysql');
@@ -45,11 +45,11 @@ function main()
 			email: config.username, 
 			password: config.password 
 		};
+		fTesting = (config.debug == "1" || config.debug == "true");
 	} catch (err) {
 		console.warn("The file 'tesla_config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
 	}
-	console.log("-----Running: "+ (new Date()).toLocaleString() + "-----");
 	teslams.get_vid( { email: creds.email, password: creds.password }, setVidAndGetDriveDetails);
 }
 

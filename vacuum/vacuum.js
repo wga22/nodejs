@@ -49,6 +49,7 @@ function main()
 		{
 			throw "all config fields must be defined: api,mbtcamnt, username, tpapi ";
 		}
+		fTesting = (config.debug == "1" || config.debug == "true");
 		config = cfg;
 	} catch (err) {
 		console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...\n" + err);
@@ -109,7 +110,7 @@ function loadMiningStats(fWithProxy)
 	{
 	  if (!error && response.statusCode == 200) 
 	  {
-		console.log("kano mining:" + body);
+		if(fTesting) console.log("kano mining:" + body);
 		var ojStats = JSON.parse(body);
 		if(ojStats.u_hashrate1hr >=0)
 		{
@@ -148,7 +149,7 @@ function loadBalance(sURL)
 	request(sURL, function (error, response, body) {
 	  if (!error && response.statusCode == 200) 
 	  {
-		console.log(sURL + " -> balance = " + body);
+		if(fTesting) console.log(sURL + " -> balance = " + body);
 		var nBal = parseInt(body);
 		oValsForTP.bal = ((oValsForTP.bal === -1) ? 0 : oValsForTP.bal);	//clear original value if still -1
 		if(nBal > 0)
@@ -163,8 +164,9 @@ function loadBalance(sURL)
 function loadDifficulty()
 {
 	request(nDIFFICULTYURL, function (error, response, body) {
-	  if (!error && response.statusCode == 200) {
-		console.log(nDIFFICULTYURL + " -> diff: "  + body);
+	  if (!error && response.statusCode == 200) 
+	  {
+		if(fTesting)console.log(nDIFFICULTYURL + " -> diff: "  + body);
 		var nDiff = parseFloat(body);
 		if(nDiff >=0)
 		{

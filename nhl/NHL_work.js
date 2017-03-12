@@ -91,6 +91,7 @@ function main()
 {
 	//init data
 	ConfigJSON = loadConfig();
+	fTesting = (config.debug == "1" || config.debug == "true");
 	//load the games
 	//console.log(smallDate(new Date()));
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
@@ -100,10 +101,10 @@ function initializeTheGamesList(aoGames)
 {
 	//https://www.reddit.com/r/nhl/comments/2i13xa/places_to_get_raw_statistics/
 	//http://live.nhl.com/GameData/SeasonSchedule-20162017.json
-	console.log("loaded all the games: " + aoGames.length);
+	if(fTesting) console.log("loaded all the games: " + aoGames.length);
 	var sMyTeam = ConfigJSON.myteam;
 	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
-	console.log("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
+	if(fTesting) console.log("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
 
 	//printSchedule();
 	//getAudioFiles();
@@ -125,7 +126,7 @@ function updateDisplayEachMinute()
 	if(fTesting && false) console.log("new game? " + oGameData.nextGame.gameTime.getTime() + " <= " + dToday.getTime());
 	if(oGameData && oGameData.nextGame && oGameData.nextGame.gameTime <= dToday)
 	{
-		console.log("time to move on to a new game");
+		if(fTesting) console.log("time to move on to a new game");
 		oGameData = getPreviousAndNextGames();
 		oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON.myteam);
 	}
