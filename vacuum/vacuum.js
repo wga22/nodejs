@@ -47,6 +47,20 @@ function main()
 			|| isNullOrUndefined(cfg.tpapi)
 			)
 		{
+			/*
+SAMPLE:
+{
+"api": "asdfasdfasdfasdf",
+"mbtcamnt": "https://blockchain.info/q/addressbalance/asdfasdfasdfasdf2342",
+"mbtcamnt2": "https://blockchain.info/q/addressbalance/asdfasdfasdfasdf22",
+"mbtcamnt3": "https://blockchain.info/q/addressbalance/asdfasdfasdfasdf",
+"username": "un",
+"tpapi":"xxx",
+"proxyurl": "http://138.197.12.113:80/",
+"debug": "1"
+}
+			*/
+			
 			throw "all config fields must be defined: api,mbtcamnt, username, tpapi ";
 		}
 		fTesting = (cfg.debug == 1 || cfg.debug == "1" || cfg.debug == "true");

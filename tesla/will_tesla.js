@@ -171,7 +171,20 @@ function main()
 			password: config.password 
 		};
 		fTesting = (config.debug == "1" || config.debug == "true");
-	} catch (err) {
+	} catch (err) 
+	{
+
+/*
+{
+        "portal_url": "https://owner-api.teslamotors.com/api/1/vehicles/",
+        "stream_url": "https://streaming.vn.teslamotors.com/stream/",
+        "username": "xxxxxxxx",
+        "password": "xxxxxxxx",
+        "output_file": "stream_output.txt",
+		"debug": "1"
+}
+*/
+
 		console.warn("The file 'tesla_config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
 	}

@@ -512,13 +512,15 @@ function loadConfig()
 	{
 		var jsonString = fs.readFileSync("./nhl_config.json").toString();
 		oJSON = JSON.parse(jsonString);
-	} catch (err) {
-			console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");
-			process.exit(1);
+	} catch (err) 
+	{
+		oJSON = ConfigJSON;
+		console.warn("The file 'nhl_config.json' does not exist or contains invalid arguments!");
+		console.warn("Going with the best team, instead: " + ConfigJSON.myteam);
+		//process.exit(1);
 	}
 	return oJSON;
 }
-
 
 
 /*
