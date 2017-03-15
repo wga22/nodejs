@@ -129,7 +129,6 @@ function setChargeValues(oChargeVals)
 			}
 			console.log('Setting range based on ' + aDaysOfWeek[nToday] + " to " + nPercent + "%");			
 		}
-		console.log('Set percent to : ' + nPercent);
 		teslams.charge_range( { id: vid, range: 'set', percent: (nPercent) }, success );
 	}
 	else
