@@ -56,7 +56,7 @@ INSERT INTO `teslaresponse`(`createtime`, `est_battery_range`, `battery_level`, 
 	//its a problem if no fields are valid!
 	var sFields = aFields.join("");
 	//&field1=80&field2=0&field3=321&field4=239.02&field5=155.79&field6=275.09&field7=33&field8=23&status=6.3
-	if(sFields.length == 0)
+	if(sFields.length < 6)
 	{
 		console.log("ERROR - No fields retrieved");
 		return -1;
@@ -89,7 +89,7 @@ INSERT INTO `teslaresponse`(`createtime`, `est_battery_range`, `battery_level`, 
 	req.write('data\n');
 	req.write('data\n');
 	req.end();
-	console.log("fields: " + sFields);
+	if(fTesting) console.log("fields: " + sFields);
 }
 
 
