@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /*
 NOTES:
 Potential display ideas (* = mandatory)

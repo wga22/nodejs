@@ -112,7 +112,7 @@ function initializeTheGamesList(aoGames)
 	oGameData = getPreviousAndNextGames();
 	//getPreviousGameStats();
 	//getNextGameStart();
-	oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON.myteam);
+	oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON);
 	updateDisplayEachMinute();
 
 }
@@ -121,16 +121,14 @@ function updateDisplayEachMinute()
 {
 	var dToday = new Date();
 	oPrevGameResults.showResults(dToday);
-	
 	//time to move on to a new game
 	if(fTesting && false) console.log("new game? " + oGameData.nextGame.gameTime.getTime() + " <= " + dToday.getTime());
 	if(oGameData && oGameData.nextGame && oGameData.nextGame.gameTime <= dToday)
 	{
 		if(fTesting) console.log("time to move on to a new game");
 		oGameData = getPreviousAndNextGames();
-		oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON.myteam);
+		oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON);
 	}
-	
 	//console.log(dToday.toString() + " currentgame state: " + currentGameState);
 	setTimeout(updateDisplayEachMinute, MILLISPERMINUTE);
 }
@@ -148,15 +146,17 @@ Team.prototype.isFavorite = function(id)
 	return id == this.id;
 }
 
-function GameResults(oPrevGameInfo, myteamcode)
+function GameResults(oPrevGameInfo, a_oConfig)
  {
 	//instance variables
+	this.oConfig = a_oConfig;
 	this.oPrevGameInfo = oPrevGameInfo;
 	this.lastGoalScoredEventID = '';
 	this.homeScore=null;
 	this.awayScore=null;
 	this.latestEvent = null;
 	this.actionCount = {nCount:0, sLatestEventID:""};
+	this.oConfig.light = parseInt(this.oConfig.light);
 	
 	//we only know the code at this point, dont know the id
 	this.homeTeam = new Team(oPrevGameInfo.h);
@@ -169,23 +169,73 @@ function GameResults(oPrevGameInfo, myteamcode)
 	function displayResults(dDate)
 	{
 		//pr(this.gameStats);
-		console.log("------"+smallDate(dDate)+"-------");
-		console.log(this.awayScore + " vs " + this.homeScore);
-		console.log(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
+		//console.log("------"+smallDate(dDate)+"-------");
+		//console.log(this.awayScore + " vs " + this.homeScore);
+		//console.log(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
 		//console.log("debug:" + smallDate(this.gameStop))
-		if(dDate > this.gameStop)  //after game
+		switch(this.oConfig.output)
 		{
-			console.log("Next: " + smallDate(oGameData.nextGame.gameTime));
-		}
-		else	//during game
-		{
-			console.log("Gm Tm P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
+			case("oled"):
+			case("SSD1306"):
+			this.SSD1306(dDate);
+			break;
+			case("console"):
+			default:
+			this.writeResultsToConsole(dDate)
 		}
 	}	
 }
 GameResults.MAXGAMEDURATION = 6;
 GameResults.MAXWAITFORGAMEDATA = 100;
 GameResults.MAXRETRYEVENT = 4;
+GameResults.prototype.SSD1306 = function (dDate)
+{
+	var aRes = ['oled_writer.py'];
+	aRes.push("---"+smallDate(dDate)+"---");
+	aRes.push(this.awayScore + " vs " + this.homeScore);
+	aRes.push(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
+
+	if(dDate > this.gameStop)  //after game
+	{
+		aRes.push("Next: " + smallDate(oGameData.nextGame.gameTime));
+	}
+	else	//during game
+	{
+		aRes.push("Gm Tm P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
+	}
+
+	try
+	{
+		var execFile = require('child_process').execFile;
+		var child = execFile('python', aRes, (error, stdout, stderr) => {
+		if (error)
+		{
+			throw error;
+		}
+		  console.log(stdout);
+		});	
+	}
+	catch(e)
+	{
+		console.warn("SSD1306:" + e.message);
+	}
+}
+
+GameResults.prototype.writeResultsToConsole = function (dDate)
+{
+	console.log("--CONSOLE----"+smallDate(dDate)+"-------");
+	console.log(this.awayScore + " vs " + this.homeScore);
+	console.log(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
+	if(dDate > this.gameStop)  //after game
+	{
+		console.log("Next: " + smallDate(oGameData.nextGame.gameTime));
+	}
+	else	//during game
+	{
+		console.log("Gm Tm P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
+	}
+}
+
 GameResults.prototype._loadGameUpdates = function ()
 {
 	//http://live.nhl.com/GameData/20162017/2016020755/PlayByPlay.json
@@ -276,7 +326,7 @@ GameResults.prototype.setGameStats = function(oRes)
 	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID)
 	{
 		console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
-		playHorn(ConfigJSON.myteam);
+		this.playHorn();
 		this.lastGoalScoredEventID = oLatestGoal.formalEventId;
 	}
 }
@@ -295,6 +345,38 @@ GameResults.prototype.showResults = function(dDate)
 		this.displayResults(dDate);  //just reuse old data, nothing new going on
 	}
 }
+//look in the config for the "light" and use that as the GPIO pin.  If value not there, false, or 0, dont do anything
+GameResults.prototype.playHorn = function()
+{
+	
+	function playSongSpeaker(format)
+	{
+		try 
+		{
+			this.pipe(new Speaker(format));
+		} catch (e) 
+		{
+			console.log("issue with speaker");
+			console.log(e.message);
+		}
+	}
+	//console.log("\007");
+	var sTeam = this.oConfig.myteam.toLowerCase();
+	setTimeout(turnLight, 100, true, this.oConfig.light);
+	var sSong ="./horns/"+sTeam+".mp3" 
+	try
+	{
+		fs.createReadStream(sSong)
+			.pipe(new lame.Decoder())
+			.on('format', playSongSpeaker);
+	}
+	catch(e)
+	{
+		console.log("issue loading mp3 file ("+sSong+")" + e.message);
+	}
+	setTimeout(turnLight, MILLISPERMINUTE, false, this.oConfig.light);
+}
+
 ///////end GameResults///////////
 
 function reverseTime(a_sTime)
@@ -333,6 +415,29 @@ function getPreviousAndNextGames()
 	return oRes;
 }
 
+function turnLight(s_fOn, nGPIO)
+{
+	if(nGPIO > 0)
+	{
+		try
+		{
+			var Gpio = require('onoff').Gpio;
+			lights = new Gpio(nGPIO, 'out');
+			lights.writeSync((s_fOn ? 1 : 0));
+		}
+		catch(e)
+		{
+			console.log("issue with GPIO " + nGPIO + " - " + s_fOn);
+			console.log(e.message);
+		}
+	}
+	else
+	{
+		if(fTesting) console.log("turning the lights " + (s_fOn ? "on" : "off"));
+	}	
+}
+
+
 
 function gameDetailsURL(sGameID)
 {
@@ -340,22 +445,6 @@ function gameDetailsURL(sGameID)
 	return "http://live.nhl.com/GameData/"+getNHLSeasonString()+"/"+sGameID+"/PlayByPlay.json";
 }
 
-function playHorn(sTeam)
-{
-	//console.log("\007");
-	sTeam = sTeam.toLowerCase();
-	fs.createReadStream("./horns/"+sTeam+".mp3")
-		.pipe(new lame.Decoder())
-		.on('format', function (format) {
-	try {
-		this.pipe(new Speaker(format));
-	} catch (e) {
-		console.log("asdfas");
-		console.log(e.message);
-		return false;
-	}
-	});
-}
 
 /*
 {"aoi":
@@ -539,6 +628,28 @@ function loadConfig()
         hometeamid: 15 } } }
 
 ----------------UNUSED FUNCTIONS-----------------		
+
+function oledtest()
+{
+        const execFile = require('child_process').execFile;
+        const child = execFile('python', ['oled_writer.py', 'two is the magic number', 'for real'], (error, stdout, stderr) => {
+        //const child = execFile('ls', ['-la'], (error, stdout, stderr) => {
+        if (error)
+        {
+            throw error;
+        }
+          console.log(stdout);
+        });
+}
+
+function gpiotest()
+{
+   var Gpio = require('onoff').Gpio
+   lights = new Gpio(17, 'out')
+   lights.writeSync((fOn ? 1 : 0));
+   fOn = !fOn
+   setTimeout(gpiotest, 3000);
+}
 
 
 function waitForGame(sGameID)
