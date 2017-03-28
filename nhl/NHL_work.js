@@ -54,7 +54,6 @@ http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
  
  */
 
-
 Object.defineProperty(Object.prototype, "extend", {
 	enumerable: false,
 	value: function(from) {
@@ -71,11 +70,14 @@ Object.defineProperty(Object.prototype, "extend", {
 	}
 });
 
+//requires
 var lame = require('lame');
 var fs = require('fs');
 var Speaker = require('speaker');
 var util = require('util');
 var http = require('http');
+
+//vars
 var ConfigJSON = {myteam: "WSH"};
 var MILLISPERMINUTE = 60000;	//1 minute
 var MILLISPERHOUR = MILLISPERMINUTE * 60;
@@ -84,6 +86,7 @@ var fTesting = true;
 var aoMyTeamGames = [];
 var oPrevGameResults = {};
 var oGameData = {};
+
 //MAIN
 main();
 
@@ -106,29 +109,23 @@ function initializeTheGamesList(aoGames)
 	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
 	if(fTesting) console.log("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
 
-	//printSchedule();
-	//getAudioFiles();
-	//kick things off!
-	oGameData = getPreviousAndNextGames();
-	//getPreviousGameStats();
-	//getNextGameStart();
-	oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON);
-	updateDisplayEachMinute();
-
+	//kick things off
+	updateDisplayEachMinute(true);
 }
 
-function updateDisplayEachMinute()
+function updateDisplayEachMinute(fFirstTime)
 {
 	var dToday = new Date();
-	oPrevGameResults.showResults(dToday);
 	//time to move on to a new game
 	if(fTesting && false) console.log("new game? " + oGameData.nextGame.gameTime.getTime() + " <= " + dToday.getTime());
-	if(oGameData && oGameData.nextGame && oGameData.nextGame.gameTime <= dToday)
+	//TODO TEST
+	if(fFirstTime || (oGameData && oGameData.nextGame && oGameData.nextGame.gameTime <= dToday))
 	{
 		if(fTesting) console.log("time to move on to a new game");
 		oGameData = getPreviousAndNextGames();
 		oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON);
 	}
+	oPrevGameResults.showResults(dToday);
 	//console.log(dToday.toString() + " currentgame state: " + currentGameState);
 	setTimeout(updateDisplayEachMinute, MILLISPERMINUTE);
 }
@@ -146,11 +143,11 @@ Team.prototype.isFavorite = function(id)
 	return id == this.id;
 }
 
-function GameResults(oPrevGameInfo, a_oConfig)
+function GameResults(a_oPrevGameInfo, a_oConfig)
  {
 	//instance variables
 	this.oConfig = a_oConfig;
-	this.oPrevGameInfo = oPrevGameInfo;
+	this.oPrevGameInfo = a_oPrevGameInfo;
 	this.lastGoalScoredEventID = '';
 	this.homeScore=null;
 	this.awayScore=null;
@@ -159,10 +156,10 @@ function GameResults(oPrevGameInfo, a_oConfig)
 	this.oConfig.light = parseInt(this.oConfig.light);
 	
 	//we only know the code at this point, dont know the id
-	this.homeTeam = new Team(oPrevGameInfo.h);
-	this.awayTeam = new Team(oPrevGameInfo.a);
-	this.gameStart = oPrevGameInfo.gameTime;
-	this.gameStop = new Date(oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));
+	this.homeTeam = new Team(this.oPrevGameInfo.h);
+	this.awayTeam = new Team(this.oPrevGameInfo.a);
+	this.gameStart = this.oPrevGameInfo.gameTime;
+	this.gameStop = new Date(this.oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));
 	this.gameStats = null;
 	this.displayResults = displayResults;
 	
@@ -255,7 +252,11 @@ GameResults.prototype._loadGameUpdates = function ()
 		{
 			oObj = JSON.parse(body);				
 		}
-		catch(e) {console.log("Something unexpected with the response from " + sURL);}
+		catch(e) 
+		{
+			console.warn("Something unexpected with the response from (" + sURL + ") :" + e.message);
+			throw e;
+		}
 		//console.log("Got a response: ");
 		oPrevGameResults.setGameStats(oObj);
 		oPrevGameResults.displayResults();
@@ -284,8 +285,6 @@ GameResults.prototype.setGameStats = function(oRes)
 	this.homeScore = aHomeTeamGoals.length;
 	this.awayScore = aAwayTeamGoals.length;
 	var oLatestGoal = {};
-	//console.log("LENG" + aPlays.length);
-	//TODO: need to figure out how to identify if the game is over
 	this.latestEvent = {period:0, time:0}
 	if(aPlays.length > 0)
 	{
@@ -295,6 +294,8 @@ GameResults.prototype.setGameStats = function(oRes)
 		//console.log("OMG" + sMinutes)
 		this.latestEvent.time = reverseTime(this.latestEvent.time);
 		if(fTesting) console.log(nMinutes + " mins. End of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
+		//is the period or game over?  no way to tell for sure, since the time is coming in of the latest event
+		// if period is more than 17 minutes old, and we've seen the same last event for "GameResults.MAXRETRYEVENT" times
 		if(nMinutes > 17 && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
 		{
 			//if(fTesting) console.log("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
@@ -302,7 +303,7 @@ GameResults.prototype.setGameStats = function(oRes)
 			if(this.actionCount.nCount >= GameResults.MAXRETRYEVENT)
 			{
 				//ok, definitely a stale activity at the end of the game
-				if(fTesting) console.log("not in middle of game");
+				if(fTesting) console.log("The period has likely ended.... (or game)");
 				this.latestEvent.time = "End";
 			}
 		}
@@ -312,8 +313,7 @@ GameResults.prototype.setGameStats = function(oRes)
 		}
 		this.actionCount.sLatestEventID  = this.latestEvent.formalEventId;
 	}
-	//pr(this.homeTeam);
-	
+	//did your team score the most recent goal?
 	if(this.homeTeam.isFavorite(hid) && aHomeTeamGoals.length-1 >=0)
 	{
 		oLatestGoal = aHomeTeamGoals[aHomeTeamGoals.length-1];
@@ -322,42 +322,48 @@ GameResults.prototype.setGameStats = function(oRes)
 	{
 		oLatestGoal = aAwayTeamGoals[aAwayTeamGoals.length-1];
 	}
-
-	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID)
+	
+	//TODO: fix so doesn't blare when system turned on, with a null
+	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID && oLatestGoal.formalEventId)
 	{
-		console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
+		if(fTesting) console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
 		this.playHorn();
 		this.lastGoalScoredEventID = oLatestGoal.formalEventId;
 	}
 }
 GameResults.prototype.showResults = function(dDate)
 {
-	if(dDate < this.gameStop  || this.gameStats == null)	//determine if we need to load in actual game results
+	//determine if we need to load in actual game results.  Either it's during the game, or we don't have game data
+	if(dDate < this.gameStop  || this.gameStats == null)	
 	{
-		if(fTesting) console.log("game is going on OR we didnt have data yet!" + (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") + " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
+		if(fTesting)
+		{
+			console.log("showResults: game is going on OR we didn't have data yet!"
+				+ (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") 
+				+ " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
+		}
 		this.gameStats = null;
 		this._loadGameUpdates();
 	}
 	else
 	{
-		if(fTesting) console.log("no game going on, and data is loaded")
-		//TODO - show the time for next game since last game is over
+		if(fTesting) console.log("showResults: Game values are static, so no need to get active data.")
 		this.displayResults(dDate);  //just reuse old data, nothing new going on
 	}
 }
 //look in the config for the "light" and use that as the GPIO pin.  If value not there, false, or 0, dont do anything
 GameResults.prototype.playHorn = function()
 {
-	
 	function playSongSpeaker(format)
 	{
 		try 
 		{
 			this.pipe(new Speaker(format));
+			//TODO: figure out how to close this speaker object when done
 		} catch (e) 
 		{
-			console.log("issue with speaker");
-			console.log(e.message);
+			console.warn("issue with speaker: " + e.message);
+			throw e;
 		}
 	}
 	//console.log("\007");
@@ -372,13 +378,14 @@ GameResults.prototype.playHorn = function()
 	}
 	catch(e)
 	{
-		console.log("issue loading mp3 file ("+sSong+")" + e.message);
+		console.warn("issue loading mp3 file ("+sSong+")" + e.message);
 	}
 	setTimeout(turnLight, MILLISPERMINUTE, false, this.oConfig.light);
 }
 
 ///////end GameResults///////////
 
+//Hockey specific HELPER FUNCTIONS
 function reverseTime(a_sTime)
 {
 	var aRes = a_sTime.split(":");
@@ -392,11 +399,13 @@ function reverseTime(a_sTime)
 	return sRes;
 }
 
+//Hockey specific HELPER FUNCTIONS
 function getPreviousAndNextGames()
 {
 	var oRes = {};
 	var oPrevGame = null;
 	var dToday = new Date();
+	//TODO: test this for the playoffs!
 	for(var x=0; x < aoMyTeamGames.length; x++)
 	{
 		var dGameDate = parseDateStr(aoMyTeamGames[x].est);
@@ -412,6 +421,8 @@ function getPreviousAndNextGames()
 			break;
 		}
 	}
+	//TODO: what is oRes is still {} ?
+	//TODO: means that there are no games left in the season, so move onto next season?
 	return oRes;
 }
 
@@ -437,13 +448,6 @@ function turnLight(s_fOn, nGPIO)
 	}	
 }
 
-
-
-function gameDetailsURL(sGameID)
-{
-	//http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
-	return "http://live.nhl.com/GameData/"+getNHLSeasonString()+"/"+sGameID+"/PlayByPlay.json";
-}
 
 
 /*
@@ -479,26 +483,6 @@ function printSchedule()
 	}
 }
 
-function getAudioFiles()
-{
-	var oTeams = {};
-	return //no need to grab these again
-	for(var x=0; x < aoMyTeamGames.length; x++)
-	{
-		oTeams[aoMyTeamGames[x].a] = true;
-		//console.log((dGameDate < dToday ? "PAST" : "future") +  dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
-	}
-
-	var exec = require('child_process').exec;
-	for(var t in oTeams)
-	{
-		var mp3URL = "http://wejustscored.com/audio/"+(t+"").toLowerCase() +".mp3"
-		console.log(mp3URL);
-		var cmd = "wget " + mp3URL;
-		exec(cmd, function(error, stdout, stderr) { console.log("downloaded...." + cmd)});
-	}
-}
-
 getNHLSeasonString.THISSEASON = null;
 function getNHLSeasonString()
 {
@@ -512,6 +496,12 @@ function getNHLSeasonString()
 		//console.log("UGGHH" + getNHLSeasonString.THISSEASON)
 	}
 	return getNHLSeasonString.THISSEASON;
+}
+
+function gameDetailsURL(sGameID)
+{
+	//http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
+	return "http://live.nhl.com/GameData/"+getNHLSeasonString()+"/"+sGameID+"/PlayByPlay.json";
 }
 
 function getNHLSeasonURL()
@@ -628,6 +618,28 @@ function loadConfig()
         hometeamid: 15 } } }
 
 ----------------UNUSED FUNCTIONS-----------------		
+
+function getAudioFiles()
+{
+	var oTeams = {};
+	return //no need to grab these again
+	for(var x=0; x < aoMyTeamGames.length; x++)
+	{
+		oTeams[aoMyTeamGames[x].a] = true;
+		//console.log((dGameDate < dToday ? "PAST" : "future") +  dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
+	}
+
+	var exec = require('child_process').exec;
+	for(var t in oTeams)
+	{
+		var mp3URL = "http://wejustscored.com/audio/"+(t+"").toLowerCase() +".mp3"
+		console.log(mp3URL);
+		var cmd = "wget " + mp3URL;
+		exec(cmd, function(error, stdout, stderr) { console.log("downloaded...." + cmd)});
+	}
+}
+
+
 
 function oledtest()
 {
