@@ -97,6 +97,11 @@ function main()
 	fTesting = (ConfigJSON.debug == "1" || ConfigJSON.debug == "true");
 	//load the games
 	//console.log(smallDate(new Date()));
+	//make sure light is off to start
+	if(ConfigJSON.light)
+	{
+		setTimeout(turnLight, 100, false, ConfigJSON.light);
+	}
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
 }
 
@@ -324,7 +329,8 @@ GameResults.prototype.setGameStats = function(oRes)
 	}
 	
 	//TODO: fix so doesn't blare when system turned on, with a null
-	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID && oLatestGoal.formalEventId && this.lastGoalScoredEventID)
+	//console.log(oLatestGoal.formalEventId +"!="+ this.lastGoalScoredEventID +"&&"+ oLatestGoal.formalEventId +"&&"+ this.lastGoalScoredEventID)
+	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID && oLatestGoal.formalEventId)
 	{
 		if(fTesting) console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
 		this.playHorn();
