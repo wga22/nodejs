@@ -130,17 +130,16 @@ function updateDisplayEachMinute(fFirstTime)
 	setTimeout(updateDisplayEachMinute, MILLISPERMINUTE);
 }
 
-function Team(sCode)
+function Team(sCode, a_isFav)
 {
 	this.code = sCode;
 	this.nickname = "";
 	this.id = null;
-	this.favorite = null;
+	this.favorite = a_isFav;
 }
-Team.prototype.isFavorite = function(id)
+Team.prototype.isFavorite = function()
 {
-	this.favorite = id == this.id;
-	return id == this.id;
+	return this.favorite;
 }
 
 function GameResults(a_oPrevGameInfo, a_oConfig)
@@ -156,8 +155,8 @@ function GameResults(a_oPrevGameInfo, a_oConfig)
 	this.oConfig.light = parseInt(this.oConfig.light);
 	
 	//we only know the code at this point, dont know the id
-	this.homeTeam = new Team(this.oPrevGameInfo.h);
-	this.awayTeam = new Team(this.oPrevGameInfo.a);
+	this.homeTeam = new Team(this.oPrevGameInfo.h, (this.oPrevGameInfo.h == this.oConfig.myteam));
+	this.awayTeam = new Team(this.oPrevGameInfo.a, (this.oPrevGameInfo.a == this.oConfig.myteam));
 	this.gameStart = this.oPrevGameInfo.gameTime;
 	this.gameStop = new Date(this.oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));
 	this.gameStats = null;
@@ -314,17 +313,18 @@ GameResults.prototype.setGameStats = function(oRes)
 		this.actionCount.sLatestEventID  = this.latestEvent.formalEventId;
 	}
 	//did your team score the most recent goal?
-	if(this.homeTeam.isFavorite(hid) && aHomeTeamGoals.length-1 >=0)
+	//console.log("WILLLLLL" + this.awayTeam.isFavorite() + " " + hid +"xx " + this.homeTeam.isFavorite() );
+	if(this.homeTeam.isFavorite() && aHomeTeamGoals.length-1 >=0)
 	{
 		oLatestGoal = aHomeTeamGoals[aHomeTeamGoals.length-1];
 	}
-	else if(this.awayTeam.isFavorite(hid) && aAwayTeamGoals.length-1 >=0)
+	else if(this.awayTeam.isFavorite() && aAwayTeamGoals.length-1 >=0)
 	{
 		oLatestGoal = aAwayTeamGoals[aAwayTeamGoals.length-1];
 	}
 	
 	//TODO: fix so doesn't blare when system turned on, with a null
-	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID && oLatestGoal.formalEventId)
+	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID && oLatestGoal.formalEventId && this.lastGoalScoredEventID)
 	{
 		if(fTesting) console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
 		this.playHorn();
