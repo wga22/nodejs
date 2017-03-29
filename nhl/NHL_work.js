@@ -176,6 +176,10 @@ function GameResults(a_oPrevGameInfo, a_oConfig)
 		//console.log("debug:" + smallDate(this.gameStop))
 		switch(this.oConfig.output)
 		{
+			case("LCD_I2C"):
+			case("LCD1604"):
+			this.LCD_1604_I2C(dDate);
+			break;
 			case("oled"):
 			case("SSD1306"):
 			this.SSD1306(dDate);
@@ -189,21 +193,46 @@ function GameResults(a_oPrevGameInfo, a_oConfig)
 GameResults.MAXGAMEDURATION = 6;
 GameResults.MAXWAITFORGAMEDATA = 100;
 GameResults.MAXRETRYEVENT = 4;
-GameResults.prototype.SSD1306 = function (dDate)
+
+GameResults.LCD = null;
+GameResults.prototype.LCD_1604_I2C = function(dDate)
 {
-	var aRes = ['oled_writer.py'];
-	aRes.push("---"+smallDate(dDate)+"---");
-	aRes.push(this.awayScore + " vs " + this.homeScore);
-	aRes.push(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
+	if(GameResults.LCD==null)
+	{
+		GameResults.LCD = require('lcdi2c');
+	}
+	var lcd = new GameResults.LCD( 1, 0x27, 20, 4 );
+	var aRes = this.genericResults(dDate);
+	lcd.clear();
+	for(var x=0; x < aRes.length; x++)
+	{
+		lcd.println(aRes[x] , (x+1));
+	}
+}
+
+GameResults.prototype.genericResults = function(dDate)
+{
+	var aRes = [];
+	aRes.push(this.awayTeam.nickname + "(" + this.awayScore + ")");
+	aRes.push( this.homeTeam.nickname + "(" + this.homeScore + ")");
 
 	if(dDate > this.gameStop)  //after game
 	{
-		aRes.push("Next: " + smallDate(oGameData.nextGame.gameTime));
+		aRes.push("Next:" + smallDate(oGameData.nextGame.gameTime));
 	}
 	else	//during game
 	{
-		aRes.push("Gm Tm P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
+		aRes.push("P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
 	}
+	aRes.push(smallDate(dDate));
+	return aRes;
+}
+
+
+GameResults.prototype.SSD1306 = function (dDate)
+{
+	var aRes = ['oled_writer.py'];
+	aRes.push(this.genericResults(dDate));
 
 	try
 	{
