@@ -96,7 +96,6 @@ function initializeTheGamesList(aoGames)
 	var sMyTeam = ConfigJSON.myteam;
 	var aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
 	getAudioFiles(aoMyTeamGames);
-
 }
 
 
