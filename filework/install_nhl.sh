@@ -7,7 +7,7 @@
 #TODO: TEST!
 
 #make needed directories
-export $NODEDIR='/home/pi/node'
+export NODEDIR='/home/pi/node'
 cd $NODEDIR
 mkdir $NODEDIR
 mkdir $NODEDIR/nhl
@@ -20,6 +20,7 @@ touch $NODEDIR/nhl/logs/nhl.log
 #pull the code
 wget -O $NODEDIR/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
 wget -O $NODEDIR/nhl/gethorns.js https://github.com/wga22/nodejs/raw/master/nhl/gethorns.js
+wget -O $NODEDIR/nhl/arial.ttf https://github.com/wga22/nodejs/raw/master/nhl/misc/arial.ttf
 
 #install dependencies
 cd $NODEDIR
@@ -33,4 +34,6 @@ npm install oled-i2c-bus
 #pull the horns
 cd $NODEDIR/nhl/horns
 node ../gethorns.js
+
+echo 'TODO: need to create config file'
 
