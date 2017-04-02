@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# clear node related logs
+# deployed Mar 2017
+# TODO, setup and use env variable for NODEHOME
+
+#clear logs
+cd /home/pi/node/tesla
+echo "" > /home/pi/node/tesla/logs/tesla_batt_level.log
+echo "" > /home/pi/node/tesla/logs/tesla_tp.log
+echo "" > /home/pi/node/vacuum/logs/vacuum.log
+echo "" > /home/pi/node/nhl/logs/vacuum.log

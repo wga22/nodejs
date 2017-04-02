@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# update thingspeak with details from tesla api
+# deployed Mar 2017
+# TODO, setup and use env variable for NODEHOME
+cd /home/pi/node/tesla
+node tesla_battery_levels.js >> /home/pi/node/tesla/logs/tesla_batt_level.log

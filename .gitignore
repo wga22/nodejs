@@ -53,3 +53,9 @@ temp/nodejs.zip
 *.mp3
 *.log
 nhl/NHL_musictest.js
+nhl/misc/speakeron_test.js
+nhl/misc/clock.js
+nhl/misc/oled_test.js
+nhl/misc/hockey.js
+filework/authorized_keys
+nhl/misc/blink-led.js

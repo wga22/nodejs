@@ -1,0 +1,9 @@
+#!/bin/sh
+
+(apt-get update && apt-get -y upgrade) > /dev/null
+apt-get -y dist-upgrade
+apt-get -y clean
+npm install -g npm
+npm update -g
+
+#TODO: update python libraries?

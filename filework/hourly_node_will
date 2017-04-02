@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# update thingspeak with details from tesla api
+# deployed Mar 2017
+# TODO, setup and use env variable for NODEHOME
+cd /home/pi/node/tesla
+node will_tesla.js >> /home/pi/node/tesla/logs/tesla_tp.log
+
+cd /home/pi/node/vacuum
+node vacuum.js >> /home/pi/node/vacuum/logs/vacuum.log
+
