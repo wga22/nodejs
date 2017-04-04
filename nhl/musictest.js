@@ -1,60 +1,9 @@
 #!/usr/bin/env node
 
 /*
-NOTES:
-Potential display ideas (* = mandatory)
-	current/latest score
-	standings
-	latest action
-	time and date
-	game time
-	
-sound and light
-	end of game, play the winner's buzzer (mp3 files), and spin light
-	upon goal for my team, play the buzzer
-	
-challenges
-	when a game isnt listed on the game list
-	end of season
-	
-Architecture
-	cron on bootup (since will have date and time) - will run full time
-	have loop, with 1 minute sleep, and refresh the lcd each 1 minute
-
-	initializeTheGamesList
-	Loop each Minute
-	{
-		if: beforegame, show date, time and previous score/standings
-		if: duringgame: show time, GAME time, score
-		if: aftergame: figure out when next game is
-		if: after season? wait until september?
-	}
-
-useful URLs - details:
- http://hfboards.hockeysfuture.com/showthread.php?t=1596119
- http://whatsyourtech.ca/2013/06/14/we-scored-app-roars-when-your-nhl-team-scores/
-
-Sound files
-	http://wejustscored.com/audio/wsh.mp3
-	http://wejustscored.com/audio/<TEAM>.mp3
-data feeds:
-http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
-
-
- http://live.nhl.com/GameData/GCScoreboard/yyyy-mm-dd.jsonp	
-
- UNsorted
-	http://app.cgy.nhl.yinzcam.com/V2/Stats/Standings
-	http://hfboards.hockeysfuture.com/showthread.php?t=1596119
-	http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
-	http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
-	http://live.nhl.com/GameData/20162017/2016020733/gc/gcbx.jsonp
-	https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#q=nhl+live+game+json
- 
+	TEST out stuff
  
  */
-
-
 Object.defineProperty(Object.prototype, "extend", {
 	enumerable: false,
 	value: function(from) {
@@ -78,22 +27,42 @@ var ConfigJSON = {myteam: "WSH"};
 var MILLISPERMINUTE = 60000;	//1 minute
 var MILLISPERHOUR = MILLISPERMINUTE * 60;
 //var oLCDData = {lastactiondesc: "", date: (new Date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
-var fTesting = true;
-var oGameData = {};
 //MAIN
 main();
 
 function main()
 {
-	playHorn2("WSH");
+	ConfigJSON = loadConfig();
+	configTesting()
 }
 
-function playHorn()
+function configTesting()
 {
-  console.log("\007");
+	/*
+{
+	"myteam": "WSH",
+	"debug":"1" ,
+	"output":  "lcd"
+	"light": {"type":"multiled", "gpio":["9","7"] }
+}	
+	
+	*/
+	
+	console.log(ConfigJSON.myteam);
+	console.log(ConfigJSON.debug);
+	console.log(ConfigJSON.output);
+	console.log(ConfigJSON.light.type);
+	console.log(ConfigJSON.light.gpio.length);
+	for(var x =0; x < ConfigJSON.light.gpio.length; x++)
+	{
+		console.log("gpio:" + ConfigJSON.light.gpio[x]);	
+	}
+	
+	
+	
 }
 
-function playHorn2(sTeam)
+function playHorn(sTeam)
 {
 	//console.log("\007");
 	var speaker = require('speaker');
@@ -189,7 +158,7 @@ function loadConfig()
 	var fs = require('fs');
 	var oJSON =  {};
 	try {
-			var jsonString = fs.readFileSync("./config.json").toString();
+			var jsonString = fs.readFileSync("./sample_config.json").toString();
 			oJSON = JSON.parse(jsonString);
 		} catch (err) {
 			console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");

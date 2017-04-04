@@ -2,7 +2,24 @@
 
 /*
 NOTES:
-Potential display ideas (* = mandatory)
+
+CONFIG values
+{
+	"myteam": {"WSH","CAR",etc}
+	"debug":
+		"1"  //debugging enabled
+		"0"	//debugging disabled
+	"output":  //what device to use
+		"console"
+		"lcd"
+		"oled"
+	"light":
+		{"type":"alarm,multi-led,none", "gpio":["9", "8", "7"] }
+}
+ 
+
+
+DISPLAY features
 	current/latest score
 	standings
 	latest action
@@ -10,25 +27,16 @@ Potential display ideas (* = mandatory)
 	game time
 	
 sound and light
-	end of game, play the winner's buzzer (mp3 files), and spin light
-	upon goal for my team, play the buzzer
+
 	
 challenges
-	when a game isnt listed on the game list
-	end of season
+	playoffs?
+	resetting process if it goes down
+	turning off amp/speaker when not in use?
+		test using gpio was not succcessful on opizero
 	
 Architecture
-	cron on bootup (since will have date and time) - will run full time
-	have loop, with 1 minute sleep, and refresh the lcd each 1 minute
-
-	initializeTheGamesList
-	Loop each Minute
-	{
-		if: beforegame, show date, time and previous score/standings
-		if: duringgame: show time, GAME time, score
-		if: aftergame: figure out when next game is
-		if: after season? wait until september?
-	}
+	
 
 useful URLs - details:
  http://hfboards.hockeysfuture.com/showthread.php?t=1596119
@@ -98,11 +106,16 @@ function main()
 	//load the games
 	//console.log(smallDate(new Date()));
 	//make sure light is off to start
-	if(ConfigJSON.light)
+	if(fUsingALight())
 	{
-		setTimeout(turnLight, 100, false, ConfigJSON.light);
+		setTimeout(turnLight, 100, false);
 	}
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
+}
+
+function fUsingALight()
+{
+	return ConfigJSON.light && ConfigJSON.light != "none";
 }
 
 function initializeTheGamesList(aoGames)
@@ -128,7 +141,7 @@ function updateDisplayEachMinute(fFirstTime)
 	{
 		if(fTesting) console.log("time to move on to a new game");
 		oGameData = getPreviousAndNextGames();
-		oPrevGameResults = new GameResults(oGameData.previousGame, ConfigJSON);
+		oPrevGameResults = new GameResults(oGameData.previousGame);
 	}
 	oPrevGameResults.showResults(dToday);
 	//console.log(dToday.toString() + " currentgame state: " + currentGameState);
@@ -147,21 +160,19 @@ Team.prototype.isFavorite = function()
 	return this.favorite;
 }
 
-function GameResults(a_oPrevGameInfo, a_oConfig)
+function GameResults(a_oPrevGameInfo)
  {
 	//instance variables
-	this.oConfig = a_oConfig;
 	this.oPrevGameInfo = a_oPrevGameInfo;
 	this.lastGoalScoredEventID = '';
 	this.homeScore=null;
 	this.awayScore=null;
 	this.latestEvent = null;
 	this.actionCount = {nCount:0, sLatestEventID:""};
-	this.oConfig.light = parseInt(this.oConfig.light);
 	
 	//we only know the code at this point, dont know the id
-	this.homeTeam = new Team(this.oPrevGameInfo.h, (this.oPrevGameInfo.h == this.oConfig.myteam));
-	this.awayTeam = new Team(this.oPrevGameInfo.a, (this.oPrevGameInfo.a == this.oConfig.myteam));
+	this.homeTeam = new Team(this.oPrevGameInfo.h, (this.oPrevGameInfo.h == ConfigJSON.myteam));
+	this.awayTeam = new Team(this.oPrevGameInfo.a, (this.oPrevGameInfo.a == ConfigJSON.myteam));
 	this.gameStart = this.oPrevGameInfo.gameTime;
 	this.gameStop = new Date(this.oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));
 	this.gameStats = null;
@@ -174,11 +185,11 @@ function GameResults(a_oPrevGameInfo, a_oConfig)
 		//console.log(this.awayScore + " vs " + this.homeScore);
 		//console.log(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
 		//console.log("debug:" + smallDate(this.gameStop))
-		switch(this.oConfig.output)
+		switch(ConfigJSON.output)
 		{
 			case("LCD_I2C"):
-			case("LCD1604"):
-			this.LCD_1604_I2C(dDate);
+			case("LCD2004"):
+			this.LCD_2004_I2C(dDate);
 			break;
 			case("oled"):
 			case("SSD1306"):
@@ -195,7 +206,7 @@ GameResults.MAXWAITFORGAMEDATA = 100;
 GameResults.MAXRETRYEVENT = 4;
 
 GameResults.LCD = null;
-GameResults.prototype.LCD_1604_I2C = function(dDate)
+GameResults.prototype.LCD_2004_I2C = function(dDate)
 {
 	if(GameResults.LCD==null)
 	{
@@ -228,8 +239,37 @@ GameResults.prototype.genericResults = function(dDate)
 	return aRes;
 }
 
-
+GameResults.SSD1306_LCD = {lcd:null, height:64, width:128, rowHeight:12, address: 0x3C, font:null, nRowHeight:10};
 GameResults.prototype.SSD1306 = function (dDate)
+{
+	var aRes = this.genericResults(dDate);
+	try
+	{
+		if(GameResults.SSD1306_LCD.lcd==null)
+		{
+			//var lcdOpts = {  width: 128, height: 64, address: 0x3C};
+			var i2cBus = require('i2c-bus').openSync(0);
+			var OLEDI2CBUS = require('oled-i2c-bus');
+			GameResults.SSD1306_LCD.lcd = new OLEDI2CBUS(i2cBus, GameResults.SSD1306_LCD);
+			GameResults.SSD1306_LCD.lcd.turnOnDisplay();
+			GameResults.SSD1306_LCD.font = require('oled-font-5x7');
+		}
+		GameResults.SSD1306_LCD.lcd.clearDisplay();
+		
+		for(var x=0; x < aRes.length; x++)
+		{
+			GameResults.SSD1306_LCD.lcd.setCursor(10, ((x+1)*GameResults.SSD1306_LCD.nRowHeight));
+			GameResults.SSD1306_LCD.lcd.writeString(GameResults.SSD1306_LCD.font, 1, aRes[x], 1, true);
+		}
+	}
+	catch(e)
+	{
+		console.warn("SSD1306:" + e.message);
+	}
+}
+
+
+GameResults.prototype.SSD1306_python = function (dDate)
 {
 	var aRes = ['oled_writer.py'];
 	aRes.push(this.genericResults(dDate));
@@ -402,8 +442,8 @@ GameResults.prototype.playHorn = function()
 		}
 	}
 	//console.log("\007");
-	var sTeam = this.oConfig.myteam.toLowerCase();
-	setTimeout(turnLight, 100, true, this.oConfig.light);
+	var sTeam = ConfigJSON.myteam.toLowerCase();
+	setTimeout(turnLight, 100, true);
 	var sSong ="./horns/"+sTeam+".mp3" 
 	try
 	{
@@ -415,7 +455,7 @@ GameResults.prototype.playHorn = function()
 	{
 		console.warn("issue loading mp3 file ("+sSong+")" + e.message);
 	}
-	setTimeout(turnLight, MILLISPERMINUTE, false, this.oConfig.light);
+	//TODO: maybe not needed setTimeout(turnLight, MILLISPERMINUTE, false);
 }
 
 ///////end GameResults///////////
@@ -461,28 +501,77 @@ function getPreviousAndNextGames()
 	return oRes;
 }
 
-function turnLight(s_fOn, nGPIO)
+turnLight.settings = {switchTime: 1000, totalTime: MILLISPERMINUTE/4, count:0, fOn:false, gpioObj:null};
+function turnLight(s_fOn)
 {
-	if(nGPIO > 0)
+	if(ConfigJSON.light.gpio )	//need to know the pins of the light(s)
+	//TODO: why did I put this in? || (turnLight.settings.switchTime >= turnLight.settings.totalTime)
 	{
-		try
+		var nLightOn = 0;
+		/*  TODO: not working: Array.isArray
+		//make sure we have an array
+		if(ConfigJSON.light.gpio && !Array.isArray(ConfigJSON.light.gpio))
 		{
-			var Gpio = require('onoff').Gpio;
-			lights = new Gpio(nGPIO, 'out');
-			lights.writeSync((s_fOn ? 1 : 0));
+			console.warn("ConfigJSON.light.gpio is not an array" + Array.isArray(ConfigJSON.light.gpio));
+			ConfigJSON.light.gpio = [ConfigJSON.light.gpio];
 		}
-		catch(e)
+		*/
+		//if just 1, then update switchtime to equal the total time (ie. only run 1x)
+		if(ConfigJSON.light.gpio.length == 1)
 		{
-			console.log("issue with GPIO " + nGPIO + " - " + s_fOn);
-			console.log(e.message);
+			//no need to run more than 1x
+			turnLight.settings.switchTime = turnLight.settings.totalTime;
+		}
+		else
+		{
+			//if multiple lights, figure out which one gets turned on based on mod of number of lights, and how many runs
+			nLightOn = Math.floor(turnLight.settings.count % ConfigJSON.light.gpio.length);
+			//if(fTesting) console.log("turning on the " +nLightOn + " light");
+		}
+		    //if there are multiple bulbs, this is the one to turn on; use modulous of number of lights.
+		for(var x=0; x < ConfigJSON.light.gpio.length; x++)
+		{
+			var fTurnThisLightOn = (s_fOn && (x == nLightOn));
+			if(fTesting && false) console.log("turning the lights ("+nLightOn+")("+ConfigJSON.light.gpio[x]+")" + (fTurnThisLightOn ? "on" : "off"));
+			try
+			{
+				if(turnLight.settings.gpioObj == null)
+				{
+					turnLight.settings.gpioObj = require('onoff').Gpio;	
+				}
+				var light = new turnLight.settings.gpioObj(ConfigJSON.light.gpio[x], 'out');
+				light.writeSync(fTurnThisLightOn ? 1 : 0);
+			}
+			catch(e)
+			{
+				console.warn("issue with GPIO " + ConfigJSON.light.gpio[x] + " - " + s_fOn);
+				console.warn(e.message);
+			}
+		}
+		
+		if(turnLight.settings.MAXRUNS == null)
+		{
+			turnLight.settings.MAXRUNS = Math.ceil(turnLight.settings.totalTime / turnLight.settings.switchTime);
+		}
+		//prep for next run, and go again
+		if(s_fOn)
+		{
+			turnLight.settings.count++;
+			var fRunAgain = (turnLight.settings.count <=  turnLight.settings.MAXRUNS);
+			//if we are turning lights off, reset the count
+			if(!fRunAgain)
+			{
+				turnLight.settings.count = 0;
+			}
+			if(fTesting && false) console.log("lights: (m: " + turnLight.settings.MAXRUNS + ") (c:" +turnLight.settings.count+ ") turnoff now?:" + fRunAgain);
+			setTimeout(turnLight, turnLight.settings.switchTime, fRunAgain);
 		}
 	}
 	else
 	{
-		if(fTesting) console.log("turning the lights " + (s_fOn ? "on" : "off"));
-	}	
+		console.warn("There are no gpio pins defined for a light or one of the turnLight:settings is wrong.");
+	}
 }
-
 
 
 /*
@@ -616,9 +705,7 @@ function loadURLasJSON(sURL, funcCallback)
 function loadConfig()
 {
 	/* SAMPLE FILE
-	{
-		"myteam": "WSH"
-	}
+		see header 
 	*/
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
 	var oJSON =  {};
@@ -626,7 +713,8 @@ function loadConfig()
 	{
 		var jsonString = fs.readFileSync("./nhl_config.json").toString();
 		oJSON = JSON.parse(jsonString);
-	} catch (err) 
+	} 
+	catch (err) 
 	{
 		oJSON = ConfigJSON;
 		console.warn("The file 'nhl_config.json' does not exist or contains invalid arguments!");
