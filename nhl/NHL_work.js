@@ -504,7 +504,7 @@ function getPreviousAndNextGames()
 turnLight.settings = {switchTime: 1000, totalTime: MILLISPERMINUTE/4, count:0, fOn:false, gpioObj:null};
 function turnLight(s_fOn)
 {
-	if(ConfigJSON.light.gpio )	//need to know the pins of the light(s)
+	if(ConfigJSON.light.type && ConfigJSON.light.type!= "none" && ConfigJSON.light.gpio )	//need to know the pins of the light(s)
 	//TODO: why did I put this in? || (turnLight.settings.switchTime >= turnLight.settings.totalTime)
 	{
 		var nLightOn = 0;
