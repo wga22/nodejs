@@ -501,7 +501,7 @@ function getPreviousAndNextGames()
 	return oRes;
 }
 
-turnLight.settings = {switchTime: 1000, totalTime: MILLISPERMINUTE/4, count:0, fOn:false, gpioObj:null};
+turnLight.settings = {switchTime: 500, totalTime: MILLISPERMINUTE, count:0, fOn:false, gpioObj:null};
 function turnLight(s_fOn)
 {
 	if(ConfigJSON.light.type && ConfigJSON.light.type!= "none" && ConfigJSON.light.gpio )	//need to know the pins of the light(s)
