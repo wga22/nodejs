@@ -91,6 +91,7 @@ var MILLISPERMINUTE = 60000;	//1 minute
 var MILLISPERHOUR = MILLISPERMINUTE * 60;
 //var oLCDData = {lastactiondesc: "", date: (new Date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
 var fTesting = true;
+var fFirstTime = true;
 var aoMyTeamGames = [];
 var oPrevGameResults = {};
 var oGameData = {};
@@ -103,19 +104,13 @@ function main()
 	//init data
 	ConfigJSON = loadConfig();
 	fTesting = (ConfigJSON.debug == "1" || ConfigJSON.debug == "true");
-	//load the games
-	//console.log(smallDate(new Date()));
 	//make sure light is off to start
 	if(fUsingALight())
 	{
 		setTimeout(turnLight, 100, false);
 	}
+	//load the games
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
-}
-
-function fUsingALight()
-{
-	return ConfigJSON.light && ConfigJSON.light != "none";
 }
 
 function initializeTheGamesList(aoGames)
@@ -128,25 +123,31 @@ function initializeTheGamesList(aoGames)
 	if(fTesting) console.log("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
 
 	//kick things off
-	updateDisplayEachMinute(true);
+	//updateDisplayEachMinute(true);
+	setInterval(updateDisplayEachMinute, MILLISPERMINUTE);
+
 }
 
-function updateDisplayEachMinute(fFirstTime)
+function updateDisplayEachMinute()
 {
 	var dToday = new Date();
 	//time to move on to a new game
 	if(fTesting && false) console.log("new game? " + oGameData.nextGame.gameTime.getTime() + " <= " + dToday.getTime());
-	//TODO TEST
 	if(fFirstTime || (oGameData && oGameData.nextGame && oGameData.nextGame.gameTime <= dToday))
 	{
 		if(fTesting) console.log("time to move on to a new game");
+		fFirstTime = false;
 		oGameData = getPreviousAndNextGames();
 		oPrevGameResults = new GameResults(oGameData.previousGame);
 	}
 	oPrevGameResults.showResults(dToday);
-	//console.log(dToday.toString() + " currentgame state: " + currentGameState);
-	setTimeout(updateDisplayEachMinute, MILLISPERMINUTE);
 }
+
+function fUsingALight()
+{
+	return ConfigJSON.light && ConfigJSON.light != "none";
+}
+
 
 function Team(sCode, a_isFav)
 {
@@ -180,11 +181,6 @@ function GameResults(a_oPrevGameInfo)
 	
 	function displayResults(dDate)
 	{
-		//pr(this.gameStats);
-		//console.log("------"+smallDate(dDate)+"-------");
-		//console.log(this.awayScore + " vs " + this.homeScore);
-		//console.log(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
-		//console.log("debug:" + smallDate(this.gameStop))
 		switch(ConfigJSON.output)
 		{
 			case("LCD_I2C"):
@@ -387,7 +383,6 @@ GameResults.prototype.setGameStats = function(oRes)
 		this.actionCount.sLatestEventID  = this.latestEvent.formalEventId;
 	}
 	//did your team score the most recent goal?
-	//console.log("WILLLLLL" + this.awayTeam.isFavorite() + " " + hid +"xx " + this.homeTeam.isFavorite() );
 	if(this.homeTeam.isFavorite() && aHomeTeamGoals.length-1 >=0)
 	{
 		oLatestGoal = aHomeTeamGoals[aHomeTeamGoals.length-1];
@@ -455,7 +450,6 @@ GameResults.prototype.playHorn = function()
 	{
 		console.warn("issue loading mp3 file ("+sSong+")" + e.message);
 	}
-	//TODO: maybe not needed setTimeout(turnLight, MILLISPERMINUTE, false);
 }
 
 ///////end GameResults///////////
@@ -504,18 +498,9 @@ function getPreviousAndNextGames()
 turnLight.settings = {switchTime: 500, totalTime: MILLISPERMINUTE, count:0, fOn:false, gpioObj:null};
 function turnLight(s_fOn)
 {
-	if(ConfigJSON.light.type && ConfigJSON.light.type!= "none" && ConfigJSON.light.gpio )	//need to know the pins of the light(s)
-	//TODO: why did I put this in? || (turnLight.settings.switchTime >= turnLight.settings.totalTime)
+	if(ConfigJSON.light && ConfigJSON.light.type && ConfigJSON.light.type!= "none" && ConfigJSON.light.gpio )	//need to know the pins of the light(s)
 	{
 		var nLightOn = 0;
-		/*  TODO: not working: Array.isArray
-		//make sure we have an array
-		if(ConfigJSON.light.gpio && !Array.isArray(ConfigJSON.light.gpio))
-		{
-			console.warn("ConfigJSON.light.gpio is not an array" + Array.isArray(ConfigJSON.light.gpio));
-			ConfigJSON.light.gpio = [ConfigJSON.light.gpio];
-		}
-		*/
 		//if just 1, then update switchtime to equal the total time (ie. only run 1x)
 		if(ConfigJSON.light.gpio.length == 1)
 		{
@@ -569,7 +554,7 @@ function turnLight(s_fOn)
 	}
 	else
 	{
-		console.warn("There are no gpio pins defined for a light or one of the turnLight:settings is wrong.");
+		if(fTesting) console.log("No lights");
 	}
 }
 
