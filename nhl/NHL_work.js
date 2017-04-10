@@ -132,7 +132,7 @@ function updateDisplayEachMinute()
 {
 	var dToday = new Date();
 	//time to move on to a new game
-	if(fTesting && false) console.log("new game? " + oGameData.nextGame.gameTime.getTime() + " <= " + dToday.getTime());
+	if(fTesting && !fFirstTime) console.log("new game? " + oGameData.nextGame + "" + oGameData.nextGame.gameTime + " <= " + dToday.getTime());
 	if(fFirstTime || (oGameData && oGameData.nextGame && oGameData.nextGame.gameTime <= dToday))
 	{
 		if(fTesting) console.log("time to move on to a new game");
@@ -471,13 +471,16 @@ function reverseTime(a_sTime)
 //Hockey specific HELPER FUNCTIONS
 function getPreviousAndNextGames()
 {
-	var oRes = {};
+	var oRes = {nextGame: null};
 	var oPrevGame = null;
 	var dToday = new Date();
+	//handle if system is started during last game of the season starts
+	//dToday.setHours(1);
 	//TODO: test this for the playoffs!
 	for(var x=0; x < aoMyTeamGames.length; x++)
 	{
 		var dGameDate = parseDateStr(aoMyTeamGames[x].est);
+		//console.log(aoMyTeamGames[x].est + " " + (dGameDate >= dToday))
 		if(dGameDate > dToday)//game is upcoming
 		{
 			oRes.nextGame = aoMyTeamGames[x];
@@ -489,6 +492,18 @@ function getPreviousAndNextGames()
 			console.log("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
 			break;
 		}
+	}
+	//probably the last game of the season
+	if(oRes.nextGame == null)
+	{
+		var defaultGameNum = aoMyTeamGames.length-1;
+		oRes.nextGame = aoMyTeamGames[defaultGameNum];
+		oRes.nextGame.gameTime = parseDateStr(oRes.nextGame.est)
+		console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
+
+		oRes.previousGame = aoMyTeamGames[defaultGameNum];
+		oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
+		console.log("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
 	}
 	//TODO: what is oRes is still {} ?
 	//TODO: means that there are no games left in the season, so move onto next season?
