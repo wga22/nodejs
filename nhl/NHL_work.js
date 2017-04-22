@@ -89,12 +89,13 @@ var http = require('http');
 var ConfigJSON = {myteam: "WSH"};
 var MILLISPERMINUTE = 60000;	//1 minute
 var MILLISPERHOUR = MILLISPERMINUTE * 60;
+var ARTIFACT_DIR = "./horns/";
 //var oLCDData = {lastactiondesc: "", date: (new Date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
 var fTesting = true;
 var fFirstTime = true;
 var aoMyTeamGames = [];
 var oPrevGameResults = {};
-var oGameData = {};
+var oCurrentGames = {};
 
 //MAIN
 main();
@@ -111,6 +112,7 @@ function main()
 	}
 	//load the games
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
+	setInterval(updateDisplayEachMinute, MILLISPERMINUTE);
 }
 
 function initializeTheGamesList(aoGames)
@@ -121,24 +123,20 @@ function initializeTheGamesList(aoGames)
 	var sMyTeam = ConfigJSON.myteam;
 	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
 	if(fTesting) console.log("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
-
-	//kick things off
-	//updateDisplayEachMinute(true);
-	setInterval(updateDisplayEachMinute, MILLISPERMINUTE);
-
 }
 
 function updateDisplayEachMinute()
 {
 	var dToday = new Date();
 	//time to move on to a new game
-	if(fTesting && !fFirstTime) console.log("new game? " + oGameData.nextGame + "" + oGameData.nextGame.gameTime + " <= " + dToday.getTime());
-	if(fFirstTime || (oGameData && oGameData.nextGame && oGameData.nextGame.gameTime <= dToday))
+	if(fTesting && !fFirstTime) console.log("new game? " + oCurrentGames.nextGame.gameTime + " <= " + dToday.getTime());
+	if(fFirstTime || (oCurrentGames && oCurrentGames.nextGame && oCurrentGames.nextGame.gameTime <= dToday))
 	{
 		if(fTesting) console.log("time to move on to a new game");
 		fFirstTime = false;
-		oGameData = getPreviousAndNextGames();
-		oPrevGameResults = new GameResults(oGameData.previousGame);
+		oCurrentGames = getPreviousAndNextGames();
+		playMp3(ARTIFACT_DIR + "gamestart.mp3");
+		oPrevGameResults = new GameResults(oCurrentGames.previousGame);
 	}
 	oPrevGameResults.showResults(dToday);
 }
@@ -179,6 +177,7 @@ function GameResults(a_oPrevGameInfo)
 	this.gameStats = null;
 	this.displayResults = displayResults;
 	
+	//TODO: convert this to a single function, only run the case statement 1x - "pointer"
 	function displayResults(dDate)
 	{
 		switch(ConfigJSON.output)
@@ -225,7 +224,7 @@ GameResults.prototype.genericResults = function(dDate)
 
 	if(dDate > this.gameStop)  //after game
 	{
-		aRes.push("Next:" + smallDate(oGameData.nextGame.gameTime));
+		aRes.push("Next:" + smallDate(oCurrentGames.nextGame.gameTime));
 	}
 	else	//during game
 	{
@@ -294,7 +293,7 @@ GameResults.prototype.writeResultsToConsole = function (dDate)
 	console.log(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
 	if(dDate > this.gameStop)  //after game
 	{
-		console.log("Next: " + smallDate(oGameData.nextGame.gameTime));
+		console.log("Next: " + smallDate(oCurrentGames.nextGame.gameTime));
 	}
 	else	//during game
 	{
@@ -360,12 +359,11 @@ GameResults.prototype.setGameStats = function(oRes)
 		this.latestEvent = aPlays[aPlays.length-1];
 		//figure out if its end of game or period, by seeing if this last event has happened a few times in a row
 		var nMinutes = parseInt(this.latestEvent.time+"");//.match(/(\d+)\:/)[1];
-		//console.log("OMG" + sMinutes)
 		this.latestEvent.time = reverseTime(this.latestEvent.time);
 		if(fTesting) console.log(nMinutes + " mins. End of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
 		//is the period or game over?  no way to tell for sure, since the time is coming in of the latest event
 		// if period is more than 17 minutes old, and we've seen the same last event for "GameResults.MAXRETRYEVENT" times
-		if(nMinutes > 17 && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
+		if((nMinutes > 17 || this.latestEvent.period > 3) && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
 		{
 			//if(fTesting) console.log("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
 			this.actionCount.nCount++;
@@ -374,6 +372,13 @@ GameResults.prototype.setGameStats = function(oRes)
 				//ok, definitely a stale activity at the end of the game
 				if(fTesting) console.log("The period has likely ended.... (or game)");
 				this.latestEvent.time = "End";
+				//TODO: play end of game sound, win or lose?
+				if(this.latestEvent.period >= 3)
+				{
+					var fWon = this.homeScore > this.awayScore && this.homeTeam.isFavorite();
+					if(fTesting) console.log("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
+					playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3");					
+				}
 			}
 		}
 		else
@@ -400,6 +405,10 @@ GameResults.prototype.setGameStats = function(oRes)
 		this.playHorn();
 		this.lastGoalScoredEventID = oLatestGoal.formalEventId;
 	}
+	else
+	{
+		//TODO: play something when other team scores?  maybe just the light?
+	}
 }
 GameResults.prototype.showResults = function(dDate)
 {
@@ -424,32 +433,10 @@ GameResults.prototype.showResults = function(dDate)
 //look in the config for the "light" and use that as the GPIO pin.  If value not there, false, or 0, dont do anything
 GameResults.prototype.playHorn = function()
 {
-	function playSongSpeaker(format)
-	{
-		try 
-		{
-			this.pipe(new Speaker(format));
-			//TODO: figure out how to close this speaker object when done
-		} catch (e) 
-		{
-			console.warn("issue with speaker: " + e.message);
-			throw e;
-		}
-	}
-	//console.log("\007");
-	var sTeam = ConfigJSON.myteam.toLowerCase();
 	setTimeout(turnLight, 100, true);
-	var sSong ="./horns/"+sTeam+".mp3" 
-	try
-	{
-		fs.createReadStream(sSong)
-			.pipe(new lame.Decoder())
-			.on('format', playSongSpeaker);
-	}
-	catch(e)
-	{
-		console.warn("issue loading mp3 file ("+sSong+")" + e.message);
-	}
+	var sTeam = ConfigJSON.myteam.toLowerCase();
+	var sSong = ARTIFACT_DIR + sTeam+".mp3";
+	playMp3(sSong);
 }
 
 ///////end GameResults///////////
@@ -485,25 +472,26 @@ function getPreviousAndNextGames()
 		{
 			oRes.nextGame = aoMyTeamGames[x];
 			oRes.nextGame.gameTime = parseDateStr(oRes.nextGame.est)
-			console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
+			if(fTesting) console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
 
 			oRes.previousGame = aoMyTeamGames[x-1];
 			oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
-			console.log("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
+			if(fTesting) console.log("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
 			break;
 		}
 	}
-	//probably the last game of the season
+	//probably the last game of the season or in playoffs
 	if(oRes.nextGame == null)
 	{
-		var defaultGameNum = aoMyTeamGames.length-1;
+		if(fTesting) console.log("It looks like we are near end of season, or during playoffs");
+		var defaultGameNum = aoMyTeamGames.length-1;	//just pull the last one from the list?
 		oRes.nextGame = aoMyTeamGames[defaultGameNum];
 		oRes.nextGame.gameTime = parseDateStr(oRes.nextGame.est)
-		console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
+		if(fTesting) console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
 
 		oRes.previousGame = aoMyTeamGames[defaultGameNum];
 		oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
-		console.log("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
+		if(fTesting) console.log("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
 	}
 	//TODO: what is oRes is still {} ?
 	//TODO: means that there are no games left in the season, so move onto next season?
@@ -635,6 +623,32 @@ function getNHLSeasonURL()
 
 
 ////////////HELPER FUNCTIONS //////////////////
+
+function playMp3(a_sSong)
+{
+	function playSongSpeaker(format)
+	{
+		try 
+		{
+			this.pipe(new Speaker(format));
+			//TODO: figure out how to close this speaker object when done
+		} catch (e) 
+		{
+			console.warn("issue with speaker: " + e.message);
+			throw e;
+		}
+	}
+	try
+	{
+		fs.createReadStream(a_sSong)
+			.pipe(new lame.Decoder())
+			.on('format', playSongSpeaker);
+	}
+	catch(e)
+	{
+		console.warn("issue loading mp3 file ("+a_sSong+")" + e.message);
+	}
+}
 
 function parseDateStr(a_sDate)
 {
