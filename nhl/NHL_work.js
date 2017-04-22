@@ -262,7 +262,26 @@ GameResults.prototype.genericResults = function(dDate)
 	}
 	else if(oCurrentGames.nextGame!=null)  //after game
 	{
-		aRes.push("Next:" + smallDate(oCurrentGames.nextGame.gameTime));
+		//use x:"Today 7:00 pm", x+1:tomorrow 7:00 pm, x+(2->6):Sun-Sat, x>=7: "Oct 12"
+		var sGameTime = smallDate(oCurrentGames.nextGame.gameTime);
+		var nMSGameDate = Math.floor((new Date(oCurrentGames.nextGame.gameTime.getYear(), oCurrentGames.nextGame.gameTime.getMonth(), oCurrentGames.nextGame.gameTime.getDate()).getTime())/MILLISPERDAY);
+		var nMSToday = Math.floor((new Date(dDate.getYear(), dDate.getMonth(), dDate.getDate()).getTime())/MILLISPERDAY);
+		var nDiffDays = nMSGameDate-nMSToday;
+		if(fTesting) console.log("genRes: days" + (nMSGameDate) + " =? " + (nMSToday) + " diff:" + nDiffDays)
+		if(nDiffDays == 0)
+		{
+			sGameTime = "Today " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
+		}
+		else if ( nDiffDays <= 1)
+		{
+			sGameTime = "Tomorrow " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
+		}
+		else if( nDiffDays>=2 && nDiffDays <=7 )
+		{
+			sGameTime =  getDayOfWeek(oCurrentGames.nextGame.gameTime.getDay()) +" " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
+		}
+	
+		aRes.push("Next:" + sGameTime);
 	}
 	aRes.push(smallDate(dDate));
 	return aRes;
@@ -324,7 +343,7 @@ GameResults.prototype.writeResultsToConsole = function (dDate)
 {
 	var aRes = this.genericResults(dDate);
 	var sIndent = "\t\t\t\t";
-	console.log(sIndent + "====================")
+	console.log(sIndent + "====================");	//20 is width of typical LCD
 	for(var x=0; x < aRes.length; x++)
 	{
 		console.log(sIndent + aRes[x]);
@@ -358,7 +377,7 @@ GameResults.prototype._loadGameUpdates = function ()
 		}
 		//console.log("Got a response: ");
 		oPrevGameResults.setGameStats(oObj);
-		oPrevGameResults.displayResults();
+		oPrevGameResults.displayResults(new Date());
 	});
 	}).on('error', function(e){
 		  console.log("Got an error: ", e);
@@ -709,11 +728,30 @@ function get12Hour(nHour)
 	return (nTime == 0) ? 12 : nTime;
 }
 
-function smallDate(dDate)
+function getDayOfWeek(a_dDate)
 {
-	if(dDate){} else {dDate = new Date()};		
+	var aDays = ["Sun","Mon","Tues","Wed","Thurs","Fri","Sat"];
+	return aDays[a_dDate.getDay()];
+}
+
+function smallDate(a_dDate)
+{
+	if(a_dDate){} else {a_dDate = new Date()};		
 	//return (1+dDate.getMonth()) + "/"+dDate.getDate()  + "/"+(1900+dDate.getYear())  + " " + get12Hour(dDate.getHours()) + ":" + pad2(dDate.getMinutes());
-	return dDate.toLocaleDateString() +" " +  (dDate.toLocaleTimeString()).replace(/\W\d\d /, " ");	//remove the seconds
+	//return dDate.toLocaleDateString() +" " +  getTimeOfDay(dDate);	//remove the seconds
+	return getDayOfWeek(a_dDate) + " " + friendlyDate(a_dDate) + " " +  getTimeOfDay(a_dDate);	//remove the seconds
+}
+
+function friendlyDate(a_dDate)
+{
+	var aMonths = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sep','Oct','Nov','Dec'];
+	return aMonths[a_dDate.getMonth()] + " " + (a_dDate.getDate());
+}
+
+
+function getTimeOfDay(a_dDate)
+{
+	return (a_dDate.toLocaleTimeString()).replace(/\W\d\d /, " ")
 }
 
 // Generic callback function to print the return value
