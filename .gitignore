@@ -59,3 +59,4 @@ nhl/misc/oled_test.js
 nhl/misc/hockey.js
 filework/authorized_keys
 nhl/misc/blink-led.js
+nhl/tmp/*

@@ -18,8 +18,20 @@ if [ "$_IP" ]; then
 fi
 
 #WILL ALLEN - 3/25
-cd /home/pi/node/nhl/
-node NHL_work.js >> /home/pi/node/nhl/logs/nhl.log &
+export WILLHOME=/home/pi
+wget -O $WILLHOME/node/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
+cd $WILLHOME/node/nhl/
+nohup node NHL_work.js >> $WILLHOME/node/nhl/logs/nhl.log &
 
+# working, but replaced with variable
+#wget -O /home/pi/node/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
+#cd /home/pi/node/nhl/
+#node NHL_work.js >> /home/pi/node/nhl/logs/nhl.log &
+
+
+#didnt work?  restore the working WIFI, just in case
+# sleep 10
+#cp /home/pi/storage/wpa_supplicant.conf.mcd /boot/wpa_supplicant.conf
+# sync
 
 exit 0
