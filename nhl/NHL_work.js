@@ -89,10 +89,10 @@ var http = require('http');
 var ConfigJSON = {myteam: "WSH"};
 var MILLISPERMINUTE = 60000;	//1 minute
 var MILLISPERHOUR = MILLISPERMINUTE * 60;
+var MILLISPERDAY = MILLISPERHOUR*24;
 var ARTIFACT_DIR = "./horns/";
 //var oLCDData = {lastactiondesc: "", date: (new Date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
 var fTesting = true;
-var fFirstTime = true;
 var aoMyTeamGames = [];
 var oPrevGameResults = {};
 var oCurrentGames = {};
@@ -113,6 +113,34 @@ function main()
 	//load the games
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
 	setInterval(updateDisplayEachMinute, MILLISPERMINUTE);
+	setInterval(dailyCheckForUpdatesToGameList, MILLISPERDAY);
+}
+
+function dailyCheckForUpdatesToGameList()
+{
+	//runs a check, if right time of year, to see if game list should be updated
+	//should only run daily, or something like that
+	//TODO: test for time of year
+	//if(fTesting) console.log();
+	if(fTesting) console.log("dailyCheckForUpdatesToGameList");
+	
+	//only need to consider loading a new list, if there is nothing scheduled upcoming
+	if(oCurrentGames.nextGame==null)
+	{
+		var dToday = new Date();
+		var nMonth = dToday.getMonth();
+		
+		//TODO: maybe get smart and not reload the list if playoffs are over for this team
+		//0=Jan
+		var fDuringPlayoffs = (nMonth===3 || nMonth===4 || nMonth===5  )
+		var fPreSeason = (nMonth===8)
+		
+		if(fTesting) console.log("dailyCheck:" + (fDuringPlayoffs ? "playofftime" : "not pt") + " ::: " + (fPreSeason ? "preseason" : "not preseason"));
+		if(fDuringPlayoffs || fPreSeason)
+		{
+			loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
+		}	
+	}
 }
 
 function initializeTheGamesList(aoGames)
@@ -123,21 +151,28 @@ function initializeTheGamesList(aoGames)
 	var sMyTeam = ConfigJSON.myteam;
 	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
 	if(fTesting) console.log("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
+	oCurrentGames = getPreviousAndNextGames();
+	oPrevGameResults = new GameResults(oCurrentGames.previousGame);
 }
 
 function updateDisplayEachMinute()
 {
 	var dToday = new Date();
-	//time to move on to a new game
-	if(fTesting && !fFirstTime) console.log("new game? " + oCurrentGames.nextGame.gameTime + " <= " + dToday.getTime());
-	if(fFirstTime || (oCurrentGames && oCurrentGames.nextGame && oCurrentGames.nextGame.gameTime <= dToday))
+	
+	//if the "next game" is in the past, then time to shift current and next games!
+	//consider possibility that next game isnt scheduled yet, so use the dailyCheckForUpdatesToGameList to update the list
+	if( oCurrentGames && oCurrentGames.nextGame && oCurrentGames.nextGame.gameTime <= dToday )
 	{
 		if(fTesting) console.log("time to move on to a new game");
-		fFirstTime = false;
-		oCurrentGames = getPreviousAndNextGames();
+
+		//game just started, so play the horn
 		playMp3(ARTIFACT_DIR + "gamestart.mp3");
+		
+		//update the values for the previous game
+		oCurrentGames = getPreviousAndNextGames();
 		oPrevGameResults = new GameResults(oCurrentGames.previousGame);
 	}
+	//if(fTesting) console.log("new game? " + oCurrentGames.nextGame.gameTime + " <= " + dToday.getTime());
 	oPrevGameResults.showResults(dToday);
 }
 
@@ -145,7 +180,6 @@ function fUsingALight()
 {
 	return ConfigJSON.light && ConfigJSON.light != "none";
 }
-
 
 function Team(sCode, a_isFav)
 {
@@ -222,13 +256,13 @@ GameResults.prototype.genericResults = function(dDate)
 	aRes.push(this.awayTeam.nickname + "(" + this.awayScore + ")");
 	aRes.push( this.homeTeam.nickname + "(" + this.homeScore + ")");
 
-	if(dDate > this.gameStop)  //after game
-	{
-		aRes.push("Next:" + smallDate(oCurrentGames.nextGame.gameTime));
-	}
-	else	//during game
+	if(dDate < this.gameStop)	//during game show score
 	{
 		aRes.push("P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
+	}
+	else if(oCurrentGames.nextGame!=null)  //after game
+	{
+		aRes.push("Next:" + smallDate(oCurrentGames.nextGame.gameTime));
 	}
 	aRes.push(smallDate(dDate));
 	return aRes;
@@ -288,17 +322,14 @@ GameResults.prototype.SSD1306_python = function (dDate)
 
 GameResults.prototype.writeResultsToConsole = function (dDate)
 {
-	console.log("--CONSOLE----"+smallDate(dDate)+"-------");
-	console.log(this.awayScore + " vs " + this.homeScore);
-	console.log(this.awayTeam.nickname + " vs " + this.homeTeam.nickname);
-	if(dDate > this.gameStop)  //after game
+	var aRes = this.genericResults(dDate);
+	var sIndent = "\t\t\t\t";
+	console.log(sIndent + "====================")
+	for(var x=0; x < aRes.length; x++)
 	{
-		console.log("Next: " + smallDate(oCurrentGames.nextGame.gameTime));
+		console.log(sIndent + aRes[x]);
 	}
-	else	//during game
-	{
-		console.log("Gm Tm P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
-	}
+	console.log(sIndent + "====================")
 }
 
 GameResults.prototype._loadGameUpdates = function ()
@@ -336,7 +367,8 @@ GameResults.prototype._loadGameUpdates = function ()
 
 GameResults.prototype.setGameStats = function(oRes)
 {
-	if(fTesting) console.log("setting data");
+	//if(fTesting) console.log("setting data");
+	var dDate = new Date();
 	this.gameStats = oRes;
 	var hid = parseInt(this.gameStats.data.game.hometeamid); 
 	this.homeTeam.id = hid;
@@ -360,7 +392,8 @@ GameResults.prototype.setGameStats = function(oRes)
 		//figure out if its end of game or period, by seeing if this last event has happened a few times in a row
 		var nMinutes = parseInt(this.latestEvent.time+"");//.match(/(\d+)\:/)[1];
 		this.latestEvent.time = reverseTime(this.latestEvent.time);
-		if(fTesting) console.log(nMinutes + " mins. End of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
+		var fGameOver = dDate > this.gameStop;	//no use for it yet?
+		if(fTesting) console.log(nMinutes + " mins. End of period(" + this.latestEvent.period+")? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId + " gameover("+fGameOver+"): " + this.gameStop);
 		//is the period or game over?  no way to tell for sure, since the time is coming in of the latest event
 		// if period is more than 17 minutes old, and we've seen the same last event for "GameResults.MAXRETRYEVENT" times
 		if((nMinutes > 17 || this.latestEvent.period > 3) && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
@@ -372,7 +405,6 @@ GameResults.prototype.setGameStats = function(oRes)
 				//ok, definitely a stale activity at the end of the game
 				if(fTesting) console.log("The period has likely ended.... (or game)");
 				this.latestEvent.time = "End";
-				//TODO: play end of game sound, win or lose?
 				if(this.latestEvent.period >= 3)
 				{
 					var fWon = this.homeScore > this.awayScore && this.homeTeam.isFavorite();
@@ -386,29 +418,32 @@ GameResults.prototype.setGameStats = function(oRes)
 			this.actionCount.nCount = 0;
 		}
 		this.actionCount.sLatestEventID  = this.latestEvent.formalEventId;
-	}
-	//did your team score the most recent goal?
-	if(this.homeTeam.isFavorite() && aHomeTeamGoals.length-1 >=0)
-	{
-		oLatestGoal = aHomeTeamGoals[aHomeTeamGoals.length-1];
-	}
-	else if(this.awayTeam.isFavorite() && aAwayTeamGoals.length-1 >=0)
-	{
-		oLatestGoal = aAwayTeamGoals[aAwayTeamGoals.length-1];
-	}
-	
-	//TODO: fix so doesn't blare when system turned on, with a null
-	//console.log(oLatestGoal.formalEventId +"!="+ this.lastGoalScoredEventID +"&&"+ oLatestGoal.formalEventId +"&&"+ this.lastGoalScoredEventID)
-	if(oLatestGoal.formalEventId != this.lastGoalScoredEventID && oLatestGoal.formalEventId)
-	{
-		if(fTesting) console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
-		this.playHorn();
-		this.lastGoalScoredEventID = oLatestGoal.formalEventId;
-	}
-	else
-	{
-		//TODO: play something when other team scores?  maybe just the light?
-	}
+		//did your team score the most recent goal?
+		if(this.homeTeam.isFavorite() && aHomeTeamGoals.length-1 >=0)
+		{
+			oLatestGoal = aHomeTeamGoals[aHomeTeamGoals.length-1];
+		}
+		else if(this.awayTeam.isFavorite() && aAwayTeamGoals.length-1 >=0)
+		{
+			oLatestGoal = aAwayTeamGoals[aAwayTeamGoals.length-1];
+		}
+		
+		//TODO: fix so doesn't blare when system turned on, with a null
+		//console.log(oLatestGoal.formalEventId +"!="+ this.lastGoalScoredEventID +"&&"+ oLatestGoal.formalEventId +"&&"+ this.lastGoalScoredEventID)
+		if(oLatestGoal.formalEventId != this.lastGoalScoredEventID && oLatestGoal.formalEventId)
+		{
+			if(fTesting) console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
+			if(!fGameOver)//handle system restart
+			{
+				this.playHorn();
+			}
+			this.lastGoalScoredEventID = oLatestGoal.formalEventId;
+		}
+		else
+		{
+			//TODO: play something when other team scores?  maybe just the light?
+		}
+	}//aplays end
 }
 GameResults.prototype.showResults = function(dDate)
 {
@@ -461,9 +496,7 @@ function getPreviousAndNextGames()
 	var oRes = {nextGame: null};
 	var oPrevGame = null;
 	var dToday = new Date();
-	//handle if system is started during last game of the season starts
-	//dToday.setHours(1);
-	//TODO: test this for the playoffs!
+	//start at the beginning of the game list, and find the NEXT game
 	for(var x=0; x < aoMyTeamGames.length; x++)
 	{
 		var dGameDate = parseDateStr(aoMyTeamGames[x].est);
@@ -480,21 +513,19 @@ function getPreviousAndNextGames()
 			break;
 		}
 	}
-	//probably the last game of the season or in playoffs
+	//if season is over, just show the last game of the year
 	if(oRes.nextGame == null)
 	{
-		if(fTesting) console.log("It looks like we are near end of season, or during playoffs");
+		//if(fTesting) console.log("It looks like we are near end of season, or during playoffs");
 		var defaultGameNum = aoMyTeamGames.length-1;	//just pull the last one from the list?
-		oRes.nextGame = aoMyTeamGames[defaultGameNum];
-		oRes.nextGame.gameTime = parseDateStr(oRes.nextGame.est)
-		if(fTesting) console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
+		//oRes.nextGame = aoMyTeamGames[defaultGameNum];
+		//oRes.nextGame.gameTime = parseDateStr(oRes.nextGame.est)
+		//if(fTesting) console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
 
 		oRes.previousGame = aoMyTeamGames[defaultGameNum];
 		oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
-		if(fTesting) console.log("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
+		if(fTesting) console.log("NO NEXT GAME SCHEDULED Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
 	}
-	//TODO: what is oRes is still {} ?
-	//TODO: means that there are no games left in the season, so move onto next season?
 	return oRes;
 }
 
