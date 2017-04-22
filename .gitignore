@@ -41,16 +41,12 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
-config.json
+*.log
 vacuum/node_modules/*
 tesla/node_modules/*
 node_modules/*
-vacuum/vacuumconfig.json
-*.txt
-*.json
-nhl/npm-debug.log
+*config.json
 temp/*
-*.log
 filework/authorized_keys
 nhl/misc/blink-led.js
 nhl/tmp/*
