@@ -111,7 +111,7 @@ function main()
 		setTimeout(turnLight, 100, false);
 	}
 	//load the games
-	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
+	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);	
 	setInterval(updateDisplayEachMinute, MILLISPERMINUTE);
 	setInterval(dailyCheckForUpdatesToGameList, MILLISPERDAY);
 }
@@ -120,9 +120,8 @@ function dailyCheckForUpdatesToGameList()
 {
 	//runs a check, if right time of year, to see if game list should be updated
 	//should only run daily, or something like that
-	//TODO: test for time of year
-	//if(fTesting) console.log();
-	if(fTesting) console.log("dailyCheckForUpdatesToGameList");
+	//TODO TEST: test for time of year
+	debugOut("dailyCheckForUpdatesToGameList");
 	
 	//only need to consider loading a new list, if there is nothing scheduled upcoming
 	if(oCurrentGames.nextGame==null)
@@ -135,7 +134,7 @@ function dailyCheckForUpdatesToGameList()
 		var fDuringPlayoffs = (nMonth===3 || nMonth===4 || nMonth===5  )
 		var fPreSeason = (nMonth===8)
 		
-		if(fTesting) console.log("dailyCheck:" + (fDuringPlayoffs ? "playofftime" : "not pt") + " ::: " + (fPreSeason ? "preseason" : "not preseason"));
+		debugOut("dailyCheck:" + (fDuringPlayoffs ? "playofftime" : "not pt") + " ::: " + (fPreSeason ? "preseason" : "not preseason"));
 		if(fDuringPlayoffs || fPreSeason)
 		{
 			loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);
@@ -147,10 +146,10 @@ function initializeTheGamesList(aoGames)
 {
 	//https://www.reddit.com/r/nhl/comments/2i13xa/places_to_get_raw_statistics/
 	//http://live.nhl.com/GameData/SeasonSchedule-20162017.json
-	if(fTesting) console.log("loaded all the games: " + aoGames.length);
+	debugOut("loaded all the games: " + aoGames.length);
 	var sMyTeam = ConfigJSON.myteam;
 	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
-	if(fTesting) console.log("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
+	debugOut("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
 	oCurrentGames = getPreviousAndNextGames();
 	oPrevGameResults = new GameResults(oCurrentGames.previousGame);
 }
@@ -163,16 +162,17 @@ function updateDisplayEachMinute()
 	//consider possibility that next game isnt scheduled yet, so use the dailyCheckForUpdatesToGameList to update the list
 	if( oCurrentGames && oCurrentGames.nextGame && oCurrentGames.nextGame.gameTime <= dToday )
 	{
-		if(fTesting) console.log("time to move on to a new game");
+		debugOut("time to move on to a new game");
 
 		//game just started, so play the horn
+		//TODO TEST more (couldnt tell from logs: fix that this seems to play 2x?
 		playMp3(ARTIFACT_DIR + "gamestart.mp3");
 		
 		//update the values for the previous game
 		oCurrentGames = getPreviousAndNextGames();
 		oPrevGameResults = new GameResults(oCurrentGames.previousGame);
 	}
-	//if(fTesting) console.log("new game? " + oCurrentGames.nextGame.gameTime + " <= " + dToday.getTime());
+	//debugOut("new game? " + oCurrentGames.nextGame.gameTime + " <= " + dToday.getTime());
 	oPrevGameResults.showResults(dToday);
 }
 
@@ -267,7 +267,7 @@ GameResults.prototype.genericResults = function(dDate)
 		var nMSGameDate = Math.floor((new Date(oCurrentGames.nextGame.gameTime.getYear(), oCurrentGames.nextGame.gameTime.getMonth(), oCurrentGames.nextGame.gameTime.getDate()).getTime())/MILLISPERDAY);
 		var nMSToday = Math.floor((new Date(dDate.getYear(), dDate.getMonth(), dDate.getDate()).getTime())/MILLISPERDAY);
 		var nDiffDays = nMSGameDate-nMSToday;
-		if(fTesting) console.log("genRes: days" + (nMSGameDate) + " =? " + (nMSToday) + " diff:" + nDiffDays)
+		debugOut("genRes: days" + (nMSGameDate) + " =? " + (nMSToday) + " diff:" + nDiffDays)
 		if(nDiffDays == 0)
 		{
 			sGameTime = "Today " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
@@ -278,7 +278,7 @@ GameResults.prototype.genericResults = function(dDate)
 		}
 		else if( nDiffDays>=2 && nDiffDays <=7 )
 		{
-			sGameTime =  getDayOfWeek(oCurrentGames.nextGame.gameTime.getDay()) +" " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
+			sGameTime =  getDayOfWeek(oCurrentGames.nextGame.gameTime) +" " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
 		}
 	
 		aRes.push("Next:" + sGameTime);
@@ -376,18 +376,17 @@ GameResults.prototype._loadGameUpdates = function ()
 			throw e;
 		}
 		//console.log("Got a response: ");
-		oPrevGameResults.setGameStats(oObj);
-		oPrevGameResults.displayResults(new Date());
+		var dDate = new Date();
+		oPrevGameResults.setGameStats(oObj, dDate);
+		oPrevGameResults.displayResults(dDate);
 	});
 	}).on('error', function(e){
 		  console.log("Got an error: ", e);
 	});
 }
 
-GameResults.prototype.setGameStats = function(oRes)
+GameResults.prototype.setGameStats = function(oRes, dDate)
 {
-	//if(fTesting) console.log("setting data");
-	var dDate = new Date();
 	this.gameStats = oRes;
 	var hid = parseInt(this.gameStats.data.game.hometeamid); 
 	this.homeTeam.id = hid;
@@ -412,23 +411,26 @@ GameResults.prototype.setGameStats = function(oRes)
 		var nMinutes = parseInt(this.latestEvent.time+"");//.match(/(\d+)\:/)[1];
 		this.latestEvent.time = reverseTime(this.latestEvent.time);
 		var fGameOver = dDate > this.gameStop;	//no use for it yet?
-		if(fTesting) console.log(nMinutes + " mins. End of period(" + this.latestEvent.period+")? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId + " gameover("+fGameOver+"): " + this.gameStop);
+		debugOut(nMinutes + " mins. End of period(" + this.latestEvent.period+")? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId + " gameover("+fGameOver+"): " + this.gameStop);
 		//is the period or game over?  no way to tell for sure, since the time is coming in of the latest event
 		// if period is more than 17 minutes old, and we've seen the same last event for "GameResults.MAXRETRYEVENT" times
 		if((nMinutes > 17 || this.latestEvent.period > 3) && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
 		{
-			//if(fTesting) console.log("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
+			//debugOut("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
 			this.actionCount.nCount++;
 			if(this.actionCount.nCount >= GameResults.MAXRETRYEVENT)
 			{
 				//ok, definitely a stale activity at the end of the game
-				if(fTesting) console.log("The period has likely ended.... (or game)");
+				debugOut("The period has likely ended.... (or game)");
 				this.latestEvent.time = "End";
-				if(this.latestEvent.period >= 3)
+				if(this.latestEvent.period >= 3 && this.homeScore != this.awayScore)
 				{
 					var fWon = this.homeScore > this.awayScore && this.homeTeam.isFavorite();
-					if(fTesting) console.log("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
-					playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3");					
+					this.gameStop= dDate;
+					debugOut("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
+					//TODO TEST: running this method more than once should be fixed by overtime fix, and updating the gamestop to an actual time
+					playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3");
+					this.gameStop= dDate;
 				}
 			}
 		}
@@ -451,7 +453,7 @@ GameResults.prototype.setGameStats = function(oRes)
 		//console.log(oLatestGoal.formalEventId +"!="+ this.lastGoalScoredEventID +"&&"+ oLatestGoal.formalEventId +"&&"+ this.lastGoalScoredEventID)
 		if(oLatestGoal.formalEventId != this.lastGoalScoredEventID && oLatestGoal.formalEventId)
 		{
-			if(fTesting) console.log("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
+			debugOut("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
 			if(!fGameOver)//handle system restart
 			{
 				this.playHorn();
@@ -461,6 +463,7 @@ GameResults.prototype.setGameStats = function(oRes)
 		else
 		{
 			//TODO: play something when other team scores?  maybe just the light?
+			setTimeout(turnLight, 100, true);
 		}
 	}//aplays end
 }
@@ -469,18 +472,15 @@ GameResults.prototype.showResults = function(dDate)
 	//determine if we need to load in actual game results.  Either it's during the game, or we don't have game data
 	if(dDate < this.gameStop  || this.gameStats == null)	
 	{
-		if(fTesting)
-		{
-			console.log("showResults: game is going on OR we didn't have data yet!"
+		debugOut("showResults: game is going on OR we didn't have data yet!"
 				+ (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") 
 				+ " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
-		}
 		this.gameStats = null;
 		this._loadGameUpdates();
 	}
 	else
 	{
-		if(fTesting) console.log("showResults: Game values are static, so no need to get active data.")
+		debugOut("showResults: Game values are static, so no need to get active data.")
 		this.displayResults(dDate);  //just reuse old data, nothing new going on
 	}
 }
@@ -524,26 +524,26 @@ function getPreviousAndNextGames()
 		{
 			oRes.nextGame = aoMyTeamGames[x];
 			oRes.nextGame.gameTime = parseDateStr(oRes.nextGame.est)
-			if(fTesting) console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
+			debugOut("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
 
 			oRes.previousGame = aoMyTeamGames[x-1];
 			oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
-			if(fTesting) console.log("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
+			debugOut("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
 			break;
 		}
 	}
 	//if season is over, just show the last game of the year
 	if(oRes.nextGame == null)
 	{
-		//if(fTesting) console.log("It looks like we are near end of season, or during playoffs");
+		//debugOut("It looks like we are near end of season, or during playoffs");
 		var defaultGameNum = aoMyTeamGames.length-1;	//just pull the last one from the list?
 		//oRes.nextGame = aoMyTeamGames[defaultGameNum];
 		//oRes.nextGame.gameTime = parseDateStr(oRes.nextGame.est)
-		//if(fTesting) console.log("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
+		//debugOut("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
 
 		oRes.previousGame = aoMyTeamGames[defaultGameNum];
 		oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
-		if(fTesting) console.log("NO NEXT GAME SCHEDULED Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
+		debugOut("NO NEXT GAME SCHEDULED Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
 	}
 	return oRes;
 }
@@ -564,7 +564,7 @@ function turnLight(s_fOn)
 		{
 			//if multiple lights, figure out which one gets turned on based on mod of number of lights, and how many runs
 			nLightOn = Math.floor(turnLight.settings.count % ConfigJSON.light.gpio.length);
-			//if(fTesting) console.log("turning on the " +nLightOn + " light");
+			//debugOut("turning on the " +nLightOn + " light");
 		}
 		    //if there are multiple bulbs, this is the one to turn on; use modulous of number of lights.
 		for(var x=0; x < ConfigJSON.light.gpio.length; x++)
@@ -607,7 +607,7 @@ function turnLight(s_fOn)
 	}
 	else
 	{
-		if(fTesting) console.log("No lights");
+		debugOut("No lights");
 	}
 }
 
@@ -731,6 +731,7 @@ function get12Hour(nHour)
 function getDayOfWeek(a_dDate)
 {
 	var aDays = ["Sun","Mon","Tues","Wed","Thurs","Fri","Sat"];
+	//debugOut("dow: " + typeof a_dDate);
 	return aDays[a_dDate.getDay()];
 }
 
@@ -805,6 +806,14 @@ function loadConfig()
 		//process.exit(1);
 	}
 	return oJSON;
+}
+
+function debugOut(sVal)
+{
+	if(fTesting && sVal)
+	{
+		console.log(sVal);
+	}
 }
 
 
