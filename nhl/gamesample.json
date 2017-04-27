@@ -1,0 +1,707 @@
+http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
+
+field                  datatype      descriptipon 
+ata                    char(3)       Away team acronym, 3 letter short name 
+atc                    text          Before: blank During: "progress" After: "winner" if away team wins 
+atcommon               text          away team common name 
+atn                    text          away team city name 
+ats                    int           away team score 
+atsog                  int           Before: null During and After: away team shots on goal 
+bs                     time/text     Before: start time (unsure if local or EST) During: 05:10 2nd, eg After: "FINAL", "FINAL OT" etc 
+bsc                    text          Before: blank During: "progress" After: "final" 
+canationalbroadcasts   text          Canadian TV broadcasters, comma separated list 
+gcl                    Bool          gamecenter live? 
+gcll                   bool          gamecenter live? 
+gs                     int           game status? 1=secheduled, 3= in progress, 5=finished 
+hta                    char(3)       home team acronym 
+htc                    text          Before: blank During: "progress" After: "winner" if home team wins 
+htcommon               text          home team common name 
+htn                    text          home team city name 
+hts                    int           home team score 
+htsog                  int           Before: null During and After: home team shots on goal 
+id                     int           game ID 
+rl                     Bool          true after game completed 
+usnationalbroadcasts   text          US tv broadcasters, comma separated list  
+
+
+loadScoreboard({"games":[{"atcommon":"PENGUINS","canationalbroadcasts":"TVAS","ata":"PIT","rl":false,"atsog":22,"bs":"FINAL","htcommon":"BRUINS","id":2016020728,"atn":"PITTSBURGH","hts":4,"atc":"","htn":"BOSTON","usnationalbroadcasts":"","gcl":true,"hta":"BOS","ats":3,"htc":"winner","htsog":37,"bsc":"final","gs":5,"gcll":true},
+
+{"atcommon":"CAPITALS","canationalbroadcasts":"","ata":"WSH","rl":false,"atsog":36,"bs":"FINAL","htcommon":"DEVILS","id":2016020729,"atn":"WASHINGTON","hts":2,"atc":"winner","htn":"NEW JERSEY","usnationalbroadcasts":"","gcl":true,"hta":"NJD","ats":5,"htc":"","htsog":29,"bsc":"final","gs":5,"gcll":true},
+
+{"atcommon":"CANADIENS","canationalbroadcasts":"","ata":"MTL","rl":false,"atsog":22,"bs":"FINAL","htcommon":"ISLANDERS","id":2016020730,"atn":"MONTREAL","hts":3,"atc":"","htn":"NY ISLANDERS","usnationalbroadcasts":"","gcl":true,"hta":"NYI","ats":1,"htc":"winner","htsog":42,"bsc":"final","gs":5,"gcll":true},{"atcommon":"MAPLE LEAFS","canationalbroadcasts":"","ata":"TOR","rl":false,"atsog":28,"bs":"FINAL","htcommon":"FLYERS","id":2016020731,"atn":"TORONTO","hts":2,"atc":"","htn":"PHILADELPHIA","usnationalbroadcasts":"","gcl":true,"hta":"PHI","ats":1,"htc":"winner","htsog":34,"bsc":"final","gs":5,"gcll":true},{"atcommon":"KINGS","canationalbroadcasts":"","ata":"LAK","rl":false,"atsog":29,"bs":"FINAL","htcommon":"HURRICANES","id":2016020732,"atn":"LOS ANGELES","hts":0,"atc":"winner","htn":"CAROLINA","usnationalbroadcasts":"","gcl":true,"hta":"CAR","ats":3,"htc":"","htsog":22,"bsc":"final","gs":5,"gcll":true},{"atcommon":"FLAMES","canationalbroadcasts":"","ata":"CGY","rl":false,"atsog":26,"bs":"FINAL OT","htcommon":"SENATORS","id":2016020733,"atn":"CALGARY","hts":2,"atc":"winner","htn":"OTTAWA","usnationalbroadcasts":"","gcl":true,"hta":"OTT","ats":3,"htc":"","htsog":27,"bsc":"final","gs":5,"gcll":true},{"atcommon":"LIGHTNING","canationalbroadcasts":"","ata":"TBL","rl":false,"atsog":32,"bs":"FINAL OT","htcommon":"PANTHERS","id":2016020734,"atn":"TAMPA BAY","hts":2,"atc":"","htn":"FLORIDA","usnationalbroadcasts":"","gcl":true,"hta":"FLA","ats":1,"htc":"winner","htsog":37,"bsc":"final","gs":5,"gcll":true},{"atcommon":"BLUE JACKETS","canationalbroadcasts":"","ata":"CBJ","rl":false,"atsog":33,"bs":"FINAL","htcommon":"PREDATORS","id":2016020735,"atn":"COLUMBUS","hts":4,"atc":"","htn":"NASHVILLE","usnationalbroadcasts":"","gcl":true,"hta":"NSH","ats":3,"htc":"winner","htsog":32,"bsc":"final","gs":5,"gcll":true},{"atcommon":"BLUES","canationalbroadcasts":"","ata":"STL","rl":false,"atsog":25,"bs":"FINAL","htcommon":"WILD","id":2016020736,"atn":"ST LOUIS","hts":5,"atc":"","htn":"MINNESOTA","usnationalbroadcasts":"NBCSN","gcl":true,"hta":"MIN","ats":1,"htc":"winner","htsog":33,"bsc":"final","gs":5,"gcll":true},{"atcommon":"JETS","canationalbroadcasts":"","ata":"WPG","rl":false,"atsog":33,"bs":"FINAL","htcommon":"BLACKHAWKS","id":2016020737,"atn":"WINNIPEG","hts":3,"atc":"winner","htn":"CHICAGO","usnationalbroadcasts":"","gcl":true,"hta":"CHI","ats":5,"htc":"","htsog":41,"bsc":"final","gs":5,"gcll":true},{"atcommon":"SABRES","canationalbroadcasts":"","ata":"BUF","rl":false,"atsog":27,"bs":"FINAL","htcommon":"STARS","id":2016020738,"atn":"BUFFALO","hts":4,"atc":"","htn":"DALLAS","usnationalbroadcasts":"","gcl":true,"hta":"DAL","ats":3,"htc":"winner","htsog":37,"bsc":"final","gs":5,"gcll":true},{"atcommon":"CANUCKS","canationalbroadcasts":"","ata":"VAN","rl":false,"atsog":19,"bs":"FINAL","htcommon":"COYOTES","id":2016020739,"atn":"VANCOUVER","hts":3,"atc":"","htn":"ARIZONA","usnationalbroadcasts":"","gcl":true,"hta":"ARI","ats":0,"htc":"winner","htsog":31,"bsc":"final","gs":5,"gcll":true},{"atcommon":"OILERS","canationalbroadcasts":"","ata":"EDM","rl":false,"atsog":21,"bs":"FINAL","htcommon":"SHARKS","id":2016020740,"atn":"EDMONTON","hts":1,"atc":"winner","htn":"SAN JOSE","usnationalbroadcasts":"","gcl":true,"hta":"SJS","ats":4,"htc":"","htsog":33,"bsc":"final","gs":5,"gcll":true}],"refreshInterval":60,"currentDate":"01/26/2017","nextDate":"01/31/2017","prevDate":"01/25/2017"})
+
+
+
+
+
+
+
+
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
+{"data":
+{"refreshInterval":30,"game":
+{"awayteamid":20,"awayteamname":"Calgary Flames","hometeamname":"Ottawa Senators","plays":
+{"play":
+[
+{"aoi":
+[8470162,8470880,8470966,8474642,8475907,8476462],"sweater":"79","hs":0,"desc":"Micheal Ferland hit Fredrik Claesson","formalEventId":"OTT8","type":"Hit","eventid":8,"hsog":0,"asog":0,"apb":
+[],"p2name":"Fredrik Claesson","time":"00:12","localtime":"7:39 PM","teamid":20,"xcoord":-90,"strength":701,"as":0,"pid":8475907,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-33,"playername":"Micheal Ferland","hoi":
+[8473544,8474250,8475227,8475913,8476368,8477237],"p1name":"Micheal Ferland","pid2":8476368,"pid1":8475907},
+
+{"aoi":
+[8470162,8470880,8470966,8474642,8475907,8476462],"sweater":"17","hs":0,"desc":"Lance Bouma hit Zack Smith","formalEventId":"OTT9","type":"Hit","eventid":9,"hsog":0,"asog":0,"apb":
+[],"p2name":"Zack Smith","time":"00:18","localtime":"7:39 PM","teamid":20,"xcoord":-60,"strength":701,"as":0,"pid":8474642,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":36,"playername":"Lance Bouma","hoi":
+[8473544,8474250,8475227,8475913,8476368,8477237],"p1name":"Lance Bouma","pid2":8474250,"pid1":8474642},
+
+{"aoi":
+[8469770,8470880,8474150,8474673,8475163,8479314],"sweater":"19","hs":0,"desc":"Matthew Tkachuk Backhand saved by Mike Condon","formalEventId":"OTT11","type":"Shot","eventid":11,"hsog":0,"asog":1,"apb":
+[],"p2name":"Mike Condon","time":"01:03","localtime":"7:39 PM","teamid":20,"xcoord":-83,"strength":701,"as":0,"pid":8479314,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-2,"playername":"Matthew Tkachuk","hoi":
+[8470602,8471676,8474068,8476288,8476879,8477237],"p1name":"Matthew Tkachuk","pid2":8477237,"pid1":8479314},
+
+{"aoi":
+[8469770,8470880,8473564,8474673,8476346,8477497],"sweater":"6","hs":0,"desc":"Dennis Wideman hit Jean-Gabriel Pageau","formalEventId":"OTT13","type":"Hit","eventid":13,"hsog":0,"asog":1,"apb":
+[],"p2name":"Jean-Gabriel Pageau","time":"01:14","localtime":"7:40 PM","teamid":20,"xcoord":29,"strength":701,"as":0,"pid":8469770,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":33,"playername":"Dennis Wideman","hoi":
+[8470760,8471768,8474578,8474884,8476419,8477237],"p1name":"Dennis Wideman","pid2":8476419,"pid1":8469770},
+
+{"aoi":
+[8468674,8470880,8470966,8471346,8475907,8477935],"sweater":"93","hs":0,"desc":"Sam Bennett Tip-In saved by Mike Condon","formalEventId":"OTT17","type":"Shot","eventid":17,"hsog":0,"asog":2,"apb":
+[],"p2name":"Mike Condon","time":"03:01","localtime":"7:43 PM","teamid":20,"xcoord":-81,"strength":701,"as":0,"pid":8477935,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":5,"playername":"Sam Bennett","hoi":
+[8470760,8471676,8474068,8474578,8476288,8477237],"p1name":"Sam Bennett","pid2":8477237,"pid1":8477935},
+
+{"aoi":
+[8469770,8470162,8470880,8474642,8474673,8475907],"sweater":"27","hs":0,"desc":"Curtis Lazar hit TJ Brodie","formalEventId":"OTT20","type":"Hit","eventid":20,"hsog":0,"asog":2,"apb":
+[],"p2name":"TJ Brodie","time":"04:05","localtime":"7:45 PM","teamid":9,"xcoord":-8,"strength":701,"as":0,"pid":8477508,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-40,"playername":"Curtis Lazar","hoi":
+[8467967,8474739,8475227,8476368,8477237,8477508],"p1name":"Curtis Lazar","pid2":8474673,"pid1":8477508},
+
+{"aoi":
+[8469770,8470162,8470880,8474642,8474673,8475907],"sweater":"57","hs":0,"desc":"Tommy Wingels hit Dennis Wideman","formalEventId":"OTT21","type":"Hit","eventid":21,"hsog":0,"asog":2,"apb":
+[],"p2name":"Dennis Wideman","time":"04:20","localtime":"7:45 PM","teamid":9,"xcoord":-66,"strength":701,"as":0,"pid":8474739,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":37,"playername":"Tommy Wingels","hoi":
+[8467967,8474739,8475227,8476368,8477237,8477508],"p1name":"Tommy Wingels","pid2":8469770,"pid1":8474739},
+
+{"aoi":
+[8470880,8470966,8474150,8475163,8476462,8479314],"sweater":"39","hs":0,"desc":"Alex Chiasson hit Erik Karlsson","formalEventId":"OTT23","type":"Hit","eventid":23,"hsog":0,"asog":2,"apb":
+[],"p2name":"Erik Karlsson","time":"04:49","localtime":"7:47 PM","teamid":20,"xcoord":33,"strength":701,"as":0,"pid":8475163,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-36,"playername":"Alex Chiasson","hoi":
+[8470760,8473544,8474250,8474578,8475913,8477237],"p1name":"Alex Chiasson","pid2":8474578,"pid1":8475163},
+
+{"aoi":
+[8470880,8470966,8474150,8475163,8476462,8479314],"sweater":"19","hs":0,"desc":"Derick Brassard hit Mark Giordano","formalEventId":"OTT24","type":"Hit","eventid":24,"hsog":0,"asog":2,"apb":
+[],"p2name":"Mark Giordano","time":"04:58","localtime":"7:47 PM","teamid":9,"xcoord":94,"strength":701,"as":0,"pid":8473544,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-29,"playername":"Derick Brassard","hoi":
+[8470760,8473544,8474250,8474578,8475913,8477237],"p1name":"Derick Brassard","pid2":8470966,"pid1":8473544},
+
+{"aoi":
+[8468674,8470880,8471426,8476967,8477935,8479314],"sweater":"65","hs":0,"desc":"Erik Karlsson hit Matthew Tkachuk","formalEventId":"OTT25","type":"Hit","eventid":25,"hsog":0,"asog":2,"apb":
+[],"p2name":"Matthew Tkachuk","time":"05:18","localtime":"7:47 PM","teamid":9,"xcoord":-96,"strength":701,"as":0,"pid":8474578,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":3,"playername":"Erik Karlsson","hoi":
+[8470760,8474068,8474578,8475913,8476288,8477237],"p1name":"Erik Karlsson","pid2":8479314,"pid1":8474578},
+
+{"aoi":
+[8468674,8470880,8471346,8471426,8476967,8477935],"sweater":"7","hs":0,"desc":"Kyle Turris Wrist Shot saved by Brian Elliott","formalEventId":"OTT26","type":"Shot","eventid":26,"hsog":1,"asog":2,"apb":
+[],"p2name":"Brian Elliott","time":"05:27","localtime":"7:47 PM","teamid":9,"xcoord":55,"strength":701,"as":0,"pid":8474068,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":33,"playername":"Kyle Turris","hoi":
+[8470602,8471676,8474068,8476288,8476879,8477237],"p1name":"Kyle Turris","pid2":8470880,"pid1":8474068},
+
+{"aoi":
+[8468674,8470880,8471346,8471426,8476967,8477935],"sweater":"7","hs":0,"desc":"Kyle Turris Wrist Shot saved by Brian Elliott","formalEventId":"OTT28","type":"Shot","eventid":28,"hsog":2,"asog":2,"apb":
+[],"p2name":"Brian Elliott","time":"05:30","localtime":"7:48 PM","teamid":9,"xcoord":53,"strength":701,"as":0,"pid":8474068,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":19,"playername":"Kyle Turris","hoi":
+[8471676,8474068,8475227,8476288,8476368,8477237],"p1name":"Kyle Turris","pid2":8470880,"pid1":8474068},
+
+{"aoi":
+[8468674,8470880,8471346,8471426,8476967,8477935],"sweater":"9","hs":0,"desc":"Bobby Ryan hit Brett Kulak","formalEventId":"OTT29","type":"Hit","eventid":29,"hsog":2,"asog":2,"apb":
+[],"p2name":"Brett Kulak","time":"05:53","localtime":"7:49 PM","teamid":9,"xcoord":-73,"strength":701,"as":0,"pid":8471676,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-39,"playername":"Bobby Ryan","hoi":
+[8471676,8474068,8475227,8476288,8476368,8477237],"p1name":"Bobby Ryan","pid2":8476967,"pid1":8471676},
+
+{"aoi":
+[8468674,8470880,8471346,8471426,8476967,8477935],"sweater":"36","hs":0,"desc":"Troy Brouwer hit Chris Wideman","formalEventId":"OTT30","type":"Hit","eventid":30,"hsog":2,"asog":2,"apb":
+[],"p2name":"Chris Wideman","time":"05:59","localtime":"7:49 PM","teamid":20,"xcoord":-93,"strength":701,"as":0,"pid":8471426,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":31,"playername":"Troy Brouwer","hoi":
+[8471676,8474068,8475227,8476288,8476368,8477237],"p1name":"Troy Brouwer","pid2":8475227,"pid1":8471426},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"27","hs":0,"desc":"Curtis Lazar hit Micheal Ferland","formalEventId":"OTT32","type":"Hit","eventid":32,"hsog":2,"asog":2,"apb":
+[],"p2name":"Micheal Ferland","time":"07:37","localtime":"7:53 PM","teamid":9,"xcoord":-81,"strength":701,"as":0,"pid":8477508,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-38,"playername":"Curtis Lazar","hoi":
+[8467967,8470760,8474578,8474739,8477237,8477508],"p1name":"Curtis Lazar","pid2":8475907,"pid1":8477508},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"17","hs":0,"desc":"Lance Bouma hit Tommy Wingels","formalEventId":"OTT33","type":"Hit","eventid":33,"hsog":2,"asog":2,"apb":
+[],"p2name":"Tommy Wingels","time":"07:46","localtime":"7:53 PM","teamid":20,"xcoord":-46,"strength":701,"as":0,"pid":8474642,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-36,"playername":"Lance Bouma","hoi":
+[8467967,8470760,8474578,8474739,8477237,8477508],"p1name":"Lance Bouma","pid2":8474739,"pid1":8474642},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"57","hs":0,"desc":"Tommy Wingels hit Micheal Ferland","formalEventId":"OTT34","type":"Hit","eventid":34,"hsog":2,"asog":2,"apb":
+[],"p2name":"Micheal Ferland","time":"08:02","localtime":"7:53 PM","teamid":9,"xcoord":-95,"strength":701,"as":0,"pid":8474739,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":25,"playername":"Tommy Wingels","hoi":
+[8467967,8470760,8474578,8474739,8477237,8477508],"p1name":"Tommy Wingels","pid2":8475907,"pid1":8474739},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"19","hs":0,"desc":"Derick Brassard hit Matt Stajan","formalEventId":"OTT35","type":"Hit","eventid":35,"hsog":2,"asog":2,"apb":
+[],"p2name":"Matt Stajan","time":"08:23","localtime":"7:53 PM","teamid":9,"xcoord":70,"strength":701,"as":0,"pid":8473544,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":37,"playername":"Derick Brassard","hoi":
+[8473544,8474250,8474739,8475227,8476368,8477237],"p1name":"Derick Brassard","pid2":8470162,"pid1":8473544},
+
+{"aoi":
+[8469770,8470880,8471346,8471426,8474673,8477935],"sweater":"65","hs":0,"desc":"Erik Karlsson hit Troy Brouwer","formalEventId":"OTT36","type":"Hit","eventid":36,"hsog":2,"asog":2,"apb":
+[],"p2name":"Troy Brouwer","time":"09:39","localtime":"7:55 PM","teamid":9,"xcoord":-93,"strength":701,"as":0,"pid":8474578,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":33,"playername":"Erik Karlsson","hoi":
+[8470760,8471676,8474068,8474578,8476288,8477237],"p1name":"Erik Karlsson","pid2":8471426,"pid1":8474578},
+
+{"aoi":
+[8469770,8470880,8471346,8471426,8474673,8477935],"sweater":"7","hs":0,"desc":"Kyle Turris Backhand saved by Brian Elliott","formalEventId":"OTT37","type":"Shot","eventid":37,"hsog":3,"asog":2,"apb":
+[],"p2name":"Brian Elliott","time":"09:50","localtime":"7:55 PM","teamid":9,"xcoord":78,"strength":701,"as":0,"pid":8474068,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":1,"playername":"Kyle Turris","hoi":
+[8470760,8471676,8474068,8474578,8476288,8477237],"p1name":"Kyle Turris","pid2":8470880,"pid1":8474068},
+
+{"aoi":
+[8469770,8470880,8471346,8471426,8474673,8477935],"sweater":"7","hs":0,"desc":"Kyle Turris Backhand saved by Brian Elliott","formalEventId":"OTT41","type":"Shot","eventid":41,"hsog":4,"asog":2,"apb":
+[],"p2name":"Brian Elliott","time":"09:52","localtime":"7:55 PM","teamid":9,"xcoord":82,"strength":701,"as":0,"pid":8474068,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":1,"playername":"Kyle Turris","hoi":
+[8470760,8471676,8474068,8474578,8476288,8477237],"p1name":"Kyle Turris","pid2":8470880,"pid1":8474068},
+
+{"aoi":
+[8468674,8470880,8473564,8476346,8476967,8477497],"sweater":"44","hs":0,"desc":"Jean-Gabriel Pageau hit Brett Kulak","formalEventId":"OTT38","type":"Hit","eventid":38,"hsog":4,"asog":2,"apb":
+[],"p2name":"Brett Kulak","time":"10:16","localtime":"7:55 PM","teamid":9,"xcoord":-7,"strength":701,"as":0,"pid":8476419,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-39,"playername":"Jean-Gabriel Pageau","hoi":
+[8470602,8471768,8474884,8476419,8476879,8477237],"p1name":"Jean-Gabriel Pageau","pid2":8476967,"pid1":8476419},
+
+{"aoi":
+[8468674,8470880,8473564,8476346,8476967,8477497],"sweater":"29","hs":0,"desc":"Deryk Engelland Wrist Shot saved by Mike Condon","formalEventId":"OTT40","type":"Shot","eventid":40,"hsog":4,"asog":3,"apb":
+[],"p2name":"Mike Condon","time":"10:43","localtime":"7:56 PM","teamid":20,"xcoord":-54,"strength":701,"as":0,"pid":8468674,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":25,"playername":"Deryk Engelland","hoi":
+[8470602,8471768,8474884,8476419,8476879,8477237],"p1name":"Deryk Engelland","pid2":8477237,"pid1":8468674},
+
+{"aoi":
+[8469770,8470880,8473564,8474673,8476346,8477497],"sweater":"23","hs":0,"desc":"Sean Monahan Backhand saved by Mike Condon","formalEventId":"OTT43","type":"Shot","eventid":43,"hsog":4,"asog":4,"apb":
+[],"p2name":"Mike Condon","time":"10:54","localtime":"7:58 PM","teamid":20,"xcoord":-75,"strength":701,"as":0,"pid":8477497,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":4,"playername":"Sean Monahan","hoi":
+[8470602,8471768,8474884,8476419,8476879,8477237],"p1name":"Sean Monahan","pid2":8477237,"pid1":8477497},
+
+{"aoi":
+[8468674,8470880,8474150,8475163,8476967,8479314],"sweater":"3","hs":0,"desc":"Marc Methot hit Alex Chiasson","formalEventId":"OTT45","type":"Hit","eventid":45,"hsog":4,"asog":4,"apb":
+[],"p2name":"Alex Chiasson","time":"12:06","localtime":"8:00 PM","teamid":9,"xcoord":12,"strength":701,"as":0,"pid":8470760,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":40,"playername":"Marc Methot","hoi":
+[8467967,8470760,8474578,8474739,8477237,8477508],"p1name":"Marc Methot","pid2":8475163,"pid1":8470760},
+
+{"aoi":
+[8470880,8470966,8471346,8471426,8476462,8477935],"hs":0,"localtime":"8:01 PM","teamid":20,"desc":"Too many men/ice served by Matthew Tkachuk","xcoord":13,"strength":701,"as":0,"formalEventId":"OTT46","period":1,"type":"Penalty","hsog":4,"p3name":"Matthew Tkachuk","eventid":46,"asog":4,"hpb":
+[],"apb":
+[8477935],"p2name":"","ycoord":40,"pid3":8479314,"time":"12:35","dur":2,"playername":"","hoi":
+[8473544,8474250,8475227,8475913,8476368,8477237],"p1name":"","pid2":""},
+
+{"aoi":
+[8468674,8470162,8470880,8470966,8474642],"sweater":"65","hs":0,"desc":"Erik Karlsson Wrist Shot saved by Brian Elliott","formalEventId":"OTT49","type":"Shot","eventid":49,"hsog":5,"asog":4,"apb":
+[8479314],"p2name":"Brian Elliott","time":"13:30","localtime":"8:02 PM","teamid":9,"xcoord":30,"strength":702,"as":0,"pid":8474578,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-8,"playername":"Erik Karlsson","hoi":
+[8470602,8474068,8474578,8474884,8475913,8477237],"p1name":"Erik Karlsson","pid2":8470880,"pid1":8474578},
+
+{"aoi":
+[8469770,8470880,8473564,8474150,8474673],"sweater":"11","hs":0,"desc":"Mikael Backlund Backhand saved by Mike Condon","formalEventId":"OTT251","type":"Shot","eventid":251,"hsog":5,"asog":5,"apb":
+[8479314],"p2name":"Mike Condon","time":"13:51","localtime":"8:03 PM","teamid":20,"xcoord":-77,"strength":703,"as":0,"pid":8474150,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":23,"playername":"Mikael Backlund","hoi":
+[8471676,8473544,8474250,8475227,8476879,8477237],"p1name":"Mikael Backlund","pid2":8477237,"pid1":8474150},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"17","hs":0,"desc":"Lance Bouma hit Tommy Wingels","formalEventId":"OTT253","type":"Hit","eventid":253,"hsog":5,"asog":5,"apb":
+[],"p2name":"Tommy Wingels","time":"15:32","localtime":"8:05 PM","teamid":20,"xcoord":-31,"strength":701,"as":0,"pid":8474642,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-27,"playername":"Lance Bouma","hoi":
+[8467967,8470760,8474578,8474739,8477237,8477508],"p1name":"Lance Bouma","pid2":8474739,"pid1":8474642},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"3","hs":0,"desc":"Marc Methot hit Matt Stajan","formalEventId":"OTT254","type":"Hit","eventid":254,"hsog":5,"asog":5,"apb":
+[],"p2name":"Matt Stajan","time":"15:38","localtime":"8:05 PM","teamid":9,"xcoord":-94,"strength":701,"as":0,"pid":8470760,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":21,"playername":"Marc Methot","hoi":
+[8467967,8470760,8474578,8474739,8477237,8477508],"p1name":"Marc Methot","pid2":8470162,"pid1":8470760},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"79","hs":0,"desc":"Micheal Ferland hit Chris Kelly","formalEventId":"OTT255","type":"Hit","eventid":255,"hsog":5,"asog":5,"apb":
+[],"p2name":"Chris Kelly","time":"15:52","localtime":"8:05 PM","teamid":20,"xcoord":96,"strength":701,"as":0,"pid":8475907,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-5,"playername":"Micheal Ferland","hoi":
+[8467967,8474739,8475227,8476368,8477237,8477508],"p1name":"Micheal Ferland","pid2":8467967,"pid1":8475907},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"6","hs":0,"desc":"Chris Wideman hit Lance Bouma","formalEventId":"OTT256","type":"Hit","eventid":256,"hsog":5,"asog":5,"apb":
+[],"p2name":"Lance Bouma","time":"15:57","localtime":"8:06 PM","teamid":9,"xcoord":28,"strength":701,"as":0,"pid":8475227,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-39,"playername":"Chris Wideman","hoi":
+[8467967,8474739,8475227,8476368,8477237,8477508],"p1name":"Chris Wideman","pid2":8474642,"pid1":8475227},
+
+{"aoi":
+[8469770,8470880,8471346,8471426,8474673,8477935],"sweater":"93","hs":0,"desc":"Sam Bennett Backhand saved by Mike Condon","formalEventId":"OTT258","type":"Shot","eventid":258,"hsog":5,"asog":6,"apb":
+[],"p2name":"Mike Condon","time":"16:56","localtime":"8:09 PM","teamid":20,"xcoord":-72,"strength":701,"as":0,"pid":8477935,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":2,"playername":"Sam Bennett","hoi":
+[8470760,8471676,8474068,8474578,8476288,8477237],"p1name":"Sam Bennett","pid2":8477237,"pid1":8477935},
+
+{"aoi":
+[8470880,8470966,8473564,8476346,8476462,8477497],"sweater":"67","hs":0,"desc":"Michael Frolik Hi stick - double minor against Jean-Gabriel Pageau","formalEventId":"OTT260","type":"Penalty","hsog":5,"eventid":260,"asog":6,"apb":
+[8473564],"p2name":"Jean-Gabriel Pageau","time":"17:06","localtime":"8:10 PM","teamid":20,"xcoord":-42,"strength":701,"as":0,"pid":8473564,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-27,"dur":4,"playername":"Michael Frolik","hoi":
+[8470602,8471768,8474884,8476419,8476879,8477237],"p1name":"Michael Frolik","pid2":8476419,"pid1":8473564},
+
+{"aoi":
+[8469770,8470880,8471426,8474150,8474673],"sweater":"9","hs":0,"desc":"Bobby Ryan Wrist Shot saved by Brian Elliott","formalEventId":"OTT264","type":"Shot","eventid":264,"hsog":6,"asog":6,"apb":
+[8473564],"p2name":"Brian Elliott","time":"19:06","localtime":"8:13 PM","teamid":9,"xcoord":68,"strength":702,"as":0,"pid":8471676,"period":1,"p3name":"","hpb":
+[],"pid3":"","ycoord":-15,"playername":"Bobby Ryan","hoi":
+[8471676,8473544,8474578,8475227,8476288,8477237],"p1name":"Bobby Ryan","pid2":8470880,"pid1":8471676},
+
+{"aoi":
+[8468674,8470880,8470966,8471426,8474150],"sweater":"9","hs":0,"desc":"Bobby Ryan hit Mikael Backlund","formalEventId":"OTT272","type":"Hit","eventid":272,"hsog":6,"asog":6,"apb":
+[8473564],"p2name":"Mikael Backlund","time":"00:26","localtime":"8:33 PM","teamid":9,"xcoord":47,"strength":702,"as":0,"pid":8471676,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-38,"playername":"Bobby Ryan","hoi":
+[8471676,8473544,8474068,8474578,8475913,8477237],"p1name":"Bobby Ryan","pid2":8474150,"pid1":8471676},
+
+{"aoi":
+[8469770,8470880,8473564,8474673,8476346,8477497],"sweater":"6","hs":0,"desc":"Dennis Wideman hit Tom Pyatt","formalEventId":"OTT276","type":"Hit","eventid":276,"hsog":6,"asog":6,"apb":
+[],"p2name":"Tom Pyatt","time":"01:40","localtime":"8:34 PM","teamid":20,"xcoord":-73,"strength":701,"as":0,"pid":8469770,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-37,"playername":"Dennis Wideman","hoi":
+[8470602,8471768,8474884,8476419,8476879,8477237],"p1name":"Dennis Wideman","pid2":8471768,"pid1":8469770},
+
+{"aoi":
+[8469770,8470880,8473564,8474673,8476346,8477497],"sweater":"44","hs":0,"desc":"Jean-Gabriel Pageau Tip-In saved by Brian Elliott","formalEventId":"OTT277","type":"Shot","eventid":277,"hsog":7,"asog":6,"apb":
+[],"p2name":"Brian Elliott","time":"01:43","localtime":"8:34 PM","teamid":9,"xcoord":-80,"strength":701,"as":0,"pid":8476419,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-3,"playername":"Jean-Gabriel Pageau","hoi":
+[8470602,8471768,8474884,8476419,8476879,8477237],"p1name":"Jean-Gabriel Pageau","pid2":8470880,"pid1":8476419},
+
+{"aoi":
+[8470880,8474150,8475163,8476462,8476967,8479314],"sweater":"33","hs":0,"desc":"Fredrik Claesson hit Alex Chiasson","formalEventId":"OTT280","type":"Hit","eventid":280,"hsog":7,"asog":6,"apb":
+[],"p2name":"Alex Chiasson","time":"01:57","localtime":"8:36 PM","teamid":9,"xcoord":11,"strength":701,"as":0,"pid":8476368,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-39,"playername":"Fredrik Claesson","hoi":
+[8467967,8474250,8475227,8476288,8476368,8477237],"p1name":"Fredrik Claesson","pid2":8475163,"pid1":8476368},
+
+{"aoi":
+[8470880,8471346,8471426,8474673,8476462,8477935],"sweater":"10","hs":0,"desc":"Kris Versteeg Backhand saved by Mike Condon","formalEventId":"OTT281","type":"Shot","eventid":281,"hsog":7,"asog":7,"apb":
+[],"p2name":"Mike Condon","time":"02:32","localtime":"8:37 PM","teamid":20,"xcoord":79,"strength":701,"as":0,"pid":8471346,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":13,"playername":"Kris Versteeg","hoi":
+[8467967,8470760,8474250,8474578,8476288,8477237],"p1name":"Kris Versteeg","pid2":8477237,"pid1":8471346},
+
+{"aoi":
+[8470880,8471346,8471426,8474673,8476462,8477935],"sweater":"22","hs":0,"desc":"Chris Kelly Holding against Troy Brouwer","formalEventId":"OTT282","type":"Penalty","hsog":7,"eventid":282,"asog":7,"apb":
+[],"p2name":"Troy Brouwer","time":"02:34","localtime":"8:37 PM","teamid":9,"xcoord":23,"strength":701,"as":0,"pid":8467967,"period":2,"p3name":"","hpb":
+[8467967],"pid3":"","ycoord":-37,"dur":2,"playername":"Chris Kelly","hoi":
+[8467967,8470760,8474250,8474578,8476288,8477237],"p1name":"Chris Kelly","pid2":8471426,"pid1":8467967},
+
+{"aoi":
+[8470880,8470966,8473564,8474150,8476462,8479314],"sweater":"3","hs":0,"desc":"Marc Methot hit Mikael Backlund","formalEventId":"OTT286","type":"Hit","eventid":286,"hsog":7,"asog":7,"apb":
+[],"p2name":"Mikael Backlund","time":"04:14","localtime":"8:39 PM","teamid":9,"xcoord":94,"strength":703,"as":0,"pid":8470760,"period":2,"p3name":"","hpb":
+[8467967],"pid3":"","ycoord":-34,"playername":"Marc Methot","hoi":
+[8470760,8471768,8474578,8474739,8477237],"p1name":"Marc Methot","pid2":8474150,"pid1":8470760},
+
+{"aoi":
+[8470880,8470966,8474150,8475163,8475907,8476462],"sweater":"22","hs":0,"desc":"Chris Kelly Wrist Shot saved by Brian Elliott","formalEventId":"OTT287","type":"Shot","eventid":287,"hsog":8,"asog":7,"apb":
+[],"p2name":"Brian Elliott","time":"04:49","localtime":"8:40 PM","teamid":9,"xcoord":-54,"strength":701,"as":0,"pid":8467967,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":8,"playername":"Chris Kelly","hoi":
+[8467967,8470760,8473544,8474578,8477237,8477508],"p1name":"Chris Kelly","pid2":8470880,"pid1":8467967},
+
+{"aoi":
+[8470880,8470966,8475163,8475907,8476462,8477935],"sweater":"93","hs":0,"desc":"Sam Bennett hit Cody Ceci","formalEventId":"OTT288","type":"Hit","eventid":288,"hsog":8,"asog":7,"apb":
+[],"p2name":"Cody Ceci","time":"04:55","localtime":"8:40 PM","teamid":20,"xcoord":-64,"strength":701,"as":0,"pid":8477935,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":37,"playername":"Sam Bennett","hoi":
+[8470602,8473544,8474884,8476879,8477237,8477508],"p1name":"Sam Bennett","pid2":8476879,"pid1":8477935},
+
+{"aoi":
+[8469770,8470880,8474673,8475163,8475907,8477935],"sweater":"19","hs":0,"desc":"Derick Brassard hit TJ Brodie","formalEventId":"OTT290","type":"Hit","eventid":290,"hsog":8,"asog":7,"apb":
+[],"p2name":"TJ Brodie","time":"05:11","localtime":"8:41 PM","teamid":9,"xcoord":-85,"strength":701,"as":0,"pid":8473544,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":38,"playername":"Derick Brassard","hoi":
+[8473544,8474884,8475227,8475913,8476368,8477237],"p1name":"Derick Brassard","pid2":8474673,"pid1":8473544},
+
+{"aoi":
+[8469770,8470880,8474673,8475163,8475907,8477935],"sweater":"68","hs":0,"desc":"Mike Hoffman Snap Shot saved by Brian Elliott","formalEventId":"OTT291","type":"Shot","eventid":291,"hsog":9,"asog":7,"apb":
+[],"p2name":"Brian Elliott","time":"05:30","localtime":"8:41 PM","teamid":9,"xcoord":-46,"strength":701,"as":0,"pid":8474884,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-12,"playername":"Mike Hoffman","hoi":
+[8473544,8474884,8475227,8475913,8476368,8477237],"p1name":"Mike Hoffman","pid2":8470880,"pid1":8474884},
+
+{"aoi":
+[8468674,8470162,8470880,8473564,8474642,8476967],"sweater":"17","hs":0,"desc":"Lance Bouma hit Chris Wideman","formalEventId":"OTT293","type":"Hit","eventid":293,"hsog":9,"asog":7,"apb":
+[],"p2name":"Chris Wideman","time":"06:12","localtime":"8:42 PM","teamid":20,"xcoord":29,"strength":701,"as":0,"pid":8474642,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":38,"playername":"Lance Bouma","hoi":
+[8470602,8474068,8475227,8475913,8476288,8477237],"p1name":"Lance Bouma","pid2":8475227,"pid1":8474642},
+
+{"aoi":
+[8470880,8470966,8473564,8476346,8476462,8477497],"sweater":"44","hs":0,"desc":"Jean-Gabriel Pageau Wrist Shot saved by Brian Elliott","formalEventId":"OTT295","type":"Shot","eventid":295,"hsog":10,"asog":7,"apb":
+[],"p2name":"Brian Elliott","time":"07:08","localtime":"8:45 PM","teamid":9,"xcoord":-83,"strength":701,"as":0,"pid":8476419,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-25,"playername":"Jean-Gabriel Pageau","hoi":
+[8470602,8471768,8474250,8476419,8476879,8477237],"p1name":"Jean-Gabriel Pageau","pid2":8470880,"pid1":8476419},
+
+{"aoi":
+[8469770,8470880,8471346,8471426,8474673,8477935],"sweater":"36","hs":0,"desc":"Troy Brouwer Wrist Shot saved by Mike Condon","formalEventId":"OTT296","type":"Shot","eventid":296,"hsog":10,"asog":8,"apb":
+[],"p2name":"Mike Condon","time":"08:03","localtime":"8:46 PM","teamid":20,"xcoord":43,"strength":701,"as":0,"pid":8471426,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":10,"playername":"Troy Brouwer","hoi":
+[8470602,8473544,8474578,8474884,8475913,8477237],"p1name":"Troy Brouwer","pid2":8477237,"pid1":8471426},
+
+{"aoi":
+[8468674,8470880,8474150,8475163,8476967,8479314],"sweater":"39","hs":0,"desc":"Alex Chiasson hit Derick Brassard","formalEventId":"OTT298","type":"Hit","eventid":298,"hsog":10,"asog":8,"apb":
+[],"p2name":"Derick Brassard","time":"08:50","localtime":"8:48 PM","teamid":20,"xcoord":-69,"strength":701,"as":0,"pid":8475163,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":35,"playername":"Alex Chiasson","hoi":
+[8470760,8473544,8474739,8474884,8476879,8477237],"p1name":"Alex Chiasson","pid2":8473544,"pid1":8475163},
+
+{"aoi":
+[8468674,8470880,8474150,8474642,8475907,8476967],"sweater":"29","hs":0,"desc":"Deryk Engelland hit Curtis Lazar","formalEventId":"OTT299","type":"Hit","eventid":299,"hsog":10,"asog":8,"apb":
+[],"p2name":"Curtis Lazar","time":"09:16","localtime":"8:48 PM","teamid":20,"xcoord":-24,"strength":701,"as":0,"pid":8468674,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-40,"playername":"Deryk Engelland","hoi":
+[8467967,8470760,8474739,8476879,8477237,8477508],"p1name":"Deryk Engelland","pid2":8477508,"pid1":8468674},
+
+{"aoi":
+[8468674,8470880,8474150,8474642,8475907,8476967],"sweater":"27","hs":0,"desc":"Curtis Lazar hit Deryk Engelland","formalEventId":"OTT300","type":"Hit","eventid":300,"hsog":10,"asog":8,"apb":
+[],"p2name":"Deryk Engelland","time":"09:24","localtime":"8:49 PM","teamid":9,"xcoord":-33,"strength":701,"as":0,"pid":8477508,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":38,"playername":"Curtis Lazar","hoi":
+[8467967,8470760,8474739,8476879,8477237,8477508],"p1name":"Curtis Lazar","pid2":8468674,"pid1":8477508},
+
+{"aoi":
+[8468674,8470162,8470880,8470966,8474642,8475907],"sweater":"79","hs":0,"desc":"Micheal Ferland Wrist Shot saved by Mike Condon","formalEventId":"OTT451","type":"Shot","eventid":451,"hsog":10,"asog":9,"apb":
+[],"p2name":"Mike Condon","time":"09:36","localtime":"8:49 PM","teamid":20,"xcoord":54,"strength":701,"as":0,"pid":8475907,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-28,"playername":"Micheal Ferland","hoi":
+[8467967,8470760,8474739,8476879,8477237,8477508],"p1name":"Micheal Ferland","pid2":8477237,"pid1":8475907},
+
+{"aoi":
+[8468674,8470162,8470880,8470966,8474642,8475907],"sweater":"79","hs":0,"desc":"Micheal Ferland (6) Wrist Shot, assists: none","formalEventId":"OTT452","type":"Goal","eventid":452,"hsog":10,"asog":9,"apb":
+[],"p2name":"","time":"09:39","localtime":"8:49 PM","teamid":20,"xcoord":86,"strength":701,"as":1,"pid":8475907,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-4,"playername":"Micheal Ferland","hoi":
+[8467967,8470760,8474739,8476879,8477237,8477508],"p1name":"Micheal Ferland","pid2":"","pid1":8475907},
+
+{"aoi":
+[8470880,8470966,8473564,8476346,8476462,8477497],"sweater":"27","hs":0,"desc":"Dougie Hamilton Snap Shot saved by Mike Condon","formalEventId":"OTT455","type":"Shot","eventid":455,"hsog":10,"asog":10,"apb":
+[],"p2name":"Mike Condon","time":"10:01","localtime":"8:50 PM","teamid":20,"xcoord":37,"strength":701,"as":1,"pid":8476462,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-33,"playername":"Dougie Hamilton","hoi":
+[8470602,8471676,8474068,8474578,8476288,8477237],"p1name":"Dougie Hamilton","pid2":8477237,"pid1":8476462},
+
+{"aoi":
+[8469770,8470880,8471346,8471426,8474673,8477935],"sweater":"93","hs":0,"desc":"Sam Bennett hit Fredrik Claesson","formalEventId":"OTT458","type":"Hit","eventid":458,"hsog":10,"asog":10,"apb":
+[],"p2name":"Fredrik Claesson","time":"11:03","localtime":"8:54 PM","teamid":20,"xcoord":-6,"strength":701,"as":1,"pid":8477935,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":38,"playername":"Sam Bennett","hoi":
+[8471768,8474250,8475227,8476368,8476419,8477237],"p1name":"Sam Bennett","pid2":8476368,"pid1":8477935},
+
+{"aoi":
+[8470880,8470966,8474150,8475163,8476462,8479314],"sweater":"19","hs":0,"desc":"Derick Brassard Tip-In saved by Brian Elliott","formalEventId":"OTT460","type":"Shot","eventid":460,"hsog":11,"asog":10,"apb":
+[],"p2name":"Brian Elliott","time":"11:44","localtime":"8:55 PM","teamid":9,"xcoord":-84,"strength":701,"as":1,"pid":8473544,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":2,"playername":"Derick Brassard","hoi":
+[8470760,8473544,8474578,8474884,8475913,8477237],"p1name":"Derick Brassard","pid2":8470880,"pid1":8473544},
+
+{"aoi":
+[8470880,8470966,8474150,8475163,8476462,8479314],"sweater":"5","hs":0,"desc":"Mark Giordano hit Mike Hoffman","formalEventId":"OTT461","type":"Hit","eventid":461,"hsog":11,"asog":10,"apb":
+[],"p2name":"Mike Hoffman","time":"11:57","localtime":"8:55 PM","teamid":20,"xcoord":-71,"strength":701,"as":1,"pid":8470966,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":32,"playername":"Mark Giordano","hoi":
+[8470760,8473544,8474578,8474884,8475913,8477237],"p1name":"Mark Giordano","pid2":8474884,"pid1":8470966},
+
+{"aoi":
+[8470880,8470966,8474150,8475163,8476462,8479314],"sweater":"19","hs":0,"desc":"Matthew Tkachuk Snap Shot saved by Mike Condon","formalEventId":"OTT462","type":"Shot","eventid":462,"hsog":11,"asog":11,"apb":
+[],"p2name":"Mike Condon","time":"12:05","localtime":"8:55 PM","teamid":20,"xcoord":60,"strength":701,"as":1,"pid":8479314,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":20,"playername":"Matthew Tkachuk","hoi":
+[8470602,8473544,8474578,8475913,8476288,8477237],"p1name":"Matthew Tkachuk","pid2":8477237,"pid1":8479314},
+
+{"aoi":
+[8470162,8470880,8470966,8475163,8476462,8479314],"sweater":"39","hs":0,"desc":"Alex Chiasson hit Mark Stone","formalEventId":"OTT463","type":"Hit","eventid":463,"hsog":11,"asog":11,"apb":
+[],"p2name":"Mark Stone","time":"12:11","localtime":"8:55 PM","teamid":20,"xcoord":97,"strength":701,"as":1,"pid":8475163,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-3,"playername":"Alex Chiasson","hoi":
+[8470602,8473544,8474578,8475913,8476288,8477237],"p1name":"Alex Chiasson","pid2":8475913,"pid1":8475163},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"18","hs":0,"desc":"Matt Stajan hit Ryan Dzingel","formalEventId":"OTT464","type":"Hit","eventid":464,"hsog":11,"asog":11,"apb":
+[],"p2name":"Ryan Dzingel","time":"12:40","localtime":"8:56 PM","teamid":20,"xcoord":91,"strength":701,"as":1,"pid":8470162,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":18,"playername":"Matt Stajan","hoi":
+[8470602,8471676,8474068,8476288,8476879,8477237],"p1name":"Matt Stajan","pid2":8476288,"pid1":8470162},
+
+{"aoi":
+[8470880,8470966,8474150,8475163,8476462,8479314],"sweater":"39","hs":0,"desc":"Alex Chiasson Wrist Shot saved by Mike Condon","formalEventId":"OTT468","type":"Shot","eventid":468,"hsog":11,"asog":12,"apb":
+[],"p2name":"Mike Condon","time":"14:40","localtime":"8:59 PM","teamid":20,"xcoord":28,"strength":701,"as":1,"pid":8475163,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-36,"playername":"Alex Chiasson","hoi":
+[8467967,8470602,8474739,8475227,8477237,8477508],"p1name":"Alex Chiasson","pid2":8477237,"pid1":8475163},
+
+{"aoi":
+[8470880,8470966,8474150,8475163,8476462,8479314],"sweater":"5","hs":0,"desc":"Mark Giordano hit Tommy Wingels","formalEventId":"OTT469","type":"Hit","eventid":469,"hsog":11,"asog":12,"apb":
+[],"p2name":"Tommy Wingels","time":"14:51","localtime":"8:59 PM","teamid":20,"xcoord":-97,"strength":701,"as":1,"pid":8470966,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-1,"playername":"Mark Giordano","hoi":
+[8467967,8470602,8474739,8475227,8477237,8477508],"p1name":"Mark Giordano","pid2":8474739,"pid1":8470966},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"44","hs":0,"desc":"Jean-Gabriel Pageau hit Deryk Engelland","formalEventId":"OTT470","type":"Hit","eventid":470,"hsog":11,"asog":12,"apb":
+[],"p2name":"Deryk Engelland","time":"15:21","localtime":"9:00 PM","teamid":9,"xcoord":-96,"strength":701,"as":1,"pid":8476419,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":0,"playername":"Jean-Gabriel Pageau","hoi":
+[8470760,8471768,8474250,8476419,8476879,8477237],"p1name":"Jean-Gabriel Pageau","pid2":8468674,"pid1":8476419},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"61","hs":0,"desc":"Brett Kulak hit Cody Ceci","formalEventId":"OTT471","type":"Hit","eventid":471,"hsog":11,"asog":12,"apb":
+[],"p2name":"Cody Ceci","time":"15:37","localtime":"9:00 PM","teamid":20,"xcoord":-80,"strength":701,"as":1,"pid":8476967,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":38,"playername":"Brett Kulak","hoi":
+[8470760,8471768,8474250,8476419,8476879,8477237],"p1name":"Brett Kulak","pid2":8476879,"pid1":8476967},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"17","hs":0,"desc":"Lance Bouma hit Jean-Gabriel Pageau","formalEventId":"OTT472","type":"Hit","eventid":472,"hsog":11,"asog":12,"apb":
+[],"p2name":"Jean-Gabriel Pageau","time":"15:48","localtime":"9:00 PM","teamid":20,"xcoord":96,"strength":701,"as":1,"pid":8474642,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-11,"playername":"Lance Bouma","hoi":
+[8470760,8471768,8474250,8476419,8476879,8477237],"p1name":"Lance Bouma","pid2":8476419,"pid1":8474642},
+
+{"aoi":
+[8469770,8470162,8470880,8473564,8474642,8474673],"sweater":"67","hs":0,"desc":"Michael Frolik Wrist Shot saved by Mike Condon","formalEventId":"OTT473","type":"Shot","eventid":473,"hsog":11,"asog":13,"apb":
+[],"p2name":"Mike Condon","time":"16:02","localtime":"9:00 PM","teamid":20,"xcoord":75,"strength":701,"as":1,"pid":8473564,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-5,"playername":"Michael Frolik","hoi":
+[8471676,8474068,8474250,8476368,8476879,8477237],"p1name":"Michael Frolik","pid2":8477237,"pid1":8473564},
+
+{"aoi":
+[8470880,8470966,8471426,8476346,8476462,8477497],"sweater":"27","hs":0,"desc":"Dougie Hamilton Wrist Shot saved by Mike Condon","formalEventId":"OTT475","type":"Shot","eventid":475,"hsog":11,"asog":14,"apb":
+[],"p2name":"Mike Condon","time":"17:05","localtime":"9:02 PM","teamid":20,"xcoord":69,"strength":701,"as":1,"pid":8476462,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-3,"playername":"Dougie Hamilton","hoi":
+[8470760,8473544,8474578,8475913,8476288,8477237],"p1name":"Dougie Hamilton","pid2":8477237,"pid1":8476462},
+
+{"aoi":
+[8470880,8470966,8471426,8476346,8476462,8477497],"sweater":"23","hs":0,"desc":"Sean Monahan (16) Wrist Shot, assists: Dougie Hamilton (25), Johnny Gaudreau (20)","formalEventId":"OTT476","type":"Goal","eventid":476,"hsog":11,"asog":14,"apb":
+[],"p2name":"Dougie Hamilton","time":"17:08","localtime":"9:02 PM","teamid":20,"xcoord":82,"strength":701,"as":2,"pid":8477497,"period":2,"p3name":"Johnny Gaudreau","hpb":
+[],"pid3":8476346,"ycoord":-3,"playername":"Sean Monahan","hoi":
+[8470760,8473544,8474578,8475913,8476288,8477237],"p1name":"Sean Monahan","pid2":8476462,"pid1":8477497},
+
+{"aoi":
+[8470880,8470966,8471346,8471426,8476462,8477935],"sweater":"61","hs":0,"desc":"Mark Stone Wrist Shot saved by Brian Elliott","formalEventId":"OTT478","type":"Shot","eventid":478,"hsog":12,"asog":14,"apb":
+[],"p2name":"Brian Elliott","time":"17:28","localtime":"9:03 PM","teamid":9,"xcoord":-44,"strength":701,"as":2,"pid":8475913,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":16,"playername":"Mark Stone","hoi":
+[8470760,8473544,8474884,8475913,8476879,8477237],"p1name":"Mark Stone","pid2":8470880,"pid1":8475913},
+
+{"aoi":
+[8470880,8470966,8471346,8471426,8476462,8477935],"sweater":"10","hs":0,"desc":"Kris Versteeg Hooking against Cody Ceci","formalEventId":"OTT479","type":"Penalty","hsog":12,"eventid":479,"asog":14,"apb":
+[8471346],"p2name":"Cody Ceci","time":"17:32","localtime":"9:03 PM","teamid":20,"xcoord":-73,"strength":701,"as":2,"pid":8471346,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-1,"dur":2,"playername":"Kris Versteeg","hoi":
+[8470760,8473544,8474884,8475913,8476879,8477237],"p1name":"Kris Versteeg","pid2":8476879,"pid1":8471346},
+
+{"aoi":
+[8468674,8470162,8470880,8470966,8474642],"sweater":"68","hs":0,"desc":"Mike Hoffman Wrist Shot saved by Brian Elliott","formalEventId":"OTT483","type":"Shot","eventid":483,"hsog":13,"asog":14,"apb":
+[8471346],"p2name":"Brian Elliott","time":"18:28","localtime":"9:07 PM","teamid":9,"xcoord":-58,"strength":702,"as":2,"pid":8474884,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":25,"playername":"Mike Hoffman","hoi":
+[8470602,8474068,8474578,8474884,8475913,8477237],"p1name":"Mike Hoffman","pid2":8470880,"pid1":8474884},
+
+{"aoi":
+[8468674,8470162,8470880,8470966,8474642],"sweater":"7","hs":0,"desc":"Kyle Turris Wrist Shot saved by Brian Elliott","formalEventId":"OTT199","type":"Shot","eventid":199,"hsog":14,"asog":14,"apb":
+[8471346],"p2name":"Brian Elliott","time":"19:12","localtime":"9:08 PM","teamid":9,"xcoord":-59,"strength":702,"as":2,"pid":8474068,"period":2,"p3name":"","hpb":
+[],"pid3":"","ycoord":-15,"playername":"Kyle Turris","hoi":
+[8470602,8474068,8474578,8474884,8475913,8477237],"p1name":"Kyle Turris","pid2":8470880,"pid1":8474068},
+
+{"aoi":
+[8468674,8470880,8471346,8471426,8476967,8477935],"sweater":"61","hs":0,"desc":"Mark Stone Wrist Shot saved by Brian Elliott","formalEventId":"OTT495","type":"Shot","eventid":495,"hsog":15,"asog":14,"apb":
+[],"p2name":"Brian Elliott","time":"01:19","localtime":"9:30 PM","teamid":9,"xcoord":65,"strength":701,"as":2,"pid":8475913,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":14,"playername":"Mark Stone","hoi":
+[8470760,8474068,8474250,8474578,8475913,8477237],"p1name":"Mark Stone","pid2":8470880,"pid1":8475913},
+
+{"aoi":
+[8470162,8470880,8474642,8475907,8476462,8476967],"sweater":"57","hs":1,"desc":"Tommy Wingels (6) Tip-In, assists: Fredrik Claesson (3)","formalEventId":"OTT496","type":"Goal","eventid":496,"hsog":15,"asog":14,"apb":
+[],"p2name":"Fredrik Claesson","time":"02:01","localtime":"9:30 PM","teamid":9,"xcoord":78,"strength":701,"as":2,"pid":8474739,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":2,"playername":"Tommy Wingels","hoi":
+[8474578,8474739,8476288,8476368,8477237,8477508],"p1name":"Tommy Wingels","pid2":8476368,"pid1":8474739},
+
+{"aoi":
+[8470162,8470880,8470966,8474642,8475907,8476462],"sweater":"79","hs":1,"desc":"Micheal Ferland hit Fredrik Claesson","formalEventId":"OTT498","type":"Hit","eventid":498,"hsog":15,"asog":14,"apb":
+[],"p2name":"Fredrik Claesson","time":"02:14","localtime":"9:31 PM","teamid":20,"xcoord":-84,"strength":701,"as":2,"pid":8475907,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-37,"playername":"Micheal Ferland","hoi":
+[8474578,8474739,8476288,8476368,8477237,8477508],"p1name":"Micheal Ferland","pid2":8476368,"pid1":8475907},
+
+{"aoi":
+[8470162,8470880,8470966,8474642,8475907,8476462],"sweater":"79","hs":1,"desc":"Micheal Ferland hit Fredrik Claesson","formalEventId":"OTT499","type":"Hit","eventid":499,"hsog":15,"asog":14,"apb":
+[],"p2name":"Fredrik Claesson","time":"02:21","localtime":"9:31 PM","teamid":20,"xcoord":-94,"strength":701,"as":2,"pid":8475907,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":23,"playername":"Micheal Ferland","hoi":
+[8474578,8474739,8476288,8476368,8477237,8477508],"p1name":"Micheal Ferland","pid2":8476368,"pid1":8475907},
+
+{"aoi":
+[8468674,8470880,8473564,8476346,8476967,8477497],"sweater":"13","hs":1,"desc":"Johnny Gaudreau Slap Shot saved by Mike Condon","formalEventId":"OTT653","type":"Shot","eventid":653,"hsog":15,"asog":15,"apb":
+[],"p2name":"Mike Condon","time":"03:34","localtime":"9:34 PM","teamid":20,"xcoord":-76,"strength":701,"as":2,"pid":8476346,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-18,"playername":"Johnny Gaudreau","hoi":
+[8471768,8474578,8474884,8475227,8476419,8477237],"p1name":"Johnny Gaudreau","pid2":8477237,"pid1":8476346},
+
+{"aoi":
+[8470880,8470966,8471346,8471426,8476462,8477935],"sweater":"27","hs":1,"desc":"Dougie Hamilton Wrist Shot saved by Mike Condon","formalEventId":"OTT656","type":"Shot","eventid":656,"hsog":15,"asog":16,"apb":
+[],"p2name":"Mike Condon","time":"03:53","localtime":"9:35 PM","teamid":20,"xcoord":-36,"strength":701,"as":2,"pid":8476462,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":28,"playername":"Dougie Hamilton","hoi":
+[8470760,8474739,8476288,8476879,8477237,8477508],"p1name":"Dougie Hamilton","pid2":8477237,"pid1":8476462},
+
+{"aoi":
+[8470880,8470966,8471346,8471426,8476462,8477935],"sweater":"36","hs":1,"desc":"Troy Brouwer hit Fredrik Claesson","formalEventId":"OTT658","type":"Hit","eventid":658,"hsog":15,"asog":16,"apb":
+[],"p2name":"Fredrik Claesson","time":"03:57","localtime":"9:36 PM","teamid":20,"xcoord":-95,"strength":701,"as":2,"pid":8471426,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":10,"playername":"Troy Brouwer","hoi":
+[8467967,8471676,8473544,8474578,8476368,8477237],"p1name":"Troy Brouwer","pid2":8476368,"pid1":8471426},
+
+{"aoi":
+[8469770,8470162,8470880,8474642,8474673,8475907],"sweater":"15","hs":1,"desc":"Zack Smith Wrist Shot saved by Brian Elliott","formalEventId":"OTT661","type":"Shot","eventid":661,"hsog":16,"asog":16,"apb":
+[],"p2name":"Brian Elliott","time":"04:59","localtime":"9:38 PM","teamid":9,"xcoord":83,"strength":701,"as":2,"pid":8474250,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":18,"playername":"Zack Smith","hoi":
+[8474068,8474250,8474578,8475227,8475913,8477237],"p1name":"Zack Smith","pid2":8470880,"pid1":8474250},
+
+{"aoi":
+[8468674,8470880,8474150,8475163,8476967,8479314],"sweater":"39","hs":1,"desc":"Alex Chiasson hit Marc Methot","formalEventId":"OTT662","type":"Hit","eventid":662,"hsog":16,"asog":16,"apb":
+[],"p2name":"Marc Methot","time":"05:33","localtime":"9:38 PM","teamid":20,"xcoord":-92,"strength":701,"as":2,"pid":8475163,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-36,"playername":"Alex Chiasson","hoi":
+[8470760,8471768,8474578,8474884,8476419,8477237],"p1name":"Alex Chiasson","pid2":8470760,"pid1":8475163},
+
+{"aoi":
+[8470880,8470966,8473564,8476346,8476462,8477497],"sweater":"18","hs":1,"desc":"Ryan Dzingel hit Mark Giordano","formalEventId":"OTT663","type":"Hit","eventid":663,"hsog":16,"asog":16,"apb":
+[],"p2name":"Mark Giordano","time":"06:06","localtime":"9:39 PM","teamid":9,"xcoord":0,"strength":701,"as":2,"pid":8476288,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-38,"playername":"Ryan Dzingel","hoi":
+[8470602,8474739,8476288,8476879,8477237,8477508],"p1name":"Ryan Dzingel","pid2":8470966,"pid1":8476288},
+
+{"aoi":
+[8470880,8470966,8473564,8476346,8476462,8477497],"sweater":"18","hs":1,"desc":"Ryan Dzingel Backhand saved by Brian Elliott","formalEventId":"OTT664","type":"Shot","eventid":664,"hsog":17,"asog":16,"apb":
+[],"p2name":"Brian Elliott","time":"06:24","localtime":"9:39 PM","teamid":9,"xcoord":83,"strength":701,"as":2,"pid":8476288,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-14,"playername":"Ryan Dzingel","hoi":
+[8470602,8474739,8476288,8476879,8477237,8477508],"p1name":"Ryan Dzingel","pid2":8470880,"pid1":8476288},
+
+{"aoi":
+[8469770,8470880,8471346,8471426,8474673,8477935],"sweater":"6","hs":1,"desc":"Chris Wideman Wrist Shot saved by Brian Elliott","formalEventId":"OTT666","type":"Shot","eventid":666,"hsog":18,"asog":16,"apb":
+[],"p2name":"Brian Elliott","time":"06:32","localtime":"9:41 PM","teamid":9,"xcoord":46,"strength":701,"as":2,"pid":8475227,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":20,"playername":"Chris Wideman","hoi":
+[8467967,8471676,8473544,8474578,8475227,8477237],"p1name":"Chris Wideman","pid2":8470880,"pid1":8475227},
+
+{"aoi":
+[8469770,8470880,8473564,8474673,8476346,8477497],"sweater":"13","hs":1,"desc":"Johnny Gaudreau Wrist Shot saved by Mike Condon","formalEventId":"OTT669","type":"Shot","eventid":669,"hsog":18,"asog":17,"apb":
+[],"p2name":"Mike Condon","time":"09:21","localtime":"9:45 PM","teamid":20,"xcoord":-60,"strength":701,"as":2,"pid":8476346,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-13,"playername":"Johnny Gaudreau","hoi":
+[8470602,8471768,8475227,8476288,8476419,8477237],"p1name":"Johnny Gaudreau","pid2":8477237,"pid1":8476346},
+
+{"aoi":
+[8469770,8470880,8473564,8474673,8476346,8477497],"sweater":"23","hs":1,"desc":"Sean Monahan Tip-In saved by Mike Condon","formalEventId":"OTT671","type":"Shot","eventid":671,"hsog":18,"asog":18,"apb":
+[],"p2name":"Mike Condon","time":"09:40","localtime":"9:46 PM","teamid":20,"xcoord":-85,"strength":701,"as":2,"pid":8477497,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-6,"playername":"Sean Monahan","hoi":
+[8470760,8471768,8474578,8476288,8476419,8477237],"p1name":"Sean Monahan","pid2":8477237,"pid1":8477497},
+
+{"aoi":
+[8470880,8470966,8471346,8471426,8476462,8477935],"sweater":"27","hs":1,"desc":"Dougie Hamilton Wrist Shot saved by Mike Condon","formalEventId":"OTT673","type":"Shot","eventid":673,"hsog":18,"asog":19,"apb":
+[],"p2name":"Mike Condon","time":"09:47","localtime":"9:47 PM","teamid":20,"xcoord":-36,"strength":701,"as":2,"pid":8476462,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":1,"playername":"Dougie Hamilton","hoi":
+[8470760,8471676,8473544,8474250,8474578,8477237],"p1name":"Dougie Hamilton","pid2":8477237,"pid1":8476462},
+
+{"aoi":
+[8468674,8470880,8471346,8475907,8476967,8477935],"sweater":"15","hs":1,"desc":"Zack Smith Wrist Shot saved by Brian Elliott","formalEventId":"OTT674","type":"Shot","eventid":674,"hsog":19,"asog":19,"apb":
+[],"p2name":"Brian Elliott","time":"10:31","localtime":"9:47 PM","teamid":9,"xcoord":78,"strength":701,"as":2,"pid":8474250,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":22,"playername":"Zack Smith","hoi":
+[8470602,8474068,8474250,8475913,8476879,8477237],"p1name":"Zack Smith","pid2":8470880,"pid1":8474250},
+
+{"aoi":
+[8468674,8470880,8471346,8475907,8476967,8477935],"sweater":"29","hs":1,"desc":"Deryk Engelland hit Zack Smith","formalEventId":"OTT675","type":"Hit","eventid":675,"hsog":19,"asog":19,"apb":
+[],"p2name":"Zack Smith","time":"10:37","localtime":"9:48 PM","teamid":20,"xcoord":95,"strength":701,"as":2,"pid":8468674,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-38,"playername":"Deryk Engelland","hoi":
+[8470602,8474068,8474250,8475913,8476879,8477237],"p1name":"Deryk Engelland","pid2":8474250,"pid1":8468674},
+
+{"aoi":
+[8468674,8470162,8470880,8474642,8475907,8476967],"sweater":"5","hs":1,"desc":"Cody Ceci Wrist Shot saved by Brian Elliott","formalEventId":"OTT676","type":"Shot","eventid":676,"hsog":20,"asog":19,"apb":
+[],"p2name":"Brian Elliott","time":"10:48","localtime":"9:48 PM","teamid":9,"xcoord":59,"strength":701,"as":2,"pid":8476879,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-32,"playername":"Cody Ceci","hoi":
+[8474068,8474884,8475913,8476368,8476879,8477237],"p1name":"Cody Ceci","pid2":8470880,"pid1":8476879},
+
+{"aoi":
+[8469770,8470880,8474150,8474673,8475163,8479314],"sweater":"11","hs":1,"desc":"Mikael Backlund Snap Shot saved by Mike Condon","formalEventId":"OTT678","type":"Shot","eventid":678,"hsog":20,"asog":20,"apb":
+[],"p2name":"Mike Condon","time":"11:19","localtime":"9:51 PM","teamid":20,"xcoord":-53,"strength":701,"as":2,"pid":8474150,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-21,"playername":"Mikael Backlund","hoi":
+[8474068,8474578,8474884,8475913,8476368,8477237],"p1name":"Mikael Backlund","pid2":8477237,"pid1":8474150},
+
+{"aoi":
+[8468674,8470880,8471346,8471426,8476967,8477935],"sweater":"44","hs":1,"desc":"Jean-Gabriel Pageau hit Brett Kulak","formalEventId":"OTT684","type":"Hit","eventid":684,"hsog":20,"asog":20,"apb":
+[],"p2name":"Brett Kulak","time":"13:05","localtime":"9:55 PM","teamid":9,"xcoord":85,"strength":701,"as":2,"pid":8476419,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-38,"playername":"Jean-Gabriel Pageau","hoi":
+[8470602,8471768,8474578,8476288,8476419,8477237],"p1name":"Jean-Gabriel Pageau","pid2":8476967,"pid1":8476419},
+
+{"aoi":
+[8469770,8470162,8470880,8471346,8474673,8475907],"sweater":"79","hs":1,"desc":"Micheal Ferland Wrist Shot saved by Mike Condon","formalEventId":"OTT686","type":"Shot","eventid":686,"hsog":20,"asog":21,"apb":
+[],"p2name":"Mike Condon","time":"13:37","localtime":"9:56 PM","teamid":20,"xcoord":-39,"strength":701,"as":2,"pid":8475907,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-5,"playername":"Micheal Ferland","hoi":
+[8470602,8473544,8474250,8474578,8475913,8477237],"p1name":"Micheal Ferland","pid2":8477237,"pid1":8475907},
+
+{"aoi":
+[8469770,8470162,8470880,8474642,8474673,8475907],"sweater":"9","hs":1,"desc":"Bobby Ryan Backhand saved by Brian Elliott","formalEventId":"OTT688","type":"Shot","eventid":688,"hsog":21,"asog":21,"apb":
+[],"p2name":"Brian Elliott","time":"13:57","localtime":"9:57 PM","teamid":9,"xcoord":55,"strength":701,"as":2,"pid":8471676,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":20,"playername":"Bobby Ryan","hoi":
+[8471676,8474068,8474884,8475227,8476879,8477237],"p1name":"Bobby Ryan","pid2":8470880,"pid1":8471676},
+
+{"aoi":
+[8469770,8470162,8470880,8474642,8474673,8475907],"sweater":"7","hs":1,"desc":"Kyle Turris Hooking against TJ Brodie","formalEventId":"OTT689","type":"Penalty","hsog":21,"eventid":689,"asog":21,"apb":
+[],"p2name":"TJ Brodie","time":"13:59","localtime":"9:57 PM","teamid":9,"xcoord":76,"strength":701,"as":2,"pid":8474068,"period":3,"p3name":"","hpb":
+[8474068],"pid3":"","ycoord":0,"dur":2,"playername":"Kyle Turris","hoi":
+[8471676,8474068,8474884,8475227,8476879,8477237],"p1name":"Kyle Turris","pid2":8474673,"pid1":8474068},
+
+{"aoi":
+[8470880,8471346,8471426,8474673,8476346,8477497],"sweater":"2","hs":1,"desc":"Dion Phaneuf hit Troy Brouwer","formalEventId":"OTT692","type":"Hit","eventid":692,"hsog":21,"asog":21,"apb":
+[],"p2name":"Troy Brouwer","time":"14:16","localtime":"9:58 PM","teamid":9,"xcoord":-95,"strength":703,"as":2,"pid":8470602,"period":3,"p3name":"","hpb":
+[8474068],"pid3":"","ycoord":32,"playername":"Dion Phaneuf","hoi":
+[8470602,8474250,8476419,8476879,8477237],"p1name":"Dion Phaneuf","pid2":8471426,"pid1":8470602},
+
+{"aoi":
+[8470880,8470966,8473564,8474150,8476462,8479314],"sweater":"5","hs":1,"desc":"Cody Ceci Snap Shot saved by Brian Elliott","formalEventId":"OTT693","type":"Shot","eventid":693,"hsog":22,"asog":21,"apb":
+[],"p2name":"Brian Elliott","time":"15:38","localtime":"9:59 PM","teamid":9,"xcoord":65,"strength":703,"as":2,"pid":8476879,"period":3,"p3name":"","hpb":
+[8474068],"pid3":"","ycoord":24,"playername":"Cody Ceci","hoi":
+[8470602,8474250,8476419,8476879,8477237],"p1name":"Cody Ceci","pid2":8470880,"pid1":8476879},
+
+{"aoi":
+[8470880,8473564,8474150,8474673,8476462,8479314],"sweater":"67","hs":1,"desc":"Michael Frolik Backhand saved by Mike Condon","formalEventId":"OTT694","type":"Shot","eventid":694,"hsog":22,"asog":22,"apb":
+[],"p2name":"Mike Condon","time":"16:07","localtime":"10:00 PM","teamid":20,"xcoord":-76,"strength":701,"as":2,"pid":8473564,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-5,"playername":"Michael Frolik","hoi":
+[8467967,8471768,8474068,8476368,8476879,8477237],"p1name":"Michael Frolik","pid2":8477237,"pid1":8473564},
+
+{"aoi":
+[8469770,8470162,8470880,8474642,8474673,8475907],"sweater":"22","hs":1,"desc":"Chris Kelly hit Matt Stajan","formalEventId":"OTT695","type":"Hit","eventid":695,"hsog":22,"asog":22,"apb":
+[],"p2name":"Matt Stajan","time":"16:39","localtime":"10:00 PM","teamid":9,"xcoord":-9,"strength":701,"as":2,"pid":8467967,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":38,"playername":"Chris Kelly","hoi":
+[8467967,8471768,8474068,8476368,8476879,8477237],"p1name":"Chris Kelly","pid2":8470162,"pid1":8467967},
+
+{"aoi":
+[8469770,8470880,8474150,8474673,8475163,8479314],"sweater":"19","hs":1,"desc":"Derick Brassard hit Dennis Wideman","formalEventId":"OTT696","type":"Hit","eventid":696,"hsog":22,"asog":22,"apb":
+[],"p2name":"Dennis Wideman","time":"18:47","localtime":"10:03 PM","teamid":9,"xcoord":97,"strength":701,"as":2,"pid":8473544,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":0,"playername":"Derick Brassard","hoi":
+[8473544,8474250,8474884,8475227,8475913,8476879],"p1name":"Derick Brassard","pid2":8469770,"pid1":8473544},
+
+{"aoi":
+[8469770,8470880,8474150,8474673,8475163,8479314],"sweater":"5","hs":1,"desc":"Cody Ceci hit Matthew Tkachuk","formalEventId":"OTT697","type":"Hit","eventid":697,"hsog":22,"asog":22,"apb":
+[],"p2name":"Matthew Tkachuk","time":"18:54","localtime":"10:03 PM","teamid":9,"xcoord":62,"strength":701,"as":2,"pid":8476879,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-8,"playername":"Cody Ceci","hoi":
+[8473544,8474250,8474884,8475227,8475913,8476879],"p1name":"Cody Ceci","pid2":8479314,"pid1":8476879},
+
+{"aoi":
+[8469770,8470880,8474150,8474673,8475163,8479314],"sweater":"6","hs":2,"desc":"Chris Wideman (2) Slap Shot, assists: Mike Hoffman (18), Zack Smith (12)","formalEventId":"OTT698","type":"Goal","eventid":698,"hsog":22,"asog":22,"apb":
+[],"p2name":"Mike Hoffman","time":"18:58","localtime":"10:03 PM","teamid":9,"xcoord":40,"strength":701,"as":2,"pid":8475227,"period":3,"p3name":"Zack Smith","hpb":
+[],"pid3":8474250,"ycoord":27,"playername":"Chris Wideman","hoi":
+[8473544,8474250,8474884,8475227,8475913,8476879],"p1name":"Chris Wideman","pid2":8474884,"pid1":8475227},
+
+{"aoi":
+[8468674,8470162,8470880,8470966,8474642,8475907],"sweater":"19","hs":2,"desc":"Derick Brassard hit Lance Bouma","formalEventId":"OTT804","type":"Hit","eventid":804,"hsog":22,"asog":22,"apb":
+[],"p2name":"Lance Bouma","time":"19:57","localtime":"10:05 PM","teamid":9,"xcoord":-2,"strength":701,"as":2,"pid":8473544,"period":3,"p3name":"","hpb":
+[],"pid3":"","ycoord":-37,"playername":"Derick Brassard","hoi":
+[8470602,8473544,8474250,8474578,8475913,8477237],"p1name":"Derick Brassard","pid2":8474642,"pid1":8473544},
+
+{"aoi":
+[8470880,8470966,8476346,8477497],"sweater":"61","hs":2,"desc":"Mark Stone Snap Shot saved by Brian Elliott","formalEventId":"OTT809","type":"Shot","eventid":809,"hsog":23,"asog":22,"apb":
+[],"p2name":"Brian Elliott","time":"00:22","localtime":"10:08 PM","teamid":9,"xcoord":-56,"strength":701,"as":2,"pid":8475913,"period":4,"p3name":"","hpb":
+[],"pid3":"","ycoord":7,"playername":"Mark Stone","hoi":
+[8474068,8474578,8475913,8477237],"p1name":"Mark Stone","pid2":8470880,"pid1":8475913},
+
+{"aoi":
+[8470880,8473564,8474150,8476462],"sweater":"5","hs":2,"desc":"Mark Giordano Wrist Shot saved by Mike Condon","formalEventId":"OTT810","type":"Shot","eventid":810,"hsog":23,"asog":23,"apb":
+[],"p2name":"Mike Condon","time":"02:32","localtime":"10:10 PM","teamid":20,"xcoord":55,"strength":701,"as":2,"pid":8470966,"period":4,"p3name":"","hpb":
+[],"pid3":"","ycoord":31,"playername":"Mark Giordano","hoi":
+[8475913,8476419,8476879,8477237],"p1name":"Mark Giordano","pid2":8477237,"pid1":8470966},
+
+{"aoi":
+[8470880,8473564,8474150,8476462],"sweater":"44","hs":2,"desc":"Jean-Gabriel Pageau Wrist Shot saved by Brian Elliott","formalEventId":"OTT811","type":"Shot","eventid":811,"hsog":24,"asog":23,"apb":
+[],"p2name":"Brian Elliott","time":"03:22","localtime":"10:11 PM","teamid":9,"xcoord":-71,"strength":701,"as":2,"pid":8476419,"period":4,"p3name":"","hpb":
+[],"pid3":"","ycoord":1,"playername":"Jean-Gabriel Pageau","hoi":
+[8475913,8476419,8476879,8477237],"p1name":"Jean-Gabriel Pageau","pid2":8470880,"pid1":8476419},
+
+{"aoi":
+[8470880,8473564,8474150,8476462],"sweater":"68","hs":2,"desc":"Mike Hoffman Backhand saved by Brian Elliott","formalEventId":"OTT812","type":"Shot","eventid":812,"hsog":25,"asog":23,"apb":
+[],"p2name":"Brian Elliott","time":"03:56","localtime":"10:11 PM","teamid":9,"xcoord":-70,"strength":701,"as":2,"pid":8474884,"period":4,"p3name":"","hpb":
+[],"pid3":"","ycoord":1,"playername":"Mike Hoffman","hoi":
+[8475913,8476419,8476879,8477237],"p1name":"Mike Hoffman","pid2":8470880,"pid1":8474884},
+
+{"aoi":
+[8470880,8474150,8474673,8476346],"sweater":"13","hs":2,"desc":"Johnny Gaudreau (11) Snap Shot, assists: Mikael Backlund (20)","formalEventId":"OTT814","type":"Goal","eventid":814,"hsog":27,"asog":26,"apb":
+[],"p2name":"Mikael Backlund","time":"04:29","localtime":"10:13 PM","teamid":20,"xcoord":77,"strength":701,"as":3,"pid":8476346,"period":4,"p3name":"","hpb":
+[],"pid3":"","ycoord":-9,"playername":"Johnny Gaudreau","hoi":
+[8474068,8474578,8475913,8477237],"p1name":"Johnny Gaudreau","pid2":8474150,"pid1":8476346}]},
+"awayteamnick":"Flames","hometeamnick":"Senators","hometeamid":9}}}
+
+
+
+
+
+
