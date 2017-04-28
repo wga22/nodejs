@@ -462,13 +462,6 @@ GameResults.prototype.setGameStats = function(oRes, dDate)
 			}
 			this.lastGoalScoredEventID = oLatestGoal.formalEventId;
 		}
-		else
-		{
-			//TODO: play something when other team scores?  maybe just the light?
-			setTimeout(turnLight, 100, true);
-			//TODO: debug, for some reason, light not turning off when other team scores?
-			setTimeout(turnLight, MILLISPERMINUTE, false);
-		}
 	}//aplays end
 }
 GameResults.prototype.showResults = function(dDate)
@@ -613,7 +606,7 @@ function turnLight(s_fOn)
 			{
 				turnLight.settings.count = 0;
 			}
-			if(fTesting && false) console.log("lights: (m: " + turnLight.settings.MAXRUNS + ") (c:" +turnLight.settings.count+ ") turnoff now?:" + fRunAgain);
+			debugOut("lights: (m: " + turnLight.settings.MAXRUNS + ") (c:" +turnLight.settings.count+ ") run again?:" + fRunAgain);
 			setTimeout(turnLight, turnLight.settings.switchTime, fRunAgain);
 		}
 	}
