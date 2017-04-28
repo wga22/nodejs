@@ -166,7 +166,9 @@ function updateDisplayEachMinute()
 
 		//game just started, so play the horn
 		//TODO TEST more (couldnt tell from logs: fix that this seems to play 2x?
+		
 		playMp3(ARTIFACT_DIR + "gamestart.mp3");
+		setTimeout(turnLight, 100, true);
 		
 		//update the values for the previous game
 		oCurrentGames = getPreviousAndNextGames();
@@ -464,6 +466,8 @@ GameResults.prototype.setGameStats = function(oRes, dDate)
 		{
 			//TODO: play something when other team scores?  maybe just the light?
 			setTimeout(turnLight, 100, true);
+			//TODO: debug, for some reason, light not turning off when other team scores?
+			setTimeout(turnLight, MILLISPERMINUTE, false);
 		}
 	}//aplays end
 }
@@ -476,11 +480,19 @@ GameResults.prototype.showResults = function(dDate)
 				+ (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") 
 				+ " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
 		this.gameStats = null;
-		this._loadGameUpdates();
+		try
+		{
+			this._loadGameUpdates();
+		}
+		catch(e)
+		{
+			console.warn("couldnt load results, so just displaying what we already had");
+			this.displayResults(dDate);
+		}
 	}
 	else
 	{
-		debugOut("showResults: Game values are static, so no need to get active data.")
+		//debugOut("showResults: Game values are static, so no need to get active data.")
 		this.displayResults(dDate);  //just reuse old data, nothing new going on
 	}
 }
@@ -812,7 +824,8 @@ function debugOut(sVal)
 {
 	if(fTesting && sVal)
 	{
-		console.log(sVal);
+		var xxx = new Date();
+		console.log(friendlyDate(xxx) + " " +  getTimeOfDay(xxx)+":"+sVal);
 	}
 }
 
