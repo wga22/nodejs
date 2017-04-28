@@ -1,3 +1,24 @@
+https://orangepizero:10000/
+
+TODO:
+
+test Access point
+	https://forum.armbian.com/index.php?/topic/1237-tutorial-opi-one-wireless-success/
+	
+	write webpage to set the wifi credentials
+	
+test the sound ground
+	first in a small JS just to see it all working
+	
+test the case
+	does it overheat?  seems to run @ 62C in 62f well ventilated.  
+
+
+
+h3consumption -p
+
+apt-get -y -d dist-upgrade
+
 echo 0 >/sys/devices/system/cpu/cpu3/online
 echo 0 >/sys/devices/system/cpu/cpu2/online
 echo 0 >/sys/devices/system/cpu/cpu1/online
