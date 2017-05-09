@@ -371,16 +371,17 @@ GameResults.prototype._loadGameUpdates = function ()
 		try
 		{
 			oObj = JSON.parse(body);				
+			var dDate = new Date();
+			oPrevGameResults.setGameStats(oObj, dDate);
+			oPrevGameResults.displayResults(dDate);
 		}
 		catch(e) 
 		{
 			console.warn("Something unexpected with the response from (" + sURL + ") :" + e.message);
-			throw e;
+			//throw e;
+			//just let another loop happen, and do nothing more
 		}
 		//console.log("Got a response: ");
-		var dDate = new Date();
-		oPrevGameResults.setGameStats(oObj, dDate);
-		oPrevGameResults.displayResults(dDate);
 	});
 	}).on('error', function(e){
 		  console.log("Got an error: ", e);
@@ -427,7 +428,7 @@ GameResults.prototype.setGameStats = function(oRes, dDate)
 				this.latestEvent.time = "End";
 				if(this.latestEvent.period >= 3 && this.homeScore != this.awayScore)
 				{
-					var fWon = this.homeScore > this.awayScore && this.homeTeam.isFavorite();
+					var fWon = (this.homeScore > this.awayScore && this.homeTeam.isFavorite()) || (this.homeScore < this.awayScore && this.awayTeam.isFavorite());
 					this.gameStop= dDate;
 					debugOut("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
 					//TODO TEST: running this method more than once should be fixed by overtime fix, and updating the gamestop to an actual time
