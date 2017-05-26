@@ -117,6 +117,7 @@ function main()
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);	
 	setInterval(updateDisplayEachMinute, MILLISPERMINUTE);
 	setInterval(dailyCheckForUpdatesToGameList, MILLISPERDAY);
+	powerAmp(false);	//make sure amp is off
 }
 
 function dailyCheckForUpdatesToGameList()
@@ -683,30 +684,31 @@ function getNHLSeasonURL()
 
 ////////////HELPER FUNCTIONS //////////////////
 
-function playMp3(a_sSong)
+function powerAmp(fOn)
 {
-	function powerAmp(fOn)
+	//see if there is detail to poweron / off amp via gpio
+	if(ConfigJSON.amp && ConfigJSON.amp.gpio && parseInt(ConfigJSON.amp.gpio))
 	{
-		//see if there is detail to poweron / off amp via gpio
-		if(ConfigJSON.amp && ConfigJSON.amp.gpio && parseInt(ConfigJSON.amp.gpio))
+		try
 		{
-			try
+			if(GPIO == null)
 			{
-				if(GPIO == null)
-				{
-					GPIO = require('onoff').Gpio;
-				}
-				var amp = new GPIO(ConfigJSON.amp.gpio, 'out');
-				amp.writeSync(fOn ? 1 : 0);
+				GPIO = require('onoff').Gpio;
 			}
-			catch(e)
-			{
-				console.warn("issue with GPIO " + ConfigJSON.light.gpio[x] + " - " + s_fOn);
-				console.warn(e.message);
-			}
+			var amp = new GPIO(ConfigJSON.amp.gpio, 'out');
+			amp.writeSync(fOn ? 1 : 0);
+		}
+		catch(e)
+		{
+			console.warn("issue with GPIO " + ConfigJSON.amp.gpio + " - " + fOn);
+			console.warn(e.message);
 		}
 	}
-	
+}
+
+
+function playMp3(a_sSong)
+{
 	
 	function playSongSpeaker(format)
 	{
