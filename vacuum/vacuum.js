@@ -203,38 +203,40 @@ function writeValuesToThingSpeak()
 {
 	var aFields = [];
 	aFields.push(validField(oValsForTP, "bal", "field1") );
-	aFields.push(validField(oValsForTP, "u_hashrate1hr", "field2") );
-	aFields.push(validField(oValsForTP, "difficulty", "field3") );
+	aFields.push(validField(oValsForTP, "u_hashrate1hr", "field2") );		
+	aFields.push(validField(oValsForTP, "difficulty", "field3") );		
 	
 	//console.log(aFields.join(""));
-
-	var options = {
-	  host: 'api.thingspeak.com',
-	  port: 80,
-	  path: '/update?api_key='+config.tpapi + '&' + aFields.join(""),
-	  method: 'GET'
-	};
-
-	var req = http.request(options, function(res) 
+	if(aFields.length > 0)	//make sure it's worth submitting!
 	{
-	  //console.log('STATUS: ' + res.statusCode);
-	  //console.log('HEADERS: ' + JSON.stringify(res.headers));
-	  res.setEncoding('utf8');
-	  res.on('data', function (chunk) 
-	  {
-		//console.log('BODY: ' + chunk);
-	  });
-	});
+		var options = {
+		  host: 'api.thingspeak.com',
+		  port: 80,
+		  path: '/update?api_key='+config.tpapi + '&' + aFields.join(""),
+		  method: 'GET'
+		};
 
-	req.on('error', function(e) {
-	  console.log('problem with request: ' + e.message);
-	});
+		var req = http.request(options, function(res) 
+		{
+		  //console.log('STATUS: ' + res.statusCode);
+		  //console.log('HEADERS: ' + JSON.stringify(res.headers));
+		  res.setEncoding('utf8');
+		  res.on('data', function (chunk) 
+		  {
+			//console.log('BODY: ' + chunk);
+		  });
+		});
 
-	// write data to request body
-	req.write('data\n');
-	req.write('data\n');
-	req.end();
-	console.log("Wrote to TP fields: " + aFields.join("  "));
+		req.on('error', function(e) {
+		  console.log('problem with request: ' + e.message);
+		});
+
+		// write data to request body
+		req.write('data\n');
+		req.write('data\n');
+		req.end();
+		console.log("Wrote to TP fields: " + aFields.join("  "));
+	}
 }
 
 
@@ -262,7 +264,7 @@ function merge_options(obj1,obj2)
 
 function validField(oObj, sField, sFieldName)
 {
-	if(!isNullOrUndefined(oObj) && !isNullOrUndefined(oObj[sField]))
+	if(!isNullOrUndefined(oObj) && !isNullOrUndefined(oObj[sField]) && oObj[sField]>=0)
 	{
 		return "&" + sFieldName + "=" + oObj[sField];
 	}

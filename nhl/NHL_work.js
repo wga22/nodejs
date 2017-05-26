@@ -14,7 +14,9 @@ CONFIG values
 		"lcd"
 		"oled"
 	"light":
-		{"type":"alarm,multi-led,none", "gpio":["9", "8", "7"] }
+		{"type":"alarm,multi-led,none", "gpio":["9", "8", "7"] },
+	"amp": 
+		{"gpio":"14"}
 }
  
 
@@ -84,6 +86,7 @@ var fs = require('fs');
 var Speaker = require('speaker');
 var util = require('util');
 var http = require('http');
+var GPIO = null;
 
 //vars
 var ConfigJSON = {myteam: "WSH"};
@@ -554,7 +557,7 @@ function getPreviousAndNextGames()
 	return oRes;
 }
 
-turnLight.settings = {switchTime: 500, totalTime: MILLISPERMINUTE, count:0, fOn:false, gpioObj:null};
+turnLight.settings = {switchTime: 500, totalTime: MILLISPERMINUTE, count:0, fOn:false};
 function turnLight(s_fOn)
 {
 	if(ConfigJSON.light && ConfigJSON.light.type && ConfigJSON.light.type!= "none" && ConfigJSON.light.gpio )	//need to know the pins of the light(s)
@@ -579,11 +582,11 @@ function turnLight(s_fOn)
 			if(fTesting && false) console.log("turning the lights ("+nLightOn+")("+ConfigJSON.light.gpio[x]+")" + (fTurnThisLightOn ? "on" : "off"));
 			try
 			{
-				if(turnLight.settings.gpioObj == null)
+				if(GPIO == null)
 				{
-					turnLight.settings.gpioObj = require('onoff').Gpio;	
+					GPIO = require('onoff').Gpio;
 				}
-				var light = new turnLight.settings.gpioObj(ConfigJSON.light.gpio[x], 'out');
+				var light = new GPIO(ConfigJSON.light.gpio[x], 'out');
 				light.writeSync(fTurnThisLightOn ? 1 : 0);
 			}
 			catch(e)
@@ -682,11 +685,36 @@ function getNHLSeasonURL()
 
 function playMp3(a_sSong)
 {
+	function powerAmp(fOn)
+	{
+		//see if there is detail to poweron / off amp via gpio
+		if(ConfigJSON.amp && ConfigJSON.amp.gpio && parseInt(ConfigJSON.amp.gpio))
+		{
+			try
+			{
+				if(GPIO == null)
+				{
+					GPIO = require('onoff').Gpio;
+				}
+				var amp = new GPIO(ConfigJSON.amp.gpio, 'out');
+				amp.writeSync(fOn ? 1 : 0);
+			}
+			catch(e)
+			{
+				console.warn("issue with GPIO " + ConfigJSON.light.gpio[x] + " - " + s_fOn);
+				console.warn(e.message);
+			}
+		}
+	}
+	
+	
 	function playSongSpeaker(format)
 	{
 		try 
 		{
+			powerAmp(true);
 			this.pipe(new Speaker(format));
+			setTimeout(powerAmp, MILLISPERMINUTE*2, false);	//turn off the amp after 2 mins
 			//TODO: figure out how to close this speaker object when done
 		} catch (e) 
 		{
