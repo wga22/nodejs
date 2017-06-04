@@ -1,33 +1,33 @@
-
-ana.mp3		
-ari.mp3		
-bos.mp3		
-buf.mp3		
-car.mp3		
-cbj.mp3		
-cgy.mp3		
-chi.mp3		
-col.mp3		
-dal.mp3		
-det.mp3		
-edm.mp3		
-fla.mp3		
-gamelost.mp3		
-gamestart.mp3		
-gamewon.mp3		
-lak.mp3		
-min.mp3		
-njd.mp3		
-nsh.mp3		
-nyi.mp3		
-nyr.mp3		
-ott.mp3		
-phi.mp3		
-pit.mp3		
-sjs.mp3		
-stl.mp3		
-tbl.mp3		
-tor.mp3		
-van.mp3		
-wpg.mp3		
-wsh.mp3		
+#!/bin/sh -e
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/ana.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/ari.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/bos.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/buf.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/car.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/cbj.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/cgy.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/chi.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/col.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/dal.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/det.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/edm.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/fla.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/gamelost.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/gamestart.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/gamewon.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/lak.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/min.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/njd.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/nsh.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/nyi.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/nyr.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/ott.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/phi.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/pit.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/sjs.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/stl.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/tbl.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/tor.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/van.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/wpg.mp3		
+wget https://github.com/wga22/nodejs/raw/master/nhl/horns/wsh.mp3		

@@ -40,6 +40,10 @@ npm install -g lcd lcdi2c onoff
 mkdir /opt/nhl
 mkdir /opt/nhl/logs
 mkdir /opt/nhl/horns
+
+#pull horns
+curl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/horns/pullhorns.sh | sudo -E bash -
+
 # TODO: update rc.local
 # TODO: pull the mp3 files
 # TODO: 
