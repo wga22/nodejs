@@ -3,5 +3,6 @@
 	"debug":"1" ,
 	"output":  "lcd",
 	"light": {"type":"multiled", "gpio":["10","13"] },
-	"amp": {"gpio":"14"}
+	"amp": {"gpio":"14"},
+	"lcdaddress" : "0x3F"
 }
