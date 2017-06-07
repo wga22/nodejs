@@ -72,8 +72,15 @@ mv /etc/rc.local /etc/rc.local.bak
 touch /etc/rc.local
 
 # turn off the amp and the light on bootup
-printf '\n\nraspi-gpio set 17 op dl\n' >> /etc/rc.local
-printf '\n\nraspi-gpio set 4 op dl\n' >> /etc/rc.local
+printf '\n raspi-gpio set 17 op dl' >> /etc/rc.local
+printf '\n raspi-gpio set 4 op dl' >> /etc/rc.local
+printf '\n sleep 10' >> /etc/rc.local
+printf '\n wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js' >> /etc/rc.local
+printf '\n cd /opt/nhl' >> /etc/rc.local
+printf '\n node NHL_work.js >> logs/nhl.log' >> /etc/rc.local
+#printf '\n' >> /etc/rc.local
+
+wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
 #TODO: add line to start up nhl on boot
 
 # update environment variable with node_path
