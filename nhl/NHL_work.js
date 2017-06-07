@@ -12,7 +12,8 @@ CONFIG values
 	"output":  //what device to use
 		"console"
 		"lcd"
-		"oled"
+		"oled",
+	"lcdaddress": "0x27",
 	"light":
 		{"type":"alarm,multi-led,none", "gpio":["9", "8", "7"] },
 	"amp": 
@@ -108,6 +109,7 @@ function main()
 	//init data
 	ConfigJSON = loadConfig();
 	fTesting = (ConfigJSON.debug == "1" || ConfigJSON.debug == "true");
+	ConfigJSON.lcdaddress =  ConfigJSON.lcdaddress == null ? "0x27" : ConfigJSON.lcdaddress;
 	//make sure light is off to start
 	if(fUsingALight())
 	{
@@ -247,7 +249,7 @@ GameResults.prototype.LCD_2004_I2C = function(dDate)
 	{
 		GameResults.LCD = require('lcdi2c');
 	}
-	var lcd = new GameResults.LCD( 1, 0x27, 20, 4 );
+	var lcd = new GameResults.LCD( 1, ConfigJSON.lcdaddress , 20, 4 );
 	var aRes = this.genericResults(dDate);
 	lcd.clear();
 	for(var x=0; x < aRes.length; x++)
