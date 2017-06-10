@@ -109,7 +109,7 @@ function main()
 	//init data
 	ConfigJSON = loadConfig();
 	fTesting = (ConfigJSON.debug == "1" || ConfigJSON.debug == "true");
-	ConfigJSON.lcdaddress =  (parseInt(ConfigJSON.lcdaddress) > 0) ? 0x27 : parseInt(ConfigJSON.lcdaddress);
+	ConfigJSON.lcdaddress =  (parseInt(ConfigJSON.lcdaddress) > 0) ? parseInt(ConfigJSON.lcdaddress) : 0x27;
 	//make sure light is off to start
 	if(fUsingALight())
 	{
