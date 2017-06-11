@@ -78,10 +78,13 @@ printf '\n sleep 10' >> /etc/rc.local
 printf '\n wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js' >> /etc/rc.local
 printf '\n cd /opt/nhl' >> /etc/rc.local
 printf '\n node NHL_work.js >> logs/nhl.log' >> /etc/rc.local
+printf '\n\n exit 0' >> /etc/rc.local
 #printf '\n' >> /etc/rc.local
+#TODO: set timezone
+ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+# cp /usr/share/zoneinfo/Europe/London /etc/localtime
+# sudo ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
 
-wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
-#TODO: add line to start up nhl on boot
 
 # update environment variable with node_path
 cp /etc/environment /etc/environment.bak
