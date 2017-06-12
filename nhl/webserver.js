@@ -94,30 +94,29 @@ var ConfigJSON = nhlcommon.loadConfig();
     /**
      *  Create the routing table entries + handlers for the application.
      */
-    self.createRoutes = function() {
-        self.routes = { };
+    self.createRoutes = function() 
+	{
+        var fWriteChanges = false;
+		self.routes = { };
 			
         self.routes['/'] = function(req, res) 
 		{
 			if(req.body && req.body.team)
 			{
-				console.log( req.body.ssid );
-				console.log( req.body.pass );
-				console.log( req.body.team );
-				console.log( req.body.timezone );
-				//TODO: handle setting selected team
-				//TODO: handle reading selected team
-				//TODO: handle setting selected timezone
-				//TODO: handle reading selected timezone
-				ConfigJSON.myteam = req.body.team;
-				nhlcommon.writeConfig(ConfigJSON);
+				handleWIFI(req.body.ssid, req.body.pass);
+				handleTeamChange(req.body.team);
+				handleTimeZone(req.body.timezone);
+				persistJSON();
+				
 			}
 			res.setHeader('Content-Type', 'text/html');
 			res.append("teams",JSON.stringify(nhlcommon.teams) );
+			res.append("myteam",ConfigJSON.myteam );
 			res.append("timezones",JSON.stringify(nhlcommon.timezones) );
+			res.append("mytimezone",ConfigJSON.mytimezone );
 			res.send(self.cache_get('index.html') );
         };
-
+		
         self.routes['/nhlsettings.js'] = function(req, res) {
             res.setHeader('Content-Type', 'text/plain');
 			//res.send( 'var teams=' + JSON.stringify(nhlcommon.teams) + ";\n");
@@ -127,6 +126,40 @@ var ConfigJSON = nhlcommon.loadConfig();
 			//res.send
         };
     };
+	
+	function handleWIFI(sSSID, sPasswrd)
+	{
+		//TODO
+	}
+	
+	function handleTimeZone(sTZ)
+	{
+		if(ConfigJSON.mytimezone != sTZ)
+		{
+			ConfigJSON.mytimezone = sTZ;
+			//TODO: update the rpi code
+			fWriteChanges = true;			
+		}
+	}
+	
+	function handleTeamChange(sTeamID)
+	{
+		if(ConfigJSON.myteam != sTeamID)
+		{
+			ConfigJSON.myteam = sTeamID;
+			fWriteChanges = true;
+		}
+	}
+	
+	function persistJSON()
+	{
+		if(fWriteChanges)
+		{
+			nhlcommon.writeConfig(ConfigJSON);
+			fWriteChanges = false;
+		}
+	}
+	
 	
     /**
      *  Initialize the server (express) and create the routes and register

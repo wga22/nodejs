@@ -22,6 +22,7 @@
 		<!-- <script src="nhlsettings.js" ></script> -->
 		<script type='text/javascript'>
 		var teams = [];
+		var myTeam = "";
 		var timezones = [];
 		function setValues()
 		{
@@ -35,11 +36,16 @@
 					try
 					{
 						eval("teams = " + teamString);
+						myteam = this.getResponseHeader("myteam");
 						var teamSelect = document.getElementById("team");
 						for(var x=0; x < teams.length; x++)
 						{
 							var e = document.createElement('option');
 							e.setAttribute("value", teams[x].teamID);
+							if(teams[x].teamID == myteam )
+							{
+								e.setAttribute("selected", "");
+							}
 							e.innerHTML = teams[x].name;
 							teamSelect.appendChild(e);
 							//teamSelect.appendHTML(e);
@@ -55,10 +61,15 @@
 					{
 						eval("timezones = " + timezoneString);
 						var timeZoneSelect = document.getElementById("timezone");
+						var myTimeZone = this.getResponseHeader("mytimezone");
 						for(var x=0; x < timezones.length; x++)
 						{
 							var e = document.createElement('option');
 							e.setAttribute("value", timezones[x].value);
+							if(timezones[x].value == myTimeZone )
+							{
+								e.setAttribute("selected", "");
+							}
 							e.innerHTML = timezones[x].name;
 							timeZoneSelect.appendChild(e);
 							//teamSelect.appendHTML(e);
