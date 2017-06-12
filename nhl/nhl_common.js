@@ -43,7 +43,17 @@ exports.timezones = [
 ]
 
 
-
+exports.writeConfig = (a_oJSON) =>
+{
+	try
+	{
+		fs.writeFileSync("./nhl_config.json", JSON.stringify(a_oJSON) );
+	}
+	catch(e)
+	{
+		console.error("issue writing the json file:" + e.message);
+	}
+}
 
 
 exports.loadConfig = () =>

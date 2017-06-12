@@ -37,7 +37,7 @@ mkdir /opt/nhl/horns
 
 #install node dependencies into the nhl directory
 cd /opt/nhl
-npm install oled-i2c-bus i2c-bus oled-font-5x7 lame speaker lcd lcdi2c onoff
+npm install oled-i2c-bus i2c-bus oled-font-5x7 lame speaker lcd lcdi2c onoff express body-parser 
 #TODO make the installation work globally (BUG: speaker and lame go into loop during global install)
 #TODO: consider hack, that installs locally, then copies to the /usr/local/lib/node_modules
 
@@ -79,6 +79,14 @@ printf '\n wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/mast
 printf '\n cd /opt/nhl' >> /etc/rc.local
 printf '\n node NHL_work.js >> logs/nhl.log' >> /etc/rc.local
 printf '\n\n exit 0' >> /etc/rc.local
+
+#TODO: need to add something to do the regular software updates weekly like this
+## TEST rm /etc/cron.weekly/nhl_updater
+## TEST printf '\ncurl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/XXX TODO XXXX.sh | sudo -E bash -' > /etc/cron.weekly/nhl_updater
+## TEST chmod u+x /etc/cron.weekly/nhl_updater
+
+
+
 #printf '\n' >> /etc/rc.local
 #TODO: set timezone
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime

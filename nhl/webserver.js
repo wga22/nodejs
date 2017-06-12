@@ -2,9 +2,11 @@
 var express = require('express');
 var fs  = require('fs');
 var util = require('util');
+var bodyParser = require('body-parser');
 var nhlcommon = require('./nhl_common');
 
 var ConfigJSON = nhlcommon.loadConfig();
+
 //http://www.nicetimeonice.com/api
 
  var GetInfoSite = function() {
@@ -94,9 +96,23 @@ var ConfigJSON = nhlcommon.loadConfig();
      */
     self.createRoutes = function() {
         self.routes = { };
-
-        self.routes['/'] = function(req, res) {
-            res.setHeader('Content-Type', 'text/html');
+			
+        self.routes['/'] = function(req, res) 
+		{
+			if(req.body && req.body.team)
+			{
+				console.log( req.body.ssid );
+				console.log( req.body.pass );
+				console.log( req.body.team );
+				console.log( req.body.timezone );
+				//TODO: handle setting selected team
+				//TODO: handle reading selected team
+				//TODO: handle setting selected timezone
+				//TODO: handle reading selected timezone
+				ConfigJSON.myteam = req.body.team;
+				nhlcommon.writeConfig(ConfigJSON);
+			}
+			res.setHeader('Content-Type', 'text/html');
 			res.append("teams",JSON.stringify(nhlcommon.teams) );
 			res.append("timezones",JSON.stringify(nhlcommon.timezones) );
 			res.send(self.cache_get('index.html') );
@@ -119,11 +135,14 @@ var ConfigJSON = nhlcommon.loadConfig();
     self.initializeServer = function() {
         self.createRoutes();
         self.app = express();
-
+		self.app.use( bodyParser.json() );       					// to support JSON-encoded bodies
+		self.app.use(bodyParser.urlencoded({extended: true}));     // to support URL-encoded bodies
+	
         //  Add handlers for the app (from the routes).
         for (var r in self.routes) 
 		{
-            self.app.get(r, self.routes[r]);
+			self.app.get(r, self.routes[r]);
+			self.app.post(r, self.routes[r]);
         }
     };
 
