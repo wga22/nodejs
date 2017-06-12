@@ -95,13 +95,33 @@ function initializeTheGamesList(aoGames)
 	console.log("loaded all the games: " + aoGames.length);
 	var sMyTeam = ConfigJSON.myteam;
 	var aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
-	getAudioFiles(aoMyTeamGames);
+	//getAudioFiles(aoMyTeamGames);
+	listAllTeams(aoMyTeamGames);
 }
 
 
 function playHorn()
 {
   console.log("\007");
+}
+
+function listAllTeams(aoGames)
+{
+	var oTeams = {};
+	//return //no need to grab these again
+	for(var x=0; x < aoGames.length; x++)
+	{
+		oTeams[aoGames[x].a] = true;
+		console.log(aoGames[x]);
+		break
+		//console.log((dGameDate < dToday ? "PAST" : "future") +  dGameDate.toString() + " " + aoMyTeamGames[x].a + " vs. " + aoMyTeamGames[x].h);
+	}
+
+	var exec = require('child_process').exec;
+	for(var t in oTeams)
+	{
+		console.log(t + ": " + oTeams[t]);
+	}
 }
 
 function getAudioFiles(aoGames)
@@ -123,6 +143,8 @@ function getAudioFiles(aoGames)
 		exec(cmd, function(error, stdout, stderr) { console.log("downloaded...." + cmd)});
 	}
 }
+
+
 function getNHLSeasonURL()
 {
 	return "http://live.nhl.com/GameData/SeasonSchedule-"+getNHLSeasonString()+".json"	

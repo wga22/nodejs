@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+		<link rel="icon" type="image/png" href="http://i.imgur.com/87R4ig5.png">
+		<style>
+			.rc{fontWeight:bold;text-align:right} 
+			.lc{} 
+			.c{text-align: center;} 
+			div,input{padding:5px;font-size:1em;} 
+			input{width:95%;} 
+			select{width:95%;}
+			body{text-align: center;font-family:verdana;} 
+			button{border:0;border-radius:0
+			.3rem;background-color:#1fa3ec;color:#fff;line-height:2
+			.4rem;font-size:1
+			.2rem;width:100%;} 
+			.q{float: right;width: 64px;text-align: right;} 
+			.l{background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==") no-repeat left center;background-size: 1em;}
+		</style>
+		<!-- <script src="nhlsettings.js" ></script> -->
+		<script type='text/javascript'>
+		var teams = [];
+		var timezones = [];
+		function setValues()
+		{
+			var req = new XMLHttpRequest();
+			req.open('GET', document.location, true);
+			req.send(null);
+			req.onreadystatechange = function() {
+				if(this.readyState == this.HEADERS_RECEIVED) 
+				{
+					var teamString = this.getResponseHeader("teams");
+					try
+					{
+						eval("teams = " + teamString);
+						var teamSelect = document.getElementById("team");
+						for(var x=0; x < teams.length; x++)
+						{
+							var e = document.createElement('option');
+							e.setAttribute("value", teams[x].teamID);
+							e.innerHTML = teams[x].name;
+							teamSelect.appendChild(e);
+							//teamSelect.appendHTML(e);
+						}
+					}
+					catch (e)
+					{
+						alert("issue: " + e.message);
+					}
+
+					var timezoneString = this.getResponseHeader("timezones");
+					try
+					{
+						eval("timezones = " + timezoneString);
+						var timeZoneSelect = document.getElementById("timezone");
+						for(var x=0; x < timezones.length; x++)
+						{
+							var e = document.createElement('option');
+							e.setAttribute("value", timezones[x].value);
+							e.innerHTML = timezones[x].name;
+							timeZoneSelect.appendChild(e);
+							//teamSelect.appendHTML(e);
+						}
+					}
+					catch (e)
+					{
+						alert("issue: " + e.message);
+					}
+
+
+				}
+			}			
+		}
+		
+		/*
+		function setValuesOld()
+		{
+			var req = new XMLHttpRequest();
+			req.open('GET', document.location, false);
+			req.send(null);
+			var teamString = req.getResponseHeader("teams")
+			alert(teamString);
+			eval("var teams = " + teamString);
+			alert(teams[0].name);
+			//alert(document.headers.teams[0].name);
+		}
+		*/
+		</script>
+		<title>NHL Light Setup Page</title>
+		</head>
+		<body onload="setValues()">
+			<div style="text-align:left;display:inline-block;min-width:260px;">
+				<h2>NHL Light Setup Page</h2>
+				<form method="post" action="save">
+					<table>
+						<tr>
+							<td class="lc" colspan="2">Update your settings:</td>
+						</tr>
+						<tr>
+							<td class="lc">WIFI Station SSID</td>
+							<td class="rc">
+								<input id="ssid" name="ssid" length="undefined" placeholder="myhotspot"/>
+							</td>
+						</tr>
+						<tr>
+							<td class="lc">WIFI Password</td>
+							<td class="rc">
+								<input id="pass" name="pass" type="password" length="undefined" placeholder="passw#rd"/>
+							</td>
+						</tr>
+						<tr>
+							<td class="lc">Select Your Team</td>
+							<td class="rc">
+								<select id="team" name="team">
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="lc">Select Your Timezone</td>
+							<td class="rc">
+								<select id="timezone" name="timezone">
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<button type="submit">Save</button>
+							</form>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</body>
+	</html>

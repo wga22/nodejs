@@ -85,6 +85,8 @@ Object.defineProperty(Object.prototype, "extend", {
 var lame = require('lame');
 var fs = require('fs');
 var Speaker = require('speaker');
+//TODO:  need to find way to get this updated on remote files!  var nhlcommon = require('./nhl_common');
+
 var util = require('util');
 var http = require('http');
 var GPIO = null;
