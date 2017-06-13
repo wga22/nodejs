@@ -9,13 +9,16 @@
 			.lc{} 
 			.c{text-align: center;} 
 			div,input{padding:5px;font-size:1em;} 
+			table{width:95%}
 			input{width:95%;} 
 			select{width:95%;}
 			body{text-align: center;font-family:verdana;} 
-			button{border:0;border-radius:0
-			.3rem;background-color:#1fa3ec;color:#fff;line-height:2
-			.4rem;font-size:1
-			.2rem;width:100%;} 
+			button{
+				border:0;border-radius:0
+				.3rem;background-color:#1fa3ec;color:#fff;line-height:2
+				.4rem;font-size:1
+				.2rem;width:100%;
+			} 
 			.q{float: right;width: 64px;text-align: right;} 
 			.l{background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==") no-repeat left center;background-size: 1em;}
 		</style>
@@ -98,6 +101,18 @@
 			//alert(document.headers.teams[0].name);
 		}
 		*/
+		
+		//not used
+		function shutdown(fReboot)
+		{
+			//var sURL = document.location + (fReboot ? "reboot" : "shutdown");
+			var sURL = (fReboot ? "/reboot" : "/shutdown");
+			//alert(sURL);
+			//window.location.href = '/reboot';
+			window.location.replace(sURL);
+			//alert("asdfasdf");
+		}
+		
 		</script>
 		<title>NHL Light Setup Page</title>
 		</head>
@@ -138,10 +153,23 @@
 						<tr>
 							<td colspan="2">
 								<button type="submit">Save</button>
-							</form>
-						</td>
-					</tr>
+							</td>
+						</tr>
 				</table>
+				</form>	
+				<div style="height:112px">
+				</div>
+					<table>
+						<tr>
+							<td class="lc">
+								<form method="post" action="/reboot"><button xonclick="shutdown(true)">Reboot</button></form>
+							</td>
+							<td class="rc">
+								<form method="post" action="/shutdown"><button xonclick="shutdown(false)">Shutdown</button></form>
+							</td>
+						</tr>						
+					</table>
+				</form>	
 			</div>
 		</body>
 	</html>

@@ -11,17 +11,18 @@ var ConfigJSON = nhlcommon.loadConfig();
 
  var GetInfoSite = function() {
 
-    //  Scope.
-    var self = this;
+	//  Scope.
+	var self = this;
+	var fWriteChanges = false;
 
 
-    /*  ================================================================  */
-    /*  Helper functions.                                                 */
-    /*  ================================================================  */
+	/*  ================================================================  */
+	/*  Helper functions.                                                 */
+	/*  ================================================================  */
 
-    /**
-     *  Set up server IP address and port # using env variables/defaults.
-     */
+	/**
+	 *  Set up server IP address and port # using env variables/defaults.
+	 */
     self.setupVariables = function() {
         //  Set the environment variables we need.
         self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
@@ -96,7 +97,6 @@ var ConfigJSON = nhlcommon.loadConfig();
      */
     self.createRoutes = function() 
 	{
-        var fWriteChanges = false;
 		self.routes = { };
 			
         self.routes['/'] = function(req, res) 
@@ -115,6 +115,7 @@ var ConfigJSON = nhlcommon.loadConfig();
 			res.append("timezones",JSON.stringify(nhlcommon.timezones) );
 			res.append("mytimezone",ConfigJSON.mytimezone );
 			res.send(self.cache_get('index.html') );
+			console.log("/");
         };
 		
         self.routes['/nhlsettings.js'] = function(req, res) {
@@ -125,10 +126,47 @@ var ConfigJSON = nhlcommon.loadConfig();
 			res.send(nhlcommon.teams);
 			//res.send
         };
+		
+        self.routes['/shutdown'] = function(req, res) {
+            res.setHeader('Content-Type', 'text/html');
+			res.send("<html><body>Shutting down....</body></html>");        
+			handleShutdown(false);
+			console.log("shutdown");
+		};
+
+        self.routes['/reboot'] = function(req, res) {
+            res.setHeader('Content-Type', 'text/html');
+			res.send("<html><body>Rebooting....</body></html>");
+			handleShutdown(true);
+			console.log("reboot");
+        };
     };
+	
+	function handleShutdown(fReboot)
+	{
+		var cmd = 'shutdown ' + (fReboot ? "-r" : "") + ' 0 ';
+		if(process.platform == "linux")
+		{
+			
+			exec(cmd, function(error, stdout, stderr) { console.log("updated wifi...." + cmd)});				
+		}
+		else
+		{
+			console.log(cmd);
+		}
+	}
 	
 	function handleWIFI(sSSID, sPasswrd)
 	{
+		//console.log("OS: " + process.platform);
+		if(process.platform == "linux")
+		{
+			var backupcmd = "cp /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf.bak";
+			exec(backupcmd, function(error, stdout, stderr) { console.log("backup wpasupp...." + backupcmd)});	
+			//https://linux.die.net/man/8/wpa_passphrase
+			var cmd = 'wpa_passphrase "'+sSSID+'" "'+ sPasswrd + '" >> /etc/wpa_supplicant/wpa_supplicant.conf"';
+			exec(cmd, function(error, stdout, stderr) { console.log("updated wifi...." + cmd)});				
+		}
 		//TODO
 	}
 	
@@ -138,7 +176,13 @@ var ConfigJSON = nhlcommon.loadConfig();
 		{
 			ConfigJSON.mytimezone = sTZ;
 			//TODO: update the rpi code
-			fWriteChanges = true;			
+			fWriteChanges = true;
+			//ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+			if(process.platform == "linux")
+			{
+				var cmd = "ln -sf /usr/share/zoneinfo/" + sTZ + " /etc/localtime";
+				exec(cmd, function(error, stdout, stderr) { console.log("updated timezone...." + cmd)});				
+			}
 		}
 	}
 	
