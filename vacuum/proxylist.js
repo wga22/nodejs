@@ -35,26 +35,40 @@ function pr( jsonVals ) {
 function main()
 {
 	//https://www.us-proxy.org
-	findIps("https://www.us-proxy.org");
+	//findIps("https://www.us-proxy.org");
+	var sURL = "http://proxy.tekbreak.com/1/json";
+	loadPage(sURL, proxyTek);
+}
+
+function proxyTek(sPageContent)
+{
+	//http://proxy.tekbreak.com/1/json
+	//var request = require("request");
+	if(fTesting) console.log(sPageContent);
+	eval("var oRes=" +sPageContent);
+	console.log(oRes[0].ip);
 }
 
 function parseIPs(a_sPage)
 {
 	//just get elite
-	var eliteRE = /.*elite proxy/g;
-	var htmlRE = /(\<\/?[a-z]+\>){1,3}/g;
+	//var eliteRE = /.*elite proxy/g;
+	//var htmlRE = /(\<\/?[a-z]+\>){1,3}/g;
+	var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})/g;
 	//var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\D+80/g
 	var aIPMatch = [];
-	while ((aIPMatch = eliteRE.exec(a_sPage)) !== null) 
+	while ((aIPMatch = reIP.exec(a_sPage)) !== null) 
 	{
 		//if(fTesting) console.log(aIPMatch[0]);
-		var aRow = aIPMatch[0].split(htmlRE);
-		if(fTesting) console.log(aRow.length + " - " + aRow[2] +":" + aRow[4]);
-		aIPList.push(aRow[2] +":" + aRow[4]);
+		//var aRow = aIPMatch[0].split(htmlRE);
+		//if(fTesting) console.log(aRow.length + " - " + aRow[2] +":" + aRow[4]);
+		if(fTesting) console.log(aIPMatch[0]);
+		//aIPList.push(aRow[2] +":" + aRow[4]);
+		aIPList.push(aIPMatch[0])
 	}
-	
+
 	//var reIP = /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(\.|$)){4})\<\/td\>(\<td\>\D+\<\/td\>){2}\<td\>elite proxy\<\/td\>/g
-	
+
 	var nRand = Math.floor((Math.random()*1000) % aIPList.length);
 	if(fTesting) console.log(nRand + " out of  " + aIPList.length);
 	var proxyURL = aIPList[nRand];	//pull a random one
@@ -85,6 +99,24 @@ function executeCommand(a_proxyURL)
 	var cmd = "export http_proxy='" + a_proxyURL + "'";
 	exec(cmd, function(error, stdout, stderr) { console.log("new proxy set...." + cmd)});
 	
+}
+
+function loadPage(sURL, func)
+{
+	var sProxyPage = "";
+	http.get(sURL, function(res){
+
+	res.on('data', function(chunk){
+		sProxyPage += chunk;
+	});
+
+	res.on('end', function()
+	{
+		func(sProxyPage);
+	});
+	}).on('error', function(e){
+		  console.log("Got an error: ", e);
+	});
 }
 
 function findIps(sURL)
