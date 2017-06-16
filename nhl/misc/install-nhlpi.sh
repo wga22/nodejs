@@ -4,7 +4,6 @@
 # TODO: change hostname?
 # TODO: setup wifi
 # TODO: setup passwd and authorized keys
-
 #apt-get stuff
 (apt-get update && apt-get -y upgrade) > /dev/null
 apt-get dist-upgrade -y
@@ -13,14 +12,19 @@ apt-get clean -y
 
 #update node
 cd /tmp
+export nodeversion=8.1.0
 #wget https://nodejs.org/dist/v7.4.0/node-v7.4.0-linux-armv6l.tar.xz
-wget https://nodejs.org/dist/v8.0.0/node-v8.0.0-linux-armv6l.tar.xz
-tar -xvf node-v8.0.0-linux-armv6l.tar.xz
-cd node-v8.0.0-linux-armv6l
+#wget https://nodejs.org/dist/v8.0.0/node-v8.0.0-linux-armv6l.tar.xz
+wget https://nodejs.org/dist/v${nodeversion}/node-v${nodeversion}-linux-armv6l.tar.xz
+tar -xvf node-v${nodeversion}-linux-armv6l.tar.xz
+cd node-v${nodeversion}-linux-armv6l
 rm *.md
 rm LICENSE
 cp -R * /usr/local/
-apt-get remove --purge npm node nodejs
+rm -R /tmp/node-v${nodeversion}-linux-armv6l
+rm /tmp/node-v${nodeversion}-linux-armv6l.tar.xz
+#TODO: make sym link for node binary?
+apt-get remove -y --purge npm node nodejs
 
 
 # TODO: install software needed for wifi
@@ -29,27 +33,42 @@ apt-get remove --purge npm node nodejs
 
 
 #Node setup
-#TODO: having some issues installing lame; debugging by manually creating 2 directories: /usr/local/lib/node_modules/lame/.node-gyp and /usr/local/lib/node_modules/lame/.node-gyp/8.0.0
-#TODO: maybe just install these into the /opt/nhl ?  (currently installing them g, then local, and copying them)
 mkdir /opt/nhl
 mkdir /opt/nhl/logs
 mkdir /opt/nhl/horns
 
+#update Node
 #install node dependencies into the nhl directory
+export NODE_PATH=/usr/local/lib/node_modules
+
+#HACK - TODO - fix that lame wont install globally
 cd /opt/nhl
-npm install oled-i2c-bus i2c-bus oled-font-5x7 lame speaker lcd lcdi2c onoff express body-parser 
-#TODO make the installation work globally (BUG: speaker and lame go into loop during global install)
-#TODO: consider hack, that installs locally, then copies to the /usr/local/lib/node_modules
+npm install lame	# lame, is lame, wont install globally
+cp -R /opt/nhl/node_modules/lame $NODE_PATH
+npm install speaker	#wont install globally
+cp -R /opt/nhl/node_modules/speaker $NODE_PATH
+npm install i2c-bus	#wont install globally
+cp -R /opt/nhl/node_modules/i2c-bus $NODE_PATH
+npm install oled-i2c-bus	#wont install globally
+cp -R /opt/nhl/node_modules/oled-i2c-bus $NODE_PATH
+npm install lcd	#wont install globally
+cp -R /opt/nhl/node_modules/lcd $NODE_PATH
+npm install lcdi2c	#wont install globally
+cp -R /opt/nhl/node_modules/lcdi2c $NODE_PATH
+
+npm install  oled-font-5x7 onoff express body-parser -g
 
 #pull git code
 cd /opt/nhl
-wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
+#JSON is one time creation
 wget -O /opt/nhl/nhl_config.json https://raw.githubusercontent.com/wga22/nodejs/master/nhl/sample_configjson.txt
+#wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
+#call automated script to install everything else for NHL
+curl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/update-nhlpi.sh | sudo -E bash -
 
 #pull horns
 cd /opt/nhl/horns
 curl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/horns/pullhorns.sh | sudo -E bash -
-
 
 #config file updates
 #add sound
@@ -76,6 +95,8 @@ printf '\n raspi-gpio set 17 op dl' >> /etc/rc.local
 printf '\n raspi-gpio set 4 op dl' >> /etc/rc.local
 printf '\n sleep 10' >> /etc/rc.local
 printf '\n wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js' >> /etc/rc.local
+printf '\n wget -O /opt/nhl/index.html https://github.com/wga22/nodejs/raw/master/nhl/index.html' >> /etc/rc.local
+printf '\n wget -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/master/nhl/webserver.js' >> /etc/rc.local
 printf '\n cd /opt/nhl' >> /etc/rc.local
 printf '\n node NHL_work.js >> logs/nhl.log' >> /etc/rc.local
 printf '\n\n exit 0' >> /etc/rc.local
@@ -97,6 +118,7 @@ ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 # update environment variable with node_path
 cp /etc/environment /etc/environment.bak
 printf '\nexport NODE_PATH=/usr/local/lib/node_modules\n' >> /etc/environment
-export NODE_PATH=/usr/local/lib/node_modules
+#TODO: define this for node self.ipaddress = process.env.NODEJS_IP;
+#TODO: self.port      = process.env.NODEJS_PORT || 80;
 
 exit 0
