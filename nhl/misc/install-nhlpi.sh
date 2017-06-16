@@ -1,5 +1,6 @@
 #!/bin/sh -e
-
+#can be called via 
+#curl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/misc/install-nhlpi.sh | sudo -E bash -
 # TODO: automate this script with something like: curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
 # TODO: change hostname?
 # TODO: setup wifi
@@ -7,7 +8,7 @@
 #apt-get stuff
 (apt-get update && apt-get -y upgrade) > /dev/null
 apt-get dist-upgrade -y
-apt-get install -y raspi-gpio git build-essential python-dev python-pip python-imaging python-smbus libasound2-dev nodejs
+apt-get install -y raspi-gpio git build-essential python-dev python-pip python-imaging python-smbus libasound2-dev nodejs hostapd dnsmasq
 apt-get clean -y
 
 #update node
@@ -29,7 +30,6 @@ apt-get remove -y --purge npm node nodejs
 
 # TODO: install software needed for wifi
 # TODO: turn on wifi and server
-
 
 
 #Node setup
@@ -56,7 +56,7 @@ cp -R /opt/nhl/node_modules/lcd $NODE_PATH
 npm install lcdi2c	#wont install globally
 cp -R /opt/nhl/node_modules/lcdi2c $NODE_PATH
 
-npm install  oled-font-5x7 onoff express body-parser -g
+npm install  oled-font-5x7 onoff express body-parser child_process -g
 
 #pull git code
 cd /opt/nhl
@@ -64,7 +64,7 @@ cd /opt/nhl
 wget -O /opt/nhl/nhl_config.json https://raw.githubusercontent.com/wga22/nodejs/master/nhl/sample_configjson.txt
 #wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
 #call automated script to install everything else for NHL
-curl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/update-nhlpi.sh | sudo -E bash -
+curl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/misc/update-nhlpi.sh | sudo -E bash -
 
 #pull horns
 cd /opt/nhl/horns

@@ -147,7 +147,7 @@ var ConfigJSON = nhlcommon.loadConfig();
 		var cmd = 'shutdown ' + (fReboot ? "-r" : "") + ' 0 ';
 		if(process.platform == "linux")
 		{
-			
+			var exec = require('child_process').exec;
 			exec(cmd, function(error, stdout, stderr) { console.log("updated wifi...." + cmd)});				
 		}
 		else
@@ -161,10 +161,12 @@ var ConfigJSON = nhlcommon.loadConfig();
 		//console.log("OS: " + process.platform);
 		if(process.platform == "linux")
 		{
+			var exec = require('child_process').exec;
 			var backupcmd = "cp /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf.bak";
 			exec(backupcmd, function(error, stdout, stderr) { console.log("backup wpasupp...." + backupcmd)});	
 			//https://linux.die.net/man/8/wpa_passphrase
-			var cmd = 'wpa_passphrase "'+sSSID+'" "'+ sPasswrd + '" >> /etc/wpa_supplicant/wpa_supplicant.conf"';
+			//wpa_passphrase "test" "oh_yea_123"
+			var cmd = 'wpa_passphrase "'+sSSID+'" "'+ sPasswrd + '" >> /etc/wpa_supplicant/wpa_supplicant.conf';
 			exec(cmd, function(error, stdout, stderr) { console.log("updated wifi...." + cmd)});				
 		}
 		//TODO
@@ -181,6 +183,7 @@ var ConfigJSON = nhlcommon.loadConfig();
 			if(process.platform == "linux")
 			{
 				var cmd = "ln -sf /usr/share/zoneinfo/" + sTZ + " /etc/localtime";
+				var exec = require('child_process').exec;
 				exec(cmd, function(error, stdout, stderr) { console.log("updated timezone...." + cmd)});				
 			}
 		}
@@ -242,7 +245,7 @@ var ConfigJSON = nhlcommon.loadConfig();
      */
     self.start = function() {
         //  Start the app on the specific interface (and port).
-        self.app.listen(self.port, self.ipaddress, function() {
+        self.app.listen(self.port, function() {
             console.log('%s: Node server started on %s:%d ...',
                         Date(Date.now() ), self.ipaddress, self.port);
         });
@@ -251,32 +254,9 @@ var ConfigJSON = nhlcommon.loadConfig();
 };   /*  Sample Application.  */
 
 
-
 /**
  *  main():  Main code.
  */
 var zapp = new GetInfoSite();
 zapp.initialize();
 zapp.start();
-
-function loadConfig()
-{
-	/* SAMPLE FILE
-		see header 
-	*/
-	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
-	var oJSON =  {};
-	try 
-	{
-		var jsonString = fs.readFileSync("./nhl_config.json").toString();
-		oJSON = JSON.parse(jsonString);
-	} 
-	catch (err) 
-	{
-		oJSON = ConfigJSON;
-		console.warn("The file 'nhl_config.json' does not exist or contains invalid arguments!");
-		console.warn("Going with the best team, instead: " + ConfigJSON.myteam);
-		//process.exit(1);
-	}
-	return oJSON;
-}
