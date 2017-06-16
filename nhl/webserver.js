@@ -159,7 +159,8 @@ var ConfigJSON = nhlcommon.loadConfig();
 	function handleWIFI(sSSID, sPasswrd)
 	{
 		//console.log("OS: " + process.platform);
-		if(process.platform == "linux")
+		var sPasswrd = sPasswrd + "";
+		if(process.platform == "linux" && sSSID && sSSID.length > 2 && sPasswrd && (sPasswrd.length > 8 || sPasswrd.length == 0))
 		{
 			var exec = require('child_process').exec;
 			var backupcmd = "cp /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf.bak";
