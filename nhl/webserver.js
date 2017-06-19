@@ -113,6 +113,7 @@ var ConfigJSON = nhlcommon.loadConfig();
 			res.append("teams",JSON.stringify(nhlcommon.teams) );
 			res.append("myteam",ConfigJSON.myteam );
 			res.append("timezones",JSON.stringify(nhlcommon.timezones) );
+			//TODO: get the ssid choices?
 			res.append("mytimezone",ConfigJSON.mytimezone );
 			res.send(self.cache_get('index.html') );
 			console.log("/");
@@ -170,7 +171,6 @@ var ConfigJSON = nhlcommon.loadConfig();
 			var cmd = 'wpa_passphrase "'+sSSID+'" "'+ sPasswrd + '" >> /etc/wpa_supplicant/wpa_supplicant.conf';
 			exec(cmd, function(error, stdout, stderr) { console.log("updated wifi...." + cmd)});				
 		}
-		//TODO
 	}
 	
 	function handleTimeZone(sTZ)
@@ -178,7 +178,6 @@ var ConfigJSON = nhlcommon.loadConfig();
 		if(ConfigJSON.mytimezone != sTZ)
 		{
 			ConfigJSON.mytimezone = sTZ;
-			//TODO: update the rpi code
 			fWriteChanges = true;
 			//ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 			if(process.platform == "linux")
@@ -222,7 +221,8 @@ var ConfigJSON = nhlcommon.loadConfig();
         //  Add handlers for the app (from the routes).
         for (var r in self.routes) 
 		{
-			self.app.get(r, self.routes[r]);
+			//TODO: fix to just use one, as I think this is causing stuff to be double called
+			//self.app.get(r, self.routes[r]);
 			self.app.post(r, self.routes[r]);
         }
     };
