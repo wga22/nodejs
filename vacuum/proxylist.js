@@ -42,11 +42,20 @@ function main()
 
 function proxyTek(sPageContent)
 {
+	//76.3.249.244:3128
 	//http://proxy.tekbreak.com/1/json
 	//var request = require("request");
-	if(fTesting) console.log(sPageContent);
-	eval("var oRes=" +sPageContent);
-	console.log(oRes[0].ip);
+	try
+	{
+		if(fTesting) console.log(sPageContent);
+		eval("var oRes=" +sPageContent);
+		if(oRes && oRes.length && oRes[0].ip)
+		console.log(oRes[0].ip +":" +oRes[0].port);		
+	}
+	catch(e)
+	{
+		console.error(e.message);
+	}
 }
 
 function parseIPs(a_sPage)
