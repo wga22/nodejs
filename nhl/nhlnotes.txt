@@ -1,0 +1,10 @@
+--------todo-------
+
+	OS level
+		PM2 - https://www.npmjs.com/package/pm2
+		wifi settings
+		
+	installation
+		just clone? (and use the .sh to keep notes on what is being done)
+		put the config files in git, instead of trying to write them via shell?
+		focus on "update" script

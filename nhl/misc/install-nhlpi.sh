@@ -31,7 +31,6 @@ apt-get remove -y --purge npm node nodejs
 # TODO: install software needed for wifi
 # TODO: turn on wifi and server
 
-
 #Node setup
 mkdir /opt/nhl
 mkdir /opt/nhl/logs
@@ -56,7 +55,7 @@ cp -R /opt/nhl/node_modules/lcd $NODE_PATH
 npm install lcdi2c	#wont install globally
 cp -R /opt/nhl/node_modules/lcdi2c $NODE_PATH
 
-npm install  oled-font-5x7 onoff express body-parser child_process -g
+npm install oled-font-5x7 onoff express body-parser child_process pm2 -g
 
 #pull git code
 cd /opt/nhl
@@ -107,18 +106,18 @@ printf '\n\n exit 0' >> /etc/rc.local
 ## TEST chmod u+x /etc/cron.weekly/nhl_updater
 
 
-
 #printf '\n' >> /etc/rc.local
 #TODO: set timezone
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 # cp /usr/share/zoneinfo/Europe/London /etc/localtime
 # sudo ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
 
-
 # update environment variable with node_path
 cp /etc/environment /etc/environment.bak
 printf '\nexport NODE_PATH=/usr/local/lib/node_modules\n' >> /etc/environment
 #TODO: define this for node self.ipaddress = process.env.NODEJS_IP;
 #TODO: self.port      = process.env.NODEJS_PORT || 80;
+
+#TODO: setup PM2
 
 exit 0
