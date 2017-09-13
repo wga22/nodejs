@@ -159,6 +159,11 @@ var ConfigJSON = nhlcommon.loadConfig();
 	
 	function handleWIFI(sSSID, sPasswrd)
 	{
+		//TODO: convert to https://www.npmjs.com/package/node-wifi
+		//test it first
+		/*
+		
+		*/
 		//console.log("OS: " + process.platform);
 		var sPasswrd = sPasswrd + "";
 		if(process.platform == "linux" && sSSID && sSSID.length > 2 && sPasswrd && (sPasswrd.length > 8 || sPasswrd.length == 0))
