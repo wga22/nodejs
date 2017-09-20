@@ -159,7 +159,7 @@ function initializeTheGamesList(aoGames)
 	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
 	debugOut("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
 	oCurrentGames = getPreviousAndNextGames();
-	oPrevGameResults = new GameResults(oCurrentGames.previousGame);
+	oPrevGameResults = new GameResults(oCurrentGames.previousGame ? oCurrentGames.previousGame : oCurrentGames.nextGame);
 }
 
 function updateDisplayEachMinute()
@@ -180,7 +180,7 @@ function updateDisplayEachMinute()
 		
 		//update the values for the previous game
 		oCurrentGames = getPreviousAndNextGames();
-		oPrevGameResults = new GameResults(oCurrentGames.previousGame);
+		oPrevGameResults = new GameResults(oCurrentGames.previousGame ? oCurrentGames.previousGame : oCurrentGames.nextGame);
 	}
 	//debugOut("new game? " + oCurrentGames.nextGame.gameTime + " <= " + dToday.getTime());
 	oPrevGameResults.showResults(dToday);
@@ -263,10 +263,10 @@ GameResults.prototype.LCD_2004_I2C = function(dDate)
 GameResults.prototype.genericResults = function(dDate)
 {
 	var aRes = [];
-	aRes.push(this.awayTeam.nickname + "(" + this.awayScore + ")");
-	aRes.push( this.homeTeam.nickname + "(" + this.homeScore + ")");
+	aRes.push(this.awayTeam.nickname + (this.awayScore ? ("(" + this.awayScore + ")") : ""));
+	aRes.push(this.homeTeam.nickname + (this.homeScore ? ("(" + this.homeScore + ")") : ""));
 
-	if(dDate < this.gameStop)	//during game show score
+	if(this.latestEvent && dDate < this.gameStop)	//during game show score
 	{
 		aRes.push("P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
 	}
@@ -476,7 +476,11 @@ GameResults.prototype.setGameStats = function(oRes, dDate)
 GameResults.prototype.showResults = function(dDate)
 {
 	//determine if we need to load in actual game results.  Either it's during the game, or we don't have game data
-	if(dDate < this.gameStop  || this.gameStats == null)	
+	//debugOut((this.gameStop.getTime() - dDate.getTime())/MILLISPERDAY + "xx" )
+	//(this.gameStats == null)
+	//if( (dDate < this.gameStop  ) )
+	var nGamesAway = (this.gameStop.getTime() - dDate.getTime())/MILLISPERDAY;
+	if( nGamesAway < 1  )
 	{
 		debugOut("showResults: game is going on OR we didn't have data yet!"
 				+ (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") 
@@ -526,7 +530,7 @@ function reverseTime(a_sTime)
 //Hockey specific HELPER FUNCTIONS
 function getPreviousAndNextGames()
 {
-	var oRes = {nextGame: null};
+	var oRes = {nextGame: null, previousGame: null};
 	var oPrevGame = null;
 	var dToday = new Date();
 	//start at the beginning of the game list, and find the NEXT game
@@ -539,15 +543,23 @@ function getPreviousAndNextGames()
 			oRes.nextGame = aoMyTeamGames[x];
 			oRes.nextGame.gameTime = parseDateStr(oRes.nextGame.est)
 			debugOut("Next game is " +  oRes.nextGame.gameTime.toString() + " " + oRes.nextGame.a + " vs. " + oRes.nextGame.h);
-
-			oRes.previousGame = aoMyTeamGames[x-1];
-			oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
-			debugOut("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
+			
+			if(x>0)
+			{
+				
+				oRes.previousGame = aoMyTeamGames[nPrevGame];
+				oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
+				debugOut("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
+			}
+			else
+			{
+				debugOut("There is no previous game")
+			}
 			break;
 		}
 	}
 	//if season is over, just show the last game of the year
-	if(oRes.nextGame == null)
+	if(oRes.nextGame == null && oRes.previousGame!=null)
 	{
 		//debugOut("It looks like we are near end of season, or during playoffs");
 		var defaultGameNum = aoMyTeamGames.length-1;	//just pull the last one from the list?
@@ -666,8 +678,8 @@ function getNHLSeasonString()
 	if(getNHLSeasonString.THISSEASON == null)
 	{
 		var dToday = new Date();
-		var sYear1 = 1900 + (dToday.getMonth() < 9 ? (dToday.getYear()-1)  : (dToday.getYear())); 
-		var sYear2 = 1900 + (dToday.getMonth() < 9 ? (dToday.getYear()) : (dToday.getYear()+1));
+		var sYear1 = 1900 + (dToday.getMonth() < 8 ? (dToday.getYear()-1)  : (dToday.getYear())); 
+		var sYear2 = 1900 + (dToday.getMonth() < 8 ? (dToday.getYear()) : (dToday.getYear()+1));
 		getNHLSeasonString.THISSEASON = sYear1 +""+ sYear2;
 		//console.log("UGGHH" + getNHLSeasonString.THISSEASON)
 	}
