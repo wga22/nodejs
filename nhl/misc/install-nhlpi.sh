@@ -96,8 +96,8 @@ printf '\n sleep 10' >> /etc/rc.local
 printf '\n wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js' >> /etc/rc.local
 printf '\n wget -O /opt/nhl/index.html https://github.com/wga22/nodejs/raw/master/nhl/index.html' >> /etc/rc.local
 printf '\n wget -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/master/nhl/webserver.js' >> /etc/rc.local
-printf '\n cd /opt/nhl' >> /etc/rc.local
-printf '\n node NHL_work.js >> logs/nhl.log' >> /etc/rc.local
+#printf '\n cd /opt/nhl' >> /etc/rc.local
+#printf '\n node NHL_work.js >> logs/nhl.log' >> /etc/rc.local
 printf '\n\n exit 0' >> /etc/rc.local
 
 #TODO: need to add something to do the regular software updates weekly like this
@@ -119,5 +119,9 @@ printf '\nexport NODE_PATH=/usr/local/lib/node_modules\n' >> /etc/environment
 #TODO: self.port      = process.env.NODEJS_PORT || 80;
 
 #TODO: setup PM2
-
+cd /tmp/
+npm install pm2 -g
+cd /opt/nhl
+pm2 start NHL_work.js
+pm2 save
 exit 0
