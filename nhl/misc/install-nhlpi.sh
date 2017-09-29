@@ -13,7 +13,7 @@ apt-get clean -y
 
 #update node
 cd /tmp
-export nodeversion=8.1.0
+export nodeversion=8.5.0
 #wget https://nodejs.org/dist/v7.4.0/node-v7.4.0-linux-armv6l.tar.xz
 #wget https://nodejs.org/dist/v8.0.0/node-v8.0.0-linux-armv6l.tar.xz
 wget https://nodejs.org/dist/v${nodeversion}/node-v${nodeversion}-linux-armv6l.tar.xz
@@ -120,8 +120,9 @@ printf '\nexport NODE_PATH=/usr/local/lib/node_modules\n' >> /etc/environment
 
 #TODO: setup PM2
 cd /tmp/
-npm install pm2 -g
+npm install -g pm2
 cd /opt/nhl
 pm2 start NHL_work.js
+pm2 start index.js
 pm2 save
 exit 0
