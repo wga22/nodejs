@@ -130,17 +130,11 @@ printf '\nexport NODE_PATH=/usr/local/lib/node_modules\n' >> /etc/environment
 #TODO: self.port      = process.env.NODEJS_PORT || 80;
 
 #TODO: setup PM2
-<<<<<<< HEAD
 cd /tmp/
 npm install -g pm2
 cd /opt/nhl
 pm2 start NHL_work.js
-pm2 start index.js
-=======
-cd /opt/nhl
-pm2 start NHL_work.js
 pm2 start webserver.js
->>>>>>> origin/master
 pm2 save
 
 exit 0
