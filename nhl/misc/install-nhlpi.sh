@@ -8,7 +8,12 @@
 #apt-get stuff
 (apt-get update && apt-get -y upgrade) > /dev/null
 apt-get dist-upgrade -y
-apt-get install -y raspi-gpio git build-essential python-dev python-pip python-imaging python-smbus libasound2-dev nodejs hostapd dnsmasq
+#General Dev
+apt-get install -y git build-essential python-dev python-pip python-smbus libasound2-dev nodejs
+# GPIO
+apt-get install -y raspi-gpio python-imaging python-smbus libasound2-dev
+#networking
+apt-get install -y bridge-utils hostapd dnsmasq
 apt-get clean -y
 
 #update node
@@ -54,7 +59,12 @@ npm install lcd	#wont install globally
 cp -R /opt/nhl/node_modules/lcd $NODE_PATH
 npm install lcdi2c	#wont install globally
 cp -R /opt/nhl/node_modules/lcdi2c $NODE_PATH
+npm install pm2	#wont install globally
+cp -R /opt/nhl/node_modules/pm2 $NODE_PATH
+npm install express	#wont install globally
+cp -R /opt/nhl/node_modules/express $NODE_PATH
 
+# any NHL only modules
 npm install oled-font-5x7 onoff express body-parser child_process pm2 -g
 
 #pull git code
@@ -101,6 +111,7 @@ printf '\n wget -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/mas
 printf '\n\n exit 0' >> /etc/rc.local
 
 #TODO: need to add something to do the regular software updates weekly like this
+# Maybe just copy this file directly down to the rc.weekly folder?
 ## TEST rm /etc/cron.weekly/nhl_updater
 ## TEST printf '\ncurl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/XXX TODO XXXX.sh | sudo -E bash -' > /etc/cron.weekly/nhl_updater
 ## TEST chmod u+x /etc/cron.weekly/nhl_updater
@@ -119,10 +130,17 @@ printf '\nexport NODE_PATH=/usr/local/lib/node_modules\n' >> /etc/environment
 #TODO: self.port      = process.env.NODEJS_PORT || 80;
 
 #TODO: setup PM2
+<<<<<<< HEAD
 cd /tmp/
 npm install -g pm2
 cd /opt/nhl
 pm2 start NHL_work.js
 pm2 start index.js
+=======
+cd /opt/nhl
+pm2 start NHL_work.js
+pm2 start webserver.js
+>>>>>>> origin/master
 pm2 save
+
 exit 0
