@@ -132,6 +132,7 @@ printf '\nexport NODE_PATH=/usr/local/lib/node_modules\n' >> /etc/environment
 #TODO: setup PM2
 cd /tmp/
 npm install -g pm2
+pm2 startup
 cd /opt/nhl
 pm2 start NHL_work.js
 pm2 start webserver.js

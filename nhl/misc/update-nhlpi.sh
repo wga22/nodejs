@@ -14,4 +14,6 @@ wget -O /opt/nhl/index.html https://github.com/wga22/nodejs/raw/master/nhl/index
 wget -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/master/nhl/webserver.js
 wget -O /opt/nhl/nhl_common.js https://github.com/wga22/nodejs/raw/master/nhl/nhl_common.js
 
+pm2 updatePM2
+
 exit 0
