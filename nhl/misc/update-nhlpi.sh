@@ -6,6 +6,7 @@
 (apt-get update && apt-get -y upgrade) > /dev/null
 apt-get dist-upgrade -y
 apt-get clean -y
+pm2 updatePM2
 
 #pull git code
 cd /opt/nhl
@@ -14,7 +15,5 @@ wget -O /opt/nhl/index.html https://github.com/wga22/nodejs/raw/master/nhl/index
 wget -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/master/nhl/webserver.js
 wget -O /opt/nhl/nhl_common.js https://github.com/wga22/nodejs/raw/master/nhl/nhl_common.js
 wget -O /etc/bootup_nhl.sh https://github.com/wga22/nodejs/raw/master/nhl/misc/bootup_nhl.sh
-
-pm2 updatePM2
 
 exit 0
