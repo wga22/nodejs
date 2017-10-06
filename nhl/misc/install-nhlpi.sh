@@ -102,8 +102,7 @@ printf '\ni2c-dev\ni2c-bcm2708\n' >> /etc/modules
 amixer cset numid=1
 #TODO: set volume, 60%?
 
-# TODO: update rc.local
-# TODO: change this file to be a file stored directly in git
+# update rc.local
 # NOTE: moving the file, because standard one includes an "exit" in last line, so cannot simply append
 mv /etc/rc.local /etc/rc.local.bak
 touch /etc/rc.local
@@ -114,16 +113,12 @@ printf '\n exit 0' >> /etc/rc.local
 
 #TODO: need to add something to do the regular software updates weekly like this
 # Maybe just copy this file directly down to the rc.weekly folder?
-## TEST rm /etc/cron.weekly/nhl_updater
-## TEST printf '\ncurl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/XXX TODO XXXX.sh | sudo -E bash -' > /etc/cron.weekly/nhl_updater
-## TEST chmod u+x /etc/cron.weekly/nhl_updater
+rm /etc/cron.weekly/nhl_updater
+printf '#!/bin/sh\ncurl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/misc/update-nhlpi.sh | sudo -E bash -' > /etc/cron.weekly/nhl_updater
+chmod u+x /etc/cron.weekly/nhl_updater
 
 
-#printf '\n' >> /etc/rc.local
-#TODO: set timezone
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
-# cp /usr/share/zoneinfo/Europe/London /etc/localtime
-# sudo ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
 
 # update environment variable with node_path
 cp /etc/environment /etc/environment.bak
@@ -131,7 +126,7 @@ printf '\nexport NODE_PATH=/usr/local/lib/node_modules\n' >> /etc/environment
 #TODO: define this for node self.ipaddress = process.env.NODEJS_IP;
 #TODO: self.port      = process.env.NODEJS_PORT || 80;
 
-#TODO: setup PM2
+#TODO: test setup PM2
 cd /tmp/
 npm install -g pm2
 pm2 startup

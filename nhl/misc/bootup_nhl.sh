@@ -8,5 +8,8 @@ wget -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/master/nhl/web
 wget -O /opt/nhl/nhl_common.js https://github.com/wga22/nodejs/raw/master/nhl/nhl_common.js
 wget -O /etc/bootup_nhl.sh https://github.com/wga22/nodejs/raw/master/nhl/misc/bootup_nhl.sh
 chmod u+x /etc/bootup_nhl.sh
+chmod u+x /usr/local/bin/hostapdstart
+
+/usr/local/bin/hostapdstart
 #pm2 startup
 exit 0
