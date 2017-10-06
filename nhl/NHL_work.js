@@ -277,7 +277,7 @@ GameResults.prototype.genericResults = function(dDate)
 		var nMSGameDate = Math.floor((new Date(oCurrentGames.nextGame.gameTime.getYear(), oCurrentGames.nextGame.gameTime.getMonth(), oCurrentGames.nextGame.gameTime.getDate()).getTime())/MILLISPERDAY);
 		var nMSToday = Math.floor((new Date(dDate.getYear(), dDate.getMonth(), dDate.getDate()).getTime())/MILLISPERDAY);
 		var nDiffDays = nMSGameDate-nMSToday;
-		debugOut("genRes: days" + (nMSGameDate) + " =? " + (nMSToday) + " diff:" + nDiffDays)
+		//debugOut("genRes: days" + (nMSGameDate) + " =? " + (nMSToday) + " diff:" + nDiffDays)
 		if(nDiffDays == 0)
 		{
 			sGameTime = "Today " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
@@ -803,7 +803,7 @@ function friendlyDate(a_dDate)
 
 function getTimeOfDay(a_dDate)
 {
-	return (a_dDate.toLocaleTimeString()).replace(/\W\d\d /, " ")
+	return (a_dDate.toLocaleTimeString("en-US")).replace(/\W\d\d /, " ")
 }
 
 // Generic callback function to print the return value
