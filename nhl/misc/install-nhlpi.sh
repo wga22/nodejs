@@ -99,17 +99,8 @@ amixer cset numid=1
 # NOTE: moving the file, because standard one includes an "exit" in last line, so cannot simply append
 mv /etc/rc.local /etc/rc.local.bak
 touch /etc/rc.local
-
-# turn off the amp and the light on bootup
-printf '\n raspi-gpio set 17 op dl' >> /etc/rc.local
-printf '\n raspi-gpio set 4 op dl' >> /etc/rc.local
-printf '\n sleep 10' >> /etc/rc.local
-printf '\n wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js' >> /etc/rc.local
-printf '\n wget -O /opt/nhl/index.html https://github.com/wga22/nodejs/raw/master/nhl/index.html' >> /etc/rc.local
-printf '\n wget -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/master/nhl/webserver.js' >> /etc/rc.local
-printf '\n wget -O /opt/nhl/nhl_common.js https://github.com/wga22/nodejs/raw/master/nhl/nhl_common.js' >> /etc/rc.local
-#printf '\n cd /opt/nhl' >> /etc/rc.local
-#printf '\n node NHL_work.js >> logs/nhl.log' >> /etc/rc.local
+chmod u+x /etc/rc.local
+printf '/etc/bootup_nhl.sh > /tmp/rclocal.log\n' > /etc/rc.local
 printf '\n\n exit 0' >> /etc/rc.local
 
 #TODO: need to add something to do the regular software updates weekly like this
