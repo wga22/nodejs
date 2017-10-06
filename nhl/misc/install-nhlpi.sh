@@ -59,13 +59,21 @@ npm install lcd	#wont install globally
 cp -R /opt/nhl/node_modules/lcd $NODE_PATH
 npm install lcdi2c	#wont install globally
 cp -R /opt/nhl/node_modules/lcdi2c $NODE_PATH
-npm install pm2	#wont install globally
-cp -R /opt/nhl/node_modules/pm2 $NODE_PATH
-npm install express	#wont install globally
-cp -R /opt/nhl/node_modules/express $NODE_PATH
 
-# any NHL only modules
-npm install oled-font-5x7 onoff express body-parser child_process pm2 -g
+npm install oled-font-5x7	#wont install globally
+cp -R /opt/nhl/node_modules/oled-font-5x7 $NODE_PATH
+
+npm install onoff	#wont install globally
+cp -R /opt/nhl/node_modules/onoff $NODE_PATH
+
+
+#npm install pm2	#wont install globally
+#cp -R /opt/nhl/node_modules/pm2 $NODE_PATH
+#npm install express	#wont install globally
+#cp -R /opt/nhl/node_modules/express $NODE_PATH
+
+# any global modules
+npm install express body-parser child_process pm2 -g
 
 #pull git code
 cd /opt/nhl
@@ -131,6 +139,5 @@ cd /opt/nhl
 pm2 start NHL_work.js
 pm2 start webserver.js
 pm2 save
-
-
+pm2 startup
 exit 0
