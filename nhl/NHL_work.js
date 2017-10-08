@@ -217,9 +217,9 @@ function GameResults(a_oPrevGameInfo)
 	this.homeTeam = new Team(this.oPrevGameInfo.h, (this.oPrevGameInfo.h == ConfigJSON.myteam));
 	this.awayTeam = new Team(this.oPrevGameInfo.a, (this.oPrevGameInfo.a == ConfigJSON.myteam));
 	this.gameStart = this.oPrevGameInfo.gameTime;
-	this.gameStop = new Date(this.oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));
-	this.gameStats = null;
+	this.gameStop = new Date(this.oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));	//initiate with something large
 	this.displayResults = displayResults;
+	this.gameInProgress = true;
 	
 	//TODO: convert this to a single function, only run the case statement 1x - "pointer"
 	function displayResults(dDate)
@@ -266,9 +266,9 @@ GameResults.prototype.genericResults = function(dDate)
 	aRes.push(this.awayTeam.nickname + (this.awayScore ? ("(" + this.awayScore + ")") : ""));
 	aRes.push(this.homeTeam.nickname + (this.homeScore ? ("(" + this.homeScore + ")") : ""));
 
-	if(this.latestEvent && dDate < this.gameStop)	//during game show score
+	if(this.gameInProgress)	//during game show score
 	{
-		aRes.push("P:"+ this.latestEvent.period +" T:" + this.latestEvent.time);
+		aRes.push("P:"+ this.period +" T:" + this.gameTime);
 	}
 	else if(oCurrentGames.nextGame!=null)  //after game
 	{
@@ -290,7 +290,6 @@ GameResults.prototype.genericResults = function(dDate)
 		{
 			sGameTime =  getDayOfWeek(oCurrentGames.nextGame.gameTime) +" " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
 		}
-	
 		aRes.push("Next:" + sGameTime);
 	}
 	aRes.push(smallDate(dDate));
@@ -398,94 +397,61 @@ GameResults.prototype._loadGameUpdates = function ()
 
 GameResults.prototype.setGameStats = function(oRes, dDate)
 {
-	this.gameStats = oRes;
-	var hid = parseInt(this.gameStats.data.game.hometeamid); 
-	this.homeTeam.id = hid;
-	var aid = parseInt(this.gameStats.data.game.awayteamid);
-	this.awayTeam.id =  aid;
-	this.homeTeam.nickname = this.gameStats.data.game.hometeamnick
-	this.awayTeam.nickname = this.gameStats.data.game.awayteamnick;
+	/*
+	debugOut("period:" + gameDataJson.liveData.linescore.currentPeriod)
+	debugOut("home:" + gameDataJson.liveData.linescore.teams.home.goals)
+	debugOut("away:" + gameDataJson.liveData.linescore.teams.away.goals)
+	debugOut("time:" + gameDataJson.liveData.linescore.currentPeriodTimeRemaining)	debugOut("hid:" + gameDataJson.gameData.teams.home.id)
+	debugOut("aid:" + gameDataJson.gameData.teams.away.id)
+	debugOut("anick:" + gameDataJson.gameData.teams.away.teamName)
+	debugOut("hnick:" + gameDataJson.gameData.teams.home.teamName)
 	
-	var aPlays = this.gameStats.data.game.plays.play;
-	//pr(this.gameStats.data.game.plays);
-	var aGoals = aPlays.filter(function(item){return item.type === "Goal"});
-	var aAwayTeamGoals = aGoals.filter(function(g){return (parseInt(g.teamid)==aid)});
-	var aHomeTeamGoals = aGoals.filter(function(g){return parseInt(g.teamid)==hid});
-	this.homeScore = aHomeTeamGoals.length;
-	this.awayScore = aAwayTeamGoals.length;
-	var oLatestGoal = {};
-	this.latestEvent = {period:0, time:0}
-	if(aPlays.length > 0)
+			TODO - handle game over
+		this.gameStop= dDate;
+
+	
+	*/
+	if(oRes && oRes.liveData && oRes.liveData.linescore && oRes.gameData && oRes.gameData.teams)
 	{
-		this.latestEvent = aPlays[aPlays.length-1];
-		//figure out if its end of game or period, by seeing if this last event has happened a few times in a row
-		var nMinutes = parseInt(this.latestEvent.time+"");//.match(/(\d+)\:/)[1];
-		this.latestEvent.time = reverseTime(this.latestEvent.time);
-		var fGameOver = dDate > this.gameStop;	//no use for it yet?
-		debugOut(nMinutes + " mins. End of period(" + this.latestEvent.period+")? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId + " gameover("+fGameOver+"): " + this.gameStop);
-		//is the period or game over?  no way to tell for sure, since the time is coming in of the latest event
-		// if period is more than 17 minutes old, and we've seen the same last event for "GameResults.MAXRETRYEVENT" times
-		if((nMinutes > 17 || this.latestEvent.period > 3) && this.actionCount.sLatestEventID == this.latestEvent.formalEventId)
+		var gameStats = oRes.liveData.linescore;
+		var teams = oRes.gameData.teams;
+		var hid = parseInt(teams.home.id); 
+		this.homeTeam.id = hid;
+		var aid = parseInt(teams.away.id);
+		this.awayTeam.id =  aid;
+		this.homeTeam.nickname = teams.home.teamName;
+		this.awayTeam.nickname = teams.away.teamName;
+		this.homeScore = gameStats.teams.home.goals;
+		this.awayScore = gameStats.teams.away.goals;
+		this.gameTime = reverseTime(gameStats.currentPeriodTimeRemaining);
+		this.period = gameStats.currentPeriod;
+		this.gameInProgress = oRes.gameData.status.detailedState != "Final";
+		
+		if(this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
 		{
-			//debugOut("end of period? " + this.actionCount.sLatestEventID + " ?= " +  this.latestEvent.formalEventId);
-			this.actionCount.nCount++;
-			if(this.actionCount.nCount >= GameResults.MAXRETRYEVENT)
-			{
-				//ok, definitely a stale activity at the end of the game
-				debugOut("The period has likely ended.... (or game)");
-				this.latestEvent.time = "End";
-				if(this.latestEvent.period >= 3 && this.homeScore != this.awayScore)
-				{
-					var fWon = (this.homeScore > this.awayScore && this.homeTeam.isFavorite()) || (this.homeScore < this.awayScore && this.awayTeam.isFavorite());
-					this.gameStop= dDate;
-					debugOut("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
-					//TODO TEST: running this method more than once should be fixed by overtime fix, and updating the gamestop to an actual time
-					playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3");
-					this.gameStop= dDate;
-				}
-			}
+			this.previousFavTeamScore = this.homeScore;
+			this.playHorn();
 		}
-		else
-		{
-			this.actionCount.nCount = 0;
-		}
-		this.actionCount.sLatestEventID  = this.latestEvent.formalEventId;
-		//did your team score the most recent goal?
-		if(this.homeTeam.isFavorite() && aHomeTeamGoals.length-1 >=0)
-		{
-			oLatestGoal = aHomeTeamGoals[aHomeTeamGoals.length-1];
-		}
-		else if(this.awayTeam.isFavorite() && aAwayTeamGoals.length-1 >=0)
-		{
-			oLatestGoal = aAwayTeamGoals[aAwayTeamGoals.length-1];
+		else if(this.awayTeam.isFavorite() && this.awayScore > this.previousFavTeamScore)
+		{			
+			this.previousFavTeamScore = this.awayScore;
+			this.playHorn();
 		}
 		
-		//TODO: fix so doesn't blare when system turned on, with a null
-		//console.log(oLatestGoal.formalEventId +"!="+ this.lastGoalScoredEventID +"&&"+ oLatestGoal.formalEventId +"&&"+ this.lastGoalScoredEventID)
-		if(oLatestGoal.formalEventId != this.lastGoalScoredEventID && oLatestGoal.formalEventId)
+		//only should go here when the game is over, 1 time (or maybe at bootup?)
+		if(!this.gameInProgress)
 		{
-			debugOut("PLAY HORN!" + this.lastGoalScoredEventID + "?=" + oLatestGoal.formalEventId);
-			if(!fGameOver)//handle system restart
-			{
-				this.playHorn();
-			}
-			this.lastGoalScoredEventID = oLatestGoal.formalEventId;
+			var fWon = (this.homeScore > this.awayScore && this.homeTeam.isFavorite()) || (this.homeScore < this.awayScore && this.awayTeam.isFavorite());	
+			debugOut("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
+			playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3");
 		}
-	}//aplays end
+	}
 }
 GameResults.prototype.showResults = function(dDate)
 {
-	//determine if we need to load in actual game results.  Either it's during the game, or we don't have game data
-	//debugOut((this.gameStop.getTime() - dDate.getTime())/MILLISPERDAY + "xx" )
-	//(this.gameStats == null)
-	//if( (dDate < this.gameStop  ) )
-	var nGamesAway = (this.gameStop.getTime() - dDate.getTime())/MILLISPERDAY;
-	if( nGamesAway < 1  )
+	if( this.gameInProgress)	//will initiate to true
 	{
-		debugOut("showResults: game is going on OR we didn't have data yet!"
-				+ (dDate < this.gameStop ? ( "gameover: " + this.gameStop.toString()): " Not in progress") 
-				+ " gamestats is " + (this.gameStats == null ? "null" :  "populated"));
-		this.gameStats = null;
+		debugOut("showResults: Active game.")
 		try
 		{
 			this._loadGameUpdates();
@@ -498,7 +464,7 @@ GameResults.prototype.showResults = function(dDate)
 	}
 	else
 	{
-		//debugOut("showResults: Game values are static, so no need to get active data.")
+		debugOut("showResults: Game values are static, so no need to get active data.")
 		this.displayResults(dDate);  //just reuse old data, nothing new going on
 	}
 }
@@ -683,8 +649,10 @@ function getNHLSeasonString()
 
 function gameDetailsURL(sGameID)
 {
+	//http://statsapi.web.nhl.com/api/v1/game/2017020022/feed/live
 	//http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
-	return "http://live.nhl.com/GameData/"+getNHLSeasonString()+"/"+sGameID+"/PlayByPlay.json";
+	//return "http://live.nhl.com/GameData/"+getNHLSeasonString()+"/"+sGameID+"/PlayByPlay.json";
+	return "http://statsapi.web.nhl.com/api/v1/game/"+sGameID+"/feed/live";
 }
 
 function getNHLSeasonURL()
