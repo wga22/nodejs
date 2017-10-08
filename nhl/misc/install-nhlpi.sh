@@ -16,6 +16,10 @@ apt-get install -y raspi-gpio python-imaging python-smbus libasound2-dev
 apt-get install -y bridge-utils hostapd dnsmasq
 apt-get clean -y
 
+#networking setup
+mkdir /etc/hostapd/
+# note: other setup is done via the config files and shell pulled down as a part of the update
+
 #update node
 cd /tmp
 export nodeversion=8.5.0
@@ -40,6 +44,7 @@ apt-get remove -y --purge npm node nodejs
 mkdir /opt/nhl
 mkdir /opt/nhl/logs
 mkdir /opt/nhl/horns
+mkdir /opt/nhl/node_modules/
 
 #update Node
 #install node dependencies into the nhl directory

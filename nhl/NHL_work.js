@@ -546,13 +546,9 @@ function getPreviousAndNextGames()
 			
 			if(x>0)
 			{
-				oRes.previousGame = aoMyTeamGames[x];
+				oRes.previousGame = aoMyTeamGames[x-1];
 				oRes.previousGame.gameTime = parseDateStr(oRes.previousGame.est)
 				debugOut("Most recent game is " +  oRes.previousGame.gameTime.toString() + " " + oRes.previousGame.a + " vs. " + oRes.previousGame.h);
-			}
-			else
-			{
-				debugOut("There is no previous game")
 			}
 			break;
 		}

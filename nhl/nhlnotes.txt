@@ -13,3 +13,76 @@
 		
 	WIFI
 		https://www.tecmint.com/configure-network-connections-using-nmcli-tool-in-linux/
+		
+		
+JUNK
+--tonights game: 2017020022
+
+
+http://live.nhl.com/GameData/20162017/2016020031/gc/gcbx.jsonp
+
+//not working
+http://live.nhl.com/GameData/20162017/2016020031/PlayByPlay.jsonp
+http://live.nhl.com/GameData/20162017/2017020022/PlayByPlay.jsonp
+
+//works, but shows wrong info
+http://live.nhle.com/GameData/20162017/2016020031/gc/gcbx.jsonp
+http://live.nhle.com/GameData/20162017/2017020022/gc/gcbx.jsonp
+//tonights game
+http://live.nhle.com/GameData/20162017/2017020022/gc/gcbx.jsonp
+//
+
+http://54.201.58.234/singlegame.php?gameid=2017020022
+
+
+https://statsapi.web.nhl.com/api/v1/schedule?startDate=2017-10-06&endDate=2017-10-08&expand=schedule.teams,schedule.linescore,schedule.broadcasts,schedule.ticket,schedule.game.content.media.epg&leaderCategories=&site=en_nhl&teamId=5
+
+this works:
+https://statsapi.web.nhl.com/api/v1/game/2017020022/feed/live
+
+
+https://statsapi.web.nhl.com/api/v1/game/2017020022/feed/live
+
+linescore.currentPeriod
+
+linescore.currentPeriodTimeRemaining
+teams.home.goals
+teams.away.goals
+
+  "linescore" : {
+      "currentPeriod" : 2,
+      "currentPeriodOrdinal" : "2nd",
+      "currentPeriodTimeRemaining" : "04:16",
+      "periods" : [ {
+        "periodType" : "REGULAR",
+        "startTime" : "2017-10-07T23:16:40Z",
+        "endTime" : "2017-10-07T23:55:14Z",
+        "num" : 1,
+        "ordinalNum" : "1st",
+        "home" : {
+          "goals" : 4,
+          "shotsOnGoal" : 14,
+          "rinkSide" : "right"
+        },
+        "away" : {
+          "goals" : 0,
+          "shotsOnGoal" : 7,
+          "rinkSide" : "left"
+        }
+      }, {
+        "periodType" : "REGULAR",
+        "startTime" : "2017-10-08T00:13:51Z",
+        "num" : 2,
+        "ordinalNum" : "2nd",
+        "home" : {
+          "goals" : 0,
+          "shotsOnGoal" : 3,
+          "rinkSide" : "left"
+        },
+        "away" : {
+          "goals" : 1,
+          "shotsOnGoal" : 18,
+          "rinkSide" : "right"
+        }
+      } ],
+      "shootoutInfo" : {

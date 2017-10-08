@@ -227,7 +227,7 @@ var ConfigJSON = nhlcommon.loadConfig();
         for (var r in self.routes) 
 		{
 			//TODO: fix to just use one, as I think this is causing stuff to be double called
-			//self.app.get(r, self.routes[r]);
+			self.app.get(r, self.routes[r]);
 			self.app.post(r, self.routes[r]);
         }
     };
