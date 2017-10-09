@@ -52,23 +52,23 @@ export NODE_PATH=/usr/local/lib/node_modules
 
 #HACK - TODO - fix that lame wont install globally
 cd /opt/nhl
-npm install lame	# lame, is lame, wont install globally
+npm install lame        # lame, is lame, wont install globally
 cp -R /opt/nhl/node_modules/lame $NODE_PATH
-npm install speaker	#wont install globally
+npm install speaker        #wont install globally
 cp -R /opt/nhl/node_modules/speaker $NODE_PATH
-npm install i2c-bus	#wont install globally
+npm install i2c-bus        #wont install globally
 cp -R /opt/nhl/node_modules/i2c-bus $NODE_PATH
-npm install oled-i2c-bus	#wont install globally
+npm install oled-i2c-bus        #wont install globally
 cp -R /opt/nhl/node_modules/oled-i2c-bus $NODE_PATH
-npm install lcd	#wont install globally
+npm install lcd        #wont install globally
 cp -R /opt/nhl/node_modules/lcd $NODE_PATH
-npm install lcdi2c	#wont install globally
+npm install lcdi2c        #wont install globally
 cp -R /opt/nhl/node_modules/lcdi2c $NODE_PATH
 
-npm install oled-font-5x7	#wont install globally
+npm install oled-font-5x7     #wont install globally
 cp -R /opt/nhl/node_modules/oled-font-5x7 $NODE_PATH
 
-npm install onoff	#wont install globally
+npm install onoff     #wont install globally
 cp -R /opt/nhl/node_modules/onoff $NODE_PATH
 
 
