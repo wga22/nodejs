@@ -49,6 +49,9 @@ linescore.currentPeriodTimeRemaining
 teams.home.goals
 teams.away.goals
 
+liveData
+
+
   "linescore" : {
       "currentPeriod" : 2,
       "currentPeriodOrdinal" : "2nd",

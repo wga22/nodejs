@@ -212,6 +212,7 @@ function GameResults(a_oPrevGameInfo)
 	this.awayScore=null;
 	this.latestEvent = null;
 	this.actionCount = {nCount:0, sLatestEventID:""};
+	this.previousFavTeamScore = 0;
 	
 	//we only know the code at this point, dont know the id
 	this.homeTeam = new Team(this.oPrevGameInfo.h, (this.oPrevGameInfo.h == ConfigJSON.myteam));
@@ -421,9 +422,11 @@ GameResults.prototype.setGameStats = function(oRes, dDate)
 		this.awayTeam.id =  aid;
 		this.homeTeam.nickname = teams.home.teamName;
 		this.awayTeam.nickname = teams.away.teamName;
-		this.homeScore = gameStats.teams.home.goals;
-		this.awayScore = gameStats.teams.away.goals;
-		this.gameTime = reverseTime(gameStats.currentPeriodTimeRemaining);
+		var iAG = parseInt(gameStats.teams.away.goals)
+		var iHG = parseInt(gameStats.teams.home.goals)
+		this.homeScore = iHG ? iHG : 0;
+		this.awayScore = iAG ? iAG : 0;
+		this.gameTime = gameStats.currentPeriodTimeRemaining;
 		this.period = gameStats.currentPeriod;
 		this.gameInProgress = oRes.gameData.status.detailedState != "Final";
 		
