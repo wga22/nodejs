@@ -264,8 +264,8 @@ GameResults.prototype.LCD_2004_I2C = function(dDate)
 GameResults.prototype.genericResults = function(dDate)
 {
 	var aRes = [];
-	aRes.push(this.awayTeam.nickname + (this.awayScore ? ("(" + this.awayScore + ")") : ""));
-	aRes.push(this.homeTeam.nickname + (this.homeScore ? ("(" + this.homeScore + ")") : ""));
+	aRes.push(this.awayTeam.nickname + (this.awayScore>=0 ? ("(" + this.awayScore + ")") : ""));
+	aRes.push(this.homeTeam.nickname + (this.homeScore>=0 ? ("(" + this.homeScore + ")") : ""));
 
 	if(this.gameInProgress)	//during game show score
 	{
