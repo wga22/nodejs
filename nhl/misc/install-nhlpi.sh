@@ -2,7 +2,6 @@
 #can be called via 
 #curl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/misc/install-nhlpi.sh | sudo -E bash -
 # TODO: automate this script with something like: curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
-# TODO: change hostname?
 # TODO: setup wifi
 # TODO: setup passwd and authorized keys
 #apt-get stuff
@@ -17,6 +16,9 @@ apt-get install -y bridge-utils hostapd dnsmasq
 apt-get clean -y
 
 #networking setup
+echo nhllight > /etc/hostname
+#TODO: fix the /etc/hosts
+#TODO: setup br0
 mkdir /etc/hostapd/
 # note: other setup is done via the config files and shell pulled down as a part of the update
 
@@ -39,6 +41,7 @@ apt-get remove -y --purge npm node nodejs
 
 # TODO: install software needed for wifi
 # TODO: turn on wifi and server
+
 
 #Node setup
 mkdir /opt/nhl

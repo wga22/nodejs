@@ -1,5 +1,6 @@
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ifconfig uap0 down
 iw dev wlan0 interface add uap0 type __ap
 #service dnsmasq restart
 sysctl net.ipv4.ip_forward=1
