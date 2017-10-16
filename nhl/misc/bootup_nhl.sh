@@ -2,7 +2,7 @@
 raspi-gpio set 17 op dl
 raspi-gpio set 4 op dl
 sleep 10
-if ping -q -c 1 -W 1 google.com >/dev/null; then
+if ping -q -c 1 -W 6 google.com >/dev/null; then
 	wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
 	wget -O /opt/nhl/index.html https://github.com/wga22/nodejs/raw/master/nhl/index.html
 	wget -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/master/nhl/webserver.js

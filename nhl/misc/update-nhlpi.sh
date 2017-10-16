@@ -2,7 +2,7 @@
 # automated update of nhlpi
 # USAGE
 #		curl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/misc/update-nhlpi.sh | sudo -E bash -
-if ping -q -c 1 -W 1 google.com >/dev/null; then
+if ping -q -c 1 -W 6 google.com >/dev/null; then
 	(apt-get update && apt-get -y upgrade) > /dev/null
 	apt-get dist-upgrade -y
 	apt-get clean -y
