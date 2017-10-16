@@ -1,0 +1,8 @@
+{
+        "portal_url": "https://owner-api.teslamotors.com/api/1/vehicles/",
+        "stream_url": "https://streaming.vn.teslamotors.com/stream/",
+        "username": "xxxxx",
+        "password": "xxxxxx",
+        "output_file": "stream_output.txt",
+		"debug": "1"
+}

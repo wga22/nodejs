@@ -10,9 +10,10 @@ if ping -q -c 1 -W 1 google.com >/dev/null; then
 	wget -O /etc/bootup_nhl.sh https://github.com/wga22/nodejs/raw/master/nhl/misc/bootup_nhl.sh
 	chmod u+x /etc/bootup_nhl.sh
 	chmod u+x /usr/local/bin/hostapdstart
+	ifconfig br0 down
 else
 	/usr/local/bin/hostapdstart
 fi
 
-#pm2 startup
+pm2 startup
 exit 0
