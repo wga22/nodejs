@@ -4,6 +4,7 @@
 # TODO: automate this script with something like: curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
 # TODO: setup wifi
 # TODO: setup passwd and authorized keys
+# notes: http://imti.co/post/145442415333/raspberry-pi-3-wifi-station-ap
 #apt-get stuff
 (apt-get update && apt-get -y upgrade) > /dev/null
 apt-get dist-upgrade -y

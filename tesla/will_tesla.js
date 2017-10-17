@@ -19,22 +19,14 @@ Object.defineProperty(Object.prototype, "extend", {
 
 var util = require('util');
 var http = require('http');
+var querystring = require("querystring");
 //var express    = require("express");
 //var mysql      = require('mysql');
 var teslams = require('teslams');
 var oResults = {};
-var nFieldsToLoad = 3;		//how many different function calls to make
+var nFieldsToLoad = 0;		//how many different function calls to make
 var fTesting = true;
-
-//MAIN
-//testing();
 main();
-
-function testing()
-{
-	writeValuesToAwardspace(oResults)
-}
-
 function writeValuesToAwardspace(tslaVals)
 {
 /*
@@ -126,34 +118,36 @@ https://nodejs.org/docs/v0.5.2/api/http.html#http.request
 	//console.log(aFields.join(""));
 	//return;
 	//&field1=80&field2=0&field3=321&field4=239.02&field5=155.79&field6=275.09&field7=33&field8=23&status=6.3
-
-	var options = {
-	  host: 'api.thingspeak.com',
-	  port: 80,
-	  path: '/update?api_key=MD1PLM36IK1LO9NZ' + aFields.join(""),
-	  method: 'GET'
-	};
-
-	var req = http.request(options, function(res) 
+	var sQS = aFields.join("");
+	if(sQS.length > 10)
 	{
-	  if(fTesting) console.log('STATUS: ' + res.statusCode);
-	  if(fTesting) console.log('HEADERS: ' + JSON.stringify(res.headers));
-	  res.setEncoding('utf8');
-	  res.on('data', function (chunk) 
-	  {
-		if(fTesting) console.log('BODY: ' + chunk);
-	  });
-	});
+		var options = {
+		  host: 'api.thingspeak.com',
+		  port: 80,
+		  path: '/update?api_key=MD1PLM36IK1LO9NZ' + sQS,
+		  method: 'GET'
+		};
+		var req = http.request(options, function(res) 
+		{
+		  if(fTesting) console.log('STATUS: ' + res.statusCode);
+		  if(fTesting) console.log('HEADERS: ' + JSON.stringify(res.headers));
+		  res.setEncoding('utf8');
+		  res.on('data', function (chunk) 
+		  {
+			if(fTesting) console.log('BODY: ' + chunk);
+		  });
+		});
 
-	req.on('error', function(e) {
-	  console.log('problem with request: ' + e.message);
-	});
+		req.on('error', function(e) {
+		  console.log('problem with request: ' + e.message);
+		});
 
-	// write data to request body
-	req.write('data\n');
-	req.write('data\n');
-	req.end();
-	console.log("fields: " + aFields.join(""));
+		// write data to request body
+		req.write('data\n');
+		req.write('data\n');
+		req.end();		
+	}
+	console.log("fields: " + sQS);
 }
 
 
@@ -197,13 +191,15 @@ function main()
 			// Remember node.js is all async and non-blocking so any uncommented lines below will generate requests in parallel
 			// Uncomment too many lines at once and you will get yourself blocked by the Tesla DoS protection systems.
 			//
-			//TODO, how to get multiple parts?
 			if(fTesting) console.log("get charge state");
 			teslams.get_charge_state( vid, storeVals );
+			nFieldsToLoad++;
 			if(fTesting) console.log("get_drive_state");
 			teslams.get_drive_state( vid, storeVals );
+			nFieldsToLoad++;
 			if(fTesting) console.log("get_vehicle_state");
 			teslams.get_vehicle_state( vid, storeVals );
+			nFieldsToLoad++;
 		}
 	  }
 	);
@@ -253,7 +249,7 @@ function validField(oObj, sField, sFieldName)
 {
 	if(!isNullOrUndefined(oObj) && !isNullOrUndefined(oObj[sField]))
 	{
-		return "&" + sFieldName + "=" + oObj[sField];
+		return "&" + sFieldName + "=" + querystring.escape(oObj[sField]);
 	}
 	return "";
 }
