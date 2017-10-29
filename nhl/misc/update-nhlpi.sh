@@ -11,19 +11,19 @@ if ping -q -c 1 -W 6 google.com >/dev/null; then
 	#pull git code
 	cd /opt/nhl
 	#NHL
-	wget -O /opt/nhl/nhl_common.js https://github.com/wga22/nodejs/raw/master/nhl/nhl_common.js
-	wget -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
+	wget --no-cache -O /opt/nhl/nhl_common.js https://github.com/wga22/nodejs/raw/master/nhl/nhl_common.js
+	wget --no-cache -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
 
 	#Web
-	wget -O /opt/nhl/index.html https://github.com/wga22/nodejs/raw/master/nhl/index.html
-	wget -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/master/nhl/webserver.js
+	wget --no-cache -O /opt/nhl/index.html https://github.com/wga22/nodejs/raw/master/nhl/index.html
+	wget --no-cache -O /opt/nhl/webserver.js https://github.com/wga22/nodejs/raw/master/nhl/webserver.js
 
 	#shells
-	wget -O /etc/bootup_nhl.sh https://github.com/wga22/nodejs/raw/master/nhl/misc/bootup_nhl.sh
-	wget -O /etc/network/interfaces https://github.com/wga22/nodejs/raw/master/nhl/misc/interfaces.conf
-	wget -O /etc/dnsmasq.conf https://github.com/wga22/nodejs/raw/master/nhl/misc/dnsmasq.conf
-	wget -O /usr/local/bin/hostapdstart https://github.com/wga22/nodejs/raw/master/nhl/misc/hostapdstart.sh
-	wget -O /etc/hostapd/hostapd.conf https://github.com/wga22/nodejs/raw/master/nhl/misc/hostapd.conf
+	wget --no-cache -O /etc/bootup_nhl.sh https://github.com/wga22/nodejs/raw/master/nhl/misc/bootup_nhl.sh
+	wget --no-cache -O /etc/network/interfaces https://github.com/wga22/nodejs/raw/master/nhl/misc/interfaces.conf
+	wget --no-cache -O /etc/dnsmasq.conf https://github.com/wga22/nodejs/raw/master/nhl/misc/dnsmasq.conf
+	wget --no-cache -O /usr/local/bin/hostapdstart https://github.com/wga22/nodejs/raw/master/nhl/misc/hostapdstart.sh
+	wget --no-cache -O /etc/hostapd/hostapd.conf https://github.com/wga22/nodejs/raw/master/nhl/misc/hostapd.conf
 
 	chmod u+x /usr/local/bin/hostapdstart
 
