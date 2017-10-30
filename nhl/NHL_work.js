@@ -430,12 +430,12 @@ GameResults.prototype.setGameStats = function(oRes, dDate)
 		this.period = gameStats.currentPeriod;
 		this.gameInProgress = oRes.gameData.status.detailedState != "Final";
 		
-		if(this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
+		if(this.homeScore>0 && this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
 		{
 			this.previousFavTeamScore = this.homeScore;
 			this.playHorn();
 		}
-		else if(this.awayTeam.isFavorite() && this.awayScore > this.previousFavTeamScore)
+		else if(this.awayScore>0 && this.awayTeam.isFavorite() && this.awayScore > this.previousFavTeamScore)
 		{			
 			this.previousFavTeamScore = this.awayScore;
 			this.playHorn();
