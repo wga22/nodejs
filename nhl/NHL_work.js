@@ -82,21 +82,20 @@ Object.defineProperty(Object.prototype, "extend", {
 });
 
 //requires
-var lame = require('lame');
-var fs = require('fs');
-var Speaker = require('speaker');
-//TODO:  need to find way to get this updated on remote files!  var nhlcommon = require('./nhl_common');
+const lame = require('lame');
+const fs = require('fs');
+const Speaker = require('speaker');
 
-var util = require('util');
-var http = require('http');
+const util = require('util');
+const http = require('http');
 var GPIO = null;
 
 //vars
 var ConfigJSON = {myteam: "WSH"};
-var MILLISPERMINUTE = 60000;	//1 minute
-var MILLISPERHOUR = MILLISPERMINUTE * 60;
-var MILLISPERDAY = MILLISPERHOUR*24;
-var ARTIFACT_DIR = "./horns/";
+const MILLISPERMINUTE = 60000;	//1 minute
+const MILLISPERHOUR = MILLISPERMINUTE * 60;
+const MILLISPERDAY = MILLISPERHOUR*24;
+const ARTIFACT_DIR = "./horns/";
 //var oLCDData = {lastactiondesc: "", date: (new Date()), standings: "0-0", teamname:"Washington Capitals", score:" WSH: 3 vs LOS: 1"};
 var fTesting = true;
 var aoMyTeamGames = [];
@@ -222,22 +221,19 @@ function GameResults(a_oPrevGameInfo)
 	this.displayResults = displayResults;
 	this.gameInProgress = true;
 	
-	//TODO: convert this to a single function, only run the case statement 1x - "pointer"
 	function displayResults(dDate)
 	{
-		switch(ConfigJSON.output)
+		if(ConfigJSON.output==="LCD_I2C" || ConfigJSON.output==="LCD2004")
 		{
-			case("LCD_I2C"):
-			case("LCD2004"):
 			this.LCD_2004_I2C(dDate);
-			break;
-			case("oled"):
-			case("SSD1306"):
+		}
+		else if(ConfigJSON.output==="oled" || ConfigJSON.output==="SSD1306")
+		{
 			this.SSD1306(dDate);
-			break;
-			case("console"):
-			default:
-			this.writeResultsToConsole(dDate)
+		}
+		else
+		{
+			this.writeResultsToConsole(dDate);
 		}
 	}	
 }
@@ -406,11 +402,7 @@ GameResults.prototype.setGameStats = function(oRes, dDate)
 	debugOut("aid:" + gameDataJson.gameData.teams.away.id)
 	debugOut("anick:" + gameDataJson.gameData.teams.away.teamName)
 	debugOut("hnick:" + gameDataJson.gameData.teams.home.teamName)
-	
-			TODO - handle game over
-		this.gameStop= dDate;
-
-	
+	this.gameStop= dDate;
 	*/
 	if(oRes && oRes.liveData && oRes.liveData.linescore && oRes.gameData && oRes.gameData.teams)
 	{
@@ -426,20 +418,9 @@ GameResults.prototype.setGameStats = function(oRes, dDate)
 		var iHG = parseInt(gameStats.teams.home.goals)
 		this.homeScore = iHG ? iHG : 0;
 		this.awayScore = iAG ? iAG : 0;
-		this.gameTime = gameStats.currentPeriodTimeRemaining;
-		this.period = gameStats.currentPeriod;
+		this.gameTime = gameStats.currentPeriodTimeRemaining ? gameStats.currentPeriodTimeRemaining : "20:00";
+		this.period = gameStats.currentPeriod ? gameStats.currentPeriod : 1;
 		this.gameInProgress = oRes.gameData.status.detailedState != "Final";
-		
-		if(this.homeScore>0 && this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
-		{
-			this.previousFavTeamScore = this.homeScore;
-			this.playHorn();
-		}
-		else if(this.awayScore>0 && this.awayTeam.isFavorite() && this.awayScore > this.previousFavTeamScore)
-		{			
-			this.previousFavTeamScore = this.awayScore;
-			this.playHorn();
-		}
 		
 		//only should go here when the game is over, 1 time (or maybe at bootup?)
 		if(!this.gameInProgress)
@@ -447,6 +428,16 @@ GameResults.prototype.setGameStats = function(oRes, dDate)
 			var fWon = (this.homeScore > this.awayScore && this.homeTeam.isFavorite()) || (this.homeScore < this.awayScore && this.awayTeam.isFavorite());	
 			debugOut("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
 			playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3");
+		}
+		else if(this.homeScore>0 && this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
+		{
+			this.previousFavTeamScore = this.homeScore;
+			this.playHorn();
+		}
+		else if(this.awayScore>0 && this.awayTeam.isFavorite() && this.awayScore > this.previousFavTeamScore)
+		{
+			this.previousFavTeamScore = this.awayScore;
+			this.playHorn();
 		}
 	}
 }
@@ -638,7 +629,6 @@ function printSchedule()
 getNHLSeasonString.THISSEASON = null;
 function getNHLSeasonString()
 {
-	//TODO: handle when the "previous" game is from last season
 	if(getNHLSeasonString.THISSEASON == null)
 	{
 		var dToday = new Date();
@@ -699,7 +689,6 @@ function playMp3(a_sSong)
 			powerAmp(true);
 			this.pipe(new Speaker(format));
 			setTimeout(powerAmp, MILLISPERMINUTE*2, false);	//turn off the amp after 2 mins
-			//TODO: figure out how to close this speaker object when done
 		} catch (e) 
 		{
 			console.warn("issue with speaker: " + e.message);
