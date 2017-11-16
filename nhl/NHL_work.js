@@ -65,29 +65,13 @@ http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
  
  */
 
-Object.defineProperty(Object.prototype, "extend", {
-	enumerable: false,
-	value: function(from) {
-		var props = Object.getOwnPropertyNames(from);
-		var dest = this;
-		props.forEach(function(name) {
-			if (name in dest) {
-				var destination = Object.getOwnPropertyDescriptor(from, name);
-				Object.defineProperty(dest, name, destination);
-				console.log("EXTEND:" + name)
-			}
-		});
-		return this;
-	}
-});
-
 //requires
 const lame = require('lame');
 const fs = require('fs');
 const Speaker = require('speaker');
 
 const util = require('util');
-const http = require('http');
+const httpClient = require('http');
 var GPIO = null;
 
 //vars
@@ -159,6 +143,7 @@ function initializeTheGamesList(aoGames)
 	debugOut("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
 	oCurrentGames = getPreviousAndNextGames();
 	oPrevGameResults = new GameResults(oCurrentGames.previousGame ? oCurrentGames.previousGame : oCurrentGames.nextGame);
+	aoGames = null;
 }
 
 function updateDisplayEachMinute()
@@ -362,7 +347,7 @@ GameResults.prototype._loadGameUpdates = function ()
 	//http://live.nhl.com/GameData/20162017/2016020755/PlayByPlay.json
 	var sURL = gameDetailsURL(this.oPrevGameInfo.id);
 	if(fTesting && false) console.log("_loadGameUpdates: " + sURL)
-	http.get(sURL, function(res){
+	httpClient.get(sURL, function(res){
 	var body = '';
 
 	res.on('data', function(chunk){
@@ -770,13 +755,10 @@ function pr( jsonVals ) {
 
 function loadURLasJSON(sURL, funcCallback)
 {
-	http.get(sURL, function(res){
+	httpClient.get(sURL, function(res)
+	{
 		var body = '';
-
-		res.on('data', function(chunk){
-			body += chunk;
-		});
-
+		res.on('data', function(chunk){body += chunk;});
 		res.on('end', function()
 		{
 			var oObj = {};

@@ -25,14 +25,14 @@ mkdir /etc/hostapd/
 
 #update node
 cd /tmp
-export nodeversion=8.5.0
+export nodeversion=8.9.0
 #wget https://nodejs.org/dist/v7.4.0/node-v7.4.0-linux-armv6l.tar.xz
 #wget https://nodejs.org/dist/v8.0.0/node-v8.0.0-linux-armv6l.tar.xz
 wget https://nodejs.org/dist/v${nodeversion}/node-v${nodeversion}-linux-armv6l.tar.xz
 tar -xvf node-v${nodeversion}-linux-armv6l.tar.xz
 cd node-v${nodeversion}-linux-armv6l
-rm *.md
-rm LICENSE
+rm -f *.md
+rm -f LICENSE
 cp -R * /usr/local/
 rm -R /tmp/node-v${nodeversion}-linux-armv6l
 rm /tmp/node-v${nodeversion}-linux-armv6l.tar.xz
