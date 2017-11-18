@@ -1,6 +1,8 @@
 #!/bin/sh
 raspi-gpio set 17 op dl
 raspi-gpio set 4 op dl
+raspi-gpio set 14 op dl
+raspi-gpio set 15 op dl
 sleep 10
 if ping -q -c 1 -W 6 google.com >/dev/null; then
 	wget --no-cache -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js

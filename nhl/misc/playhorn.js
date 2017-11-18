@@ -7,6 +7,8 @@ Potential display ideas (* = mandatory)
 	latest action
 	time and date
 	game time
+
+wget --no-cache -O playhorn.js https://github.com/wga22/nodejs/raw/master/nhl/misc/playhorn.js
 	
 sound and light
 	end of game, play the winner's buzzer (mp3 files), and spin light
@@ -52,29 +54,10 @@ http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
  
  
  */
-
-
-Object.defineProperty(Object.prototype, "extend", {
-	enumerable: false,
-	value: function(from) {
-		var props = Object.getOwnPropertyNames(from);
-		var dest = this;
-		props.forEach(function(name) {
-			if (name in dest) {
-				var destination = Object.getOwnPropertyDescriptor(from, name);
-				Object.defineProperty(dest, name, destination);
-				console.log("EXTEND:" + name)
-			}
-		});
-		return this;
-	}
-});
-
-
-var util = require('util');
-var lame = require('lame');
-var fs = require('fs');
-var Speaker = require('speaker');
+const util = require('util');
+const lame = require('lame');
+const fs = require('fs');
+const Speaker = require('speaker');
 var ConfigJSON = {myteam: "WSH"};
 var MILLISPERMINUTE = 60000;	//1 minute
 var MILLISPERHOUR = MILLISPERMINUTE * 60;
@@ -86,15 +69,17 @@ main();
 
 function main()
 {
+	console.log("INCOMPLETE: TEST lights");
+	console.log("INCOMPLETE: turn on the amp first")
+	console.log("make sure the amp is on: raspi-gpio set 4 op dh")
 	playHorn(ConfigJSON.myteam)
 }
 
-
 function playHorn(sTeam)
 {
-	console.log("\007");
+	//console.log("\007");
 	sTeam = sTeam.toLowerCase();
-	fs.createReadStream("./horns/"+sTeam+".mp3")
+	fs.createReadStream("../horns/"+sTeam+".mp3")
 		.pipe(new lame.Decoder())
 		.on('format', function (format) {
 	try {
@@ -105,8 +90,6 @@ function playHorn(sTeam)
 		return false;
 	}
 	});
-  
-  
 }
 
 

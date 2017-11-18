@@ -4,23 +4,6 @@
 	TEST out stuff
  
  */
-Object.defineProperty(Object.prototype, "extend", {
-	enumerable: false,
-	value: function(from) {
-		var props = Object.getOwnPropertyNames(from);
-		var dest = this;
-		props.forEach(function(name) {
-			if (name in dest) {
-				var destination = Object.getOwnPropertyDescriptor(from, name);
-				Object.defineProperty(dest, name, destination);
-				console.log("EXTEND:" + name)
-			}
-		});
-		return this;
-	}
-});
-
-
 var util = require('util');
 var http = require('http');
 var ConfigJSON = {myteam: "WSH"};
@@ -56,10 +39,7 @@ function configTesting()
 	for(var x =0; x < ConfigJSON.light.gpio.length; x++)
 	{
 		console.log("gpio:" + ConfigJSON.light.gpio[x]);	
-	}
-	
-	
-	
+	}	
 }
 
 function playHorn(sTeam)

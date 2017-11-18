@@ -69,13 +69,12 @@ http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
 const lame = require('lame');
 const fs = require('fs');
 const Speaker = require('speaker');
-
-const util = require('util');
 const httpClient = require('http');
 var GPIO = null;
 
 //vars
 var ConfigJSON = {myteam: "WSH"};
+const reDateCleanup = /\W\d\d /;
 const MILLISPERMINUTE = 60000;	//1 minute
 const MILLISPERHOUR = MILLISPERMINUTE * 60;
 const MILLISPERDAY = MILLISPERHOUR*24;
@@ -85,7 +84,6 @@ var fTesting = true;
 var aoMyTeamGames = [];
 var oPrevGameResults = {};
 var oCurrentGames = {};
-
 //MAIN
 main();
 
@@ -103,8 +101,20 @@ function main()
 	//load the games
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);	
 	setInterval(updateDisplayEachMinute, MILLISPERMINUTE);
+	setInterval(collectGarbage, MILLISPERHOUR);
 	setInterval(dailyCheckForUpdatesToGameList, MILLISPERDAY);
 	powerAmp(false);	//make sure amp is off
+}
+
+function collectGarbage()
+{
+	if (global.gc) {
+		global.gc();
+		debugOut("ran garbage collector");
+	} else {
+		console.log('Garbage collection unavailable.  Pass --expose-gc '
+		  + 'when launching node to enable forced garbage collection.');
+	}
 }
 
 function dailyCheckForUpdatesToGameList()
@@ -167,6 +177,11 @@ function updateDisplayEachMinute()
 		oPrevGameResults = new GameResults(oCurrentGames.previousGame ? oCurrentGames.previousGame : oCurrentGames.nextGame);
 	}
 	//debugOut("new game? " + oCurrentGames.nextGame.gameTime + " <= " + dToday.getTime());
+	if(nCounter++ > 100)
+	{
+		nCounter = 0;
+		collectGarbage();
+	}
 	oPrevGameResults.showResults(dToday);
 }
 
@@ -190,23 +205,24 @@ Team.prototype.isFavorite = function()
 function GameResults(a_oPrevGameInfo)
  {
 	//instance variables
-	this.oPrevGameInfo = a_oPrevGameInfo;
+	debugOut("creating game results");
 	this.lastGoalScoredEventID = '';
 	this.homeScore=null;
 	this.awayScore=null;
 	this.latestEvent = null;
 	this.actionCount = {nCount:0, sLatestEventID:""};
 	this.previousFavTeamScore = 0;
+	this.gameId = a_oPrevGameInfo.id;
+	this.nDaysTilNextGame = -1;
 	
 	//we only know the code at this point, dont know the id
-	this.homeTeam = new Team(this.oPrevGameInfo.h, (this.oPrevGameInfo.h == ConfigJSON.myteam));
-	this.awayTeam = new Team(this.oPrevGameInfo.a, (this.oPrevGameInfo.a == ConfigJSON.myteam));
-	this.gameStart = this.oPrevGameInfo.gameTime;
-	this.gameStop = new Date(this.oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));	//initiate with something large
-	this.displayResults = displayResults;
+	this.homeTeam = new Team(a_oPrevGameInfo.h, (a_oPrevGameInfo.h == ConfigJSON.myteam));
+	this.awayTeam = new Team(a_oPrevGameInfo.a, (a_oPrevGameInfo.a == ConfigJSON.myteam));
+	this.gameStart = a_oPrevGameInfo.gameTime;
+	this.gameStop = new Date(a_oPrevGameInfo.gameTime.getTime() + (GameResults.MAXGAMEDURATION*MILLISPERHOUR));	//initiate with something large
 	this.gameInProgress = true;
 	
-	function displayResults(dDate)
+	this.displayResults = (dDate) =>
 	{
 		if(ConfigJSON.output==="LCD_I2C" || ConfigJSON.output==="LCD2004")
 		{
@@ -220,241 +236,244 @@ function GameResults(a_oPrevGameInfo)
 		{
 			this.writeResultsToConsole(dDate);
 		}
+	}
+	
+	this.writeResultsToConsole = (dDate) =>
+	{
+		var aRes = this.genericResults(dDate);
+		var sIndent = "\t\t\t\t";
+		console.log(sIndent + "====================");	//20 is width of typical LCD
+		for(var x=0; x < aRes.length; x++)
+		{
+			console.log(sIndent + aRes[x]);
+		}
+		console.log(sIndent + "====================")
 	}	
+
+	this.LCD_2004_I2C = (dDate) =>
+	{
+		if(GameResults.LCD==null)
+		{
+			GameResults.LCD = require('lcdi2c');
+		}
+		var lcd = new GameResults.LCD( 1, ConfigJSON.lcdaddress , 20, 4 );
+		var aRes = this.genericResults(dDate);
+		lcd.clear();
+		for(var x=0; x < aRes.length; x++)
+		{
+			lcd.println(aRes[x] , (x+1));
+		}
+	}
+	
+	this.genericResultsNEW = (dDate) => 
+	{
+		var aRes = [];
+		if(oCurrentGames.nextGame!=null)  //after game
+		{
+			//use x:"Today 7:00 pm", x+1:tomorrow 7:00 pm, x+(2->6):Sun-Sat, x>=7: "Oct 12"
+			var sGameTime = smallDate(oCurrentGames.nextGame.gameTime);
+			aRes.push(sGameTime);
+			//FIX var nMSGameDate = Math.floor((new Date(oCurrentGames.nextGame.gameTime.getYear(), oCurrentGames.nextGame.gameTime.getMonth(), oCurrentGames.nextGame.gameTime.getDate()).getTime())/MILLISPERDAY);
+		}
+		return aRes
+	}
+
+
+	this.genericResults = (dDate) =>
+	{
+		var aRes = [];
+		aRes.push(this.awayTeam.nickname + (this.awayScore>=0 ? ("(" + this.awayScore + ")") : ""));
+		aRes.push(this.homeTeam.nickname + (this.homeScore>=0 ? ("(" + this.homeScore + ")") : ""));
+
+		if(this.gameInProgress)	//during game show score
+		{
+			aRes.push("P:"+ this.period +" T:" + this.gameTime);
+		}
+		else if(oCurrentGames.nextGame!=null)  //after game
+		{
+			//use x:"Today 7:00 pm", x+1:tomorrow 7:00 pm, x+(2->6):Sun-Sat, x>=7: "Oct 12"
+			var sGameTime = smallDate(oCurrentGames.nextGame.gameTime);
+			var nDiffDays = this.nDaysTilNextGame;
+			if(nDiffDays == 0)
+			{
+				sGameTime = "Today " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
+			}
+			else if ( nDiffDays <= 1)
+			{
+				sGameTime = "Tomorrow " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
+			}
+			else if( nDiffDays>=2 && nDiffDays <=7 )
+			{
+				sGameTime =  getDayOfWeek(oCurrentGames.nextGame.gameTime) +" " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
+			}
+			aRes.push("Next:" + sGameTime);
+		}
+		aRes.push(smallDate(dDate));
+		return aRes;
+	}
+
+	var SSD1306 = (dDate) => 
+	{
+		var aRes = genericResults(dDate);
+		try
+		{
+			if(GameResults.SSD1306_LCD.lcd==null)
+			{
+				//var lcdOpts = {  width: 128, height: 64, address: 0x3C};
+				var i2cBus = require('i2c-bus').openSync(0);
+				var OLEDI2CBUS = require('oled-i2c-bus');
+				GameResults.SSD1306_LCD.lcd = new OLEDI2CBUS(i2cBus, GameResults.SSD1306_LCD);
+				GameResults.SSD1306_LCD.lcd.turnOnDisplay();
+				GameResults.SSD1306_LCD.font = require('oled-font-5x7');
+			}
+			GameResults.SSD1306_LCD.lcd.clearDisplay();
+			
+			for(var x=0; x < aRes.length; x++)
+			{
+				GameResults.SSD1306_LCD.lcd.setCursor(10, ((x+1)*GameResults.SSD1306_LCD.nRowHeight));
+				GameResults.SSD1306_LCD.lcd.writeString(GameResults.SSD1306_LCD.font, 1, aRes[x], 1, true);
+			}
+		}
+		catch(e)
+		{
+			console.warn("SSD1306:" + e.message);
+		}
+	}
+
+	this.loadGameUpdates = () =>
+	{
+		//http://live.nhl.com/GameData/20162017/2016020755/PlayByPlay.json
+		var sURL = gameDetailsURL(this.gameId);
+		if(fTesting && false) console.log("loadGameUpdates: " + sURL)
+		httpClient.get(sURL, function(res){
+		var body = '';
+
+		res.on('data', function(chunk){
+			body += chunk;
+		});
+
+		res.on('end', function()
+		{
+			var oObj = {};
+			try
+			{
+				oObj = JSON.parse(body);				
+				var dDate = new Date();
+				oPrevGameResults.setGameStats(oObj, dDate);
+				oPrevGameResults.displayResults(dDate);
+			}
+			catch(e) 
+			{
+				console.warn("Something unexpected with the response from (" + sURL + ") :" + e.message);
+				//throw e;
+				//just let another loop happen, and do nothing more
+			}
+			//console.log("Got a response: ");
+		});
+		}).on('error', function(e){
+			  console.log("Got an error: ", e);
+		});
+	}
+	
+	this.setGameStats = (oRes, dDate) =>
+	{
+		/*
+		debugOut("period:" + gameDataJson.liveData.linescore.currentPeriod)
+		debugOut("home:" + gameDataJson.liveData.linescore.teams.home.goals)
+		debugOut("away:" + gameDataJson.liveData.linescore.teams.away.goals)
+		debugOut("time:" + gameDataJson.liveData.linescore.currentPeriodTimeRemaining)	debugOut("hid:" + gameDataJson.gameData.teams.home.id)
+		debugOut("aid:" + gameDataJson.gameData.teams.away.id)
+		debugOut("anick:" + gameDataJson.gameData.teams.away.teamName)
+		debugOut("hnick:" + gameDataJson.gameData.teams.home.teamName)
+		this.gameStop= dDate;
+		*/
+		if(oRes && oRes.liveData && oRes.liveData.linescore && oRes.gameData && oRes.gameData.teams)
+		{
+			var gameStats = oRes.liveData.linescore;
+			var teams = oRes.gameData.teams;
+			var hid = parseInt(teams.home.id); 
+			this.homeTeam.id = hid;
+			var aid = parseInt(teams.away.id);
+			this.awayTeam.id =  aid;
+			this.homeTeam.nickname = teams.home.teamName;
+			this.awayTeam.nickname = teams.away.teamName;
+			var iAG = parseInt(gameStats.teams.away.goals)
+			var iHG = parseInt(gameStats.teams.home.goals)
+			this.homeScore = iHG ? iHG : 0;
+			this.awayScore = iAG ? iAG : 0;
+			this.gameTime = gameStats.currentPeriodTimeRemaining ? gameStats.currentPeriodTimeRemaining : "20:00";
+			this.period = gameStats.currentPeriod ? gameStats.currentPeriod : 1;
+			this.gameInProgress = oRes.gameData.status.detailedState != "Final";
+			
+			//only should go here when the game is over, 1 time (or maybe at bootup?)
+			if(!this.gameInProgress)
+			{
+				var fWon = (this.homeScore > this.awayScore && this.homeTeam.isFavorite()) || (this.homeScore < this.awayScore && this.awayTeam.isFavorite());	
+				debugOut("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
+				playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3");
+			}
+			else if(this.homeScore>0 && this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
+			{
+				this.previousFavTeamScore = this.homeScore;
+				this.playHorn();
+			}
+			else if(this.awayScore>0 && this.awayTeam.isFavorite() && this.awayScore > this.previousFavTeamScore)
+			{
+				this.previousFavTeamScore = this.awayScore;
+				playHorn();
+			}
+		}
+	}
+
+	 this.showResults = (dDate) =>
+	{
+		if( this.gameInProgress)	//will initiate to true
+		{
+			debugOut("showResults: Active game.")
+			try
+			{
+				this.loadGameUpdates();
+			}
+			catch(e)
+			{
+				console.warn("couldnt load results, so just displaying what we already had");
+				this.displayResults(dDate);
+			}
+		}
+		else
+		{
+			debugOut("showResults: Game values are static, so no need to get active data.");
+			//only do this at midnight!
+			if(this.nDaysTilNextGame == -1 || (dDate.getMinutes == 0 && dDate.getHours == 0))
+			{
+				var nMSGameDate = Math.floor((new Date(oCurrentGames.nextGame.gameTime.getYear(), oCurrentGames.nextGame.gameTime.getMonth(), oCurrentGames.nextGame.gameTime.getDate()).getTime())/MILLISPERDAY);
+				var nMSToday = Math.floor((new Date(dDate.getYear(), dDate.getMonth(), dDate.getDate()).getTime())/MILLISPERDAY);
+				this.nDaysTilNextGame = nMSGameDate-nMSToday;
+				debugOut("nDaysTilNextGame =" + this.nDaysTilNextGame);
+			}
+			this.displayResults(dDate);  //just reuse old data, nothing new going on
+		}
+	}
+	
+	//look in the config for the "light" and use that as the GPIO pin.  If value not there, false, or 0, dont do anything
+	var playHorn = () =>
+	{
+		setTimeout(turnLight, 100, true);
+		var sTeam = ConfigJSON.myteam.toLowerCase();
+		var sSong = ARTIFACT_DIR + sTeam+".mp3";
+		playMp3(sSong);
+	}
+
+	
 }
 GameResults.MAXGAMEDURATION = 6;
 GameResults.MAXWAITFORGAMEDATA = 100;
 GameResults.MAXRETRYEVENT = 4;
 
 GameResults.LCD = null;
-GameResults.prototype.LCD_2004_I2C = function(dDate)
-{
-	if(GameResults.LCD==null)
-	{
-		GameResults.LCD = require('lcdi2c');
-	}
-	var lcd = new GameResults.LCD( 1, ConfigJSON.lcdaddress , 20, 4 );
-	var aRes = this.genericResults(dDate);
-	lcd.clear();
-	for(var x=0; x < aRes.length; x++)
-	{
-		lcd.println(aRes[x] , (x+1));
-	}
-}
-
-GameResults.prototype.genericResults = function(dDate)
-{
-	var aRes = [];
-	aRes.push(this.awayTeam.nickname + (this.awayScore>=0 ? ("(" + this.awayScore + ")") : ""));
-	aRes.push(this.homeTeam.nickname + (this.homeScore>=0 ? ("(" + this.homeScore + ")") : ""));
-
-	if(this.gameInProgress)	//during game show score
-	{
-		aRes.push("P:"+ this.period +" T:" + this.gameTime);
-	}
-	else if(oCurrentGames.nextGame!=null)  //after game
-	{
-		//use x:"Today 7:00 pm", x+1:tomorrow 7:00 pm, x+(2->6):Sun-Sat, x>=7: "Oct 12"
-		var sGameTime = smallDate(oCurrentGames.nextGame.gameTime);
-		var nMSGameDate = Math.floor((new Date(oCurrentGames.nextGame.gameTime.getYear(), oCurrentGames.nextGame.gameTime.getMonth(), oCurrentGames.nextGame.gameTime.getDate()).getTime())/MILLISPERDAY);
-		var nMSToday = Math.floor((new Date(dDate.getYear(), dDate.getMonth(), dDate.getDate()).getTime())/MILLISPERDAY);
-		var nDiffDays = nMSGameDate-nMSToday;
-		//debugOut("genRes: days" + (nMSGameDate) + " =? " + (nMSToday) + " diff:" + nDiffDays)
-		if(nDiffDays == 0)
-		{
-			sGameTime = "Today " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
-		}
-		else if ( nDiffDays <= 1)
-		{
-			sGameTime = "Tomorrow " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
-		}
-		else if( nDiffDays>=2 && nDiffDays <=7 )
-		{
-			sGameTime =  getDayOfWeek(oCurrentGames.nextGame.gameTime) +" " + getTimeOfDay(oCurrentGames.nextGame.gameTime);
-		}
-		aRes.push("Next:" + sGameTime);
-	}
-	aRes.push(smallDate(dDate));
-	return aRes;
-}
-
 GameResults.SSD1306_LCD = {lcd:null, height:64, width:128, rowHeight:12, address: 0x3C, font:null, nRowHeight:10};
-GameResults.prototype.SSD1306 = function (dDate)
-{
-	var aRes = this.genericResults(dDate);
-	try
-	{
-		if(GameResults.SSD1306_LCD.lcd==null)
-		{
-			//var lcdOpts = {  width: 128, height: 64, address: 0x3C};
-			var i2cBus = require('i2c-bus').openSync(0);
-			var OLEDI2CBUS = require('oled-i2c-bus');
-			GameResults.SSD1306_LCD.lcd = new OLEDI2CBUS(i2cBus, GameResults.SSD1306_LCD);
-			GameResults.SSD1306_LCD.lcd.turnOnDisplay();
-			GameResults.SSD1306_LCD.font = require('oled-font-5x7');
-		}
-		GameResults.SSD1306_LCD.lcd.clearDisplay();
-		
-		for(var x=0; x < aRes.length; x++)
-		{
-			GameResults.SSD1306_LCD.lcd.setCursor(10, ((x+1)*GameResults.SSD1306_LCD.nRowHeight));
-			GameResults.SSD1306_LCD.lcd.writeString(GameResults.SSD1306_LCD.font, 1, aRes[x], 1, true);
-		}
-	}
-	catch(e)
-	{
-		console.warn("SSD1306:" + e.message);
-	}
-}
 
 
-GameResults.prototype.SSD1306_python = function (dDate)
-{
-	var aRes = ['oled_writer.py'];
-	aRes.push(this.genericResults(dDate));
-
-	try
-	{
-		var execFile = require('child_process').execFile;
-		var child = execFile('python', aRes, (error, stdout, stderr) => {
-		if (error)
-		{
-			throw error;
-		}
-		  console.log(stdout);
-		});	
-	}
-	catch(e)
-	{
-		console.warn("SSD1306:" + e.message);
-	}
-}
-
-GameResults.prototype.writeResultsToConsole = function (dDate)
-{
-	var aRes = this.genericResults(dDate);
-	var sIndent = "\t\t\t\t";
-	console.log(sIndent + "====================");	//20 is width of typical LCD
-	for(var x=0; x < aRes.length; x++)
-	{
-		console.log(sIndent + aRes[x]);
-	}
-	console.log(sIndent + "====================")
-}
-
-GameResults.prototype._loadGameUpdates = function ()
-{
-	//http://live.nhl.com/GameData/20162017/2016020755/PlayByPlay.json
-	var sURL = gameDetailsURL(this.oPrevGameInfo.id);
-	if(fTesting && false) console.log("_loadGameUpdates: " + sURL)
-	httpClient.get(sURL, function(res){
-	var body = '';
-
-	res.on('data', function(chunk){
-		body += chunk;
-	});
-
-	res.on('end', function()
-	{
-		var oObj = {};
-		try
-		{
-			oObj = JSON.parse(body);				
-			var dDate = new Date();
-			oPrevGameResults.setGameStats(oObj, dDate);
-			oPrevGameResults.displayResults(dDate);
-		}
-		catch(e) 
-		{
-			console.warn("Something unexpected with the response from (" + sURL + ") :" + e.message);
-			//throw e;
-			//just let another loop happen, and do nothing more
-		}
-		//console.log("Got a response: ");
-	});
-	}).on('error', function(e){
-		  console.log("Got an error: ", e);
-	});
-}
-
-GameResults.prototype.setGameStats = function(oRes, dDate)
-{
-	/*
-	debugOut("period:" + gameDataJson.liveData.linescore.currentPeriod)
-	debugOut("home:" + gameDataJson.liveData.linescore.teams.home.goals)
-	debugOut("away:" + gameDataJson.liveData.linescore.teams.away.goals)
-	debugOut("time:" + gameDataJson.liveData.linescore.currentPeriodTimeRemaining)	debugOut("hid:" + gameDataJson.gameData.teams.home.id)
-	debugOut("aid:" + gameDataJson.gameData.teams.away.id)
-	debugOut("anick:" + gameDataJson.gameData.teams.away.teamName)
-	debugOut("hnick:" + gameDataJson.gameData.teams.home.teamName)
-	this.gameStop= dDate;
-	*/
-	if(oRes && oRes.liveData && oRes.liveData.linescore && oRes.gameData && oRes.gameData.teams)
-	{
-		var gameStats = oRes.liveData.linescore;
-		var teams = oRes.gameData.teams;
-		var hid = parseInt(teams.home.id); 
-		this.homeTeam.id = hid;
-		var aid = parseInt(teams.away.id);
-		this.awayTeam.id =  aid;
-		this.homeTeam.nickname = teams.home.teamName;
-		this.awayTeam.nickname = teams.away.teamName;
-		var iAG = parseInt(gameStats.teams.away.goals)
-		var iHG = parseInt(gameStats.teams.home.goals)
-		this.homeScore = iHG ? iHG : 0;
-		this.awayScore = iAG ? iAG : 0;
-		this.gameTime = gameStats.currentPeriodTimeRemaining ? gameStats.currentPeriodTimeRemaining : "20:00";
-		this.period = gameStats.currentPeriod ? gameStats.currentPeriod : 1;
-		this.gameInProgress = oRes.gameData.status.detailedState != "Final";
-		
-		//only should go here when the game is over, 1 time (or maybe at bootup?)
-		if(!this.gameInProgress)
-		{
-			var fWon = (this.homeScore > this.awayScore && this.homeTeam.isFavorite()) || (this.homeScore < this.awayScore && this.awayTeam.isFavorite());	
-			debugOut("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
-			playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3");
-		}
-		else if(this.homeScore>0 && this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
-		{
-			this.previousFavTeamScore = this.homeScore;
-			this.playHorn();
-		}
-		else if(this.awayScore>0 && this.awayTeam.isFavorite() && this.awayScore > this.previousFavTeamScore)
-		{
-			this.previousFavTeamScore = this.awayScore;
-			this.playHorn();
-		}
-	}
-}
-GameResults.prototype.showResults = function(dDate)
-{
-	if( this.gameInProgress)	//will initiate to true
-	{
-		debugOut("showResults: Active game.")
-		try
-		{
-			this._loadGameUpdates();
-		}
-		catch(e)
-		{
-			console.warn("couldnt load results, so just displaying what we already had");
-			this.displayResults(dDate);
-		}
-	}
-	else
-	{
-		debugOut("showResults: Game values are static, so no need to get active data.")
-		this.displayResults(dDate);  //just reuse old data, nothing new going on
-	}
-}
-//look in the config for the "light" and use that as the GPIO pin.  If value not there, false, or 0, dont do anything
-GameResults.prototype.playHorn = function()
-{
-	setTimeout(turnLight, 100, true);
-	var sTeam = ConfigJSON.myteam.toLowerCase();
-	var sSong = ARTIFACT_DIR + sTeam+".mp3";
-	playMp3(sSong);
-}
 
 ///////end GameResults///////////
 
@@ -579,6 +598,30 @@ function turnLight(s_fOn)
 
 
 /*
+
+GameResults.prototype.SSD1306_python = function (dDate)
+{
+	var aRes = ['oled_writer.py'];
+	aRes.push(this.genericResults(dDate));
+
+	try
+	{
+		var execFile = require('child_process').execFile;
+		var child = execFile('python', aRes, (error, stdout, stderr) => {
+		if (error)
+		{
+			throw error;
+		}
+		  console.log(stdout);
+		});	
+	}
+	catch(e)
+	{
+		console.warn("SSD1306:" + e.message);
+	}
+}
+
+
 {"aoi":
 [8470880,8473564,8474150,8476462],"sweater":"44","hs":2,"desc":"Jean-Gabriel Pageau Wrist Shot saved by Brian Elliott","formalEventId":"OTT811","type":"Shot","eventid":811,"hsog":24,"asog":23,"apb":
 [],"p2name":"Brian Elliott","time":"03:22","localtime":"10:11 PM","teamid":9,"xcoord":-71,"strength":701,"as":2,"pid":8476419,"period":4,"p3name":"","hpb":
@@ -673,7 +716,7 @@ function playMp3(a_sSong)
 		{
 			powerAmp(true);
 			this.pipe(new Speaker(format));
-			setTimeout(powerAmp, MILLISPERMINUTE*2, false);	//turn off the amp after 2 mins
+			setTimeout(powerAmp, MILLISPERMINUTE*.5, false);	//turn off the amp after 30 seconds
 		} catch (e) 
 		{
 			console.warn("issue with speaker: " + e.message);
@@ -744,13 +787,7 @@ function friendlyDate(a_dDate)
 
 function getTimeOfDay(a_dDate)
 {
-	return (a_dDate.toLocaleTimeString("en-US")).replace(/\W\d\d /, " ")
-}
-
-// Generic callback function to print the return value
-function pr( jsonVals ) {
-	console.log( util.inspect( jsonVals ) );
-	//writeValuesToThingSpeak(jsonVals)
+	return (a_dDate.toLocaleTimeString("en-US")).replace(reDateCleanup, " ")
 }
 
 function loadURLasJSON(sURL, funcCallback)
