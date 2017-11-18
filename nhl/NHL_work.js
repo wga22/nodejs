@@ -45,6 +45,8 @@ useful URLs - details:
  http://hfboards.hockeysfuture.com/showthread.php?t=1596119
  http://whatsyourtech.ca/2013/06/14/we-scored-app-roars-when-your-nhl-team-scores/
 
+ wget --no-cache -O NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
+ 
 Sound files
 	http://wejustscored.com/audio/wsh.mp3
 	http://wejustscored.com/audio/<TEAM>.mp3

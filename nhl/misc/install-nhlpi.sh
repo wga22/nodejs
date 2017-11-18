@@ -140,7 +140,7 @@ cd /tmp/
 npm install -g pm2
 pm2 startup
 cd /opt/nhl
-pm2 start NHL_work.js --node-args="--max_old_space_size 100M"
+pm2 start NHL_work.js --node-args="--max_old_space_size=100 expose-gc"
 pm2 start webserver.js --node-args="--max_old_space_size 100M"
 pm2 save
 pm2 startup
