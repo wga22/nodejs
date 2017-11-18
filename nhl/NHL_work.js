@@ -179,11 +179,6 @@ function updateDisplayEachMinute()
 		oPrevGameResults = new GameResults(oCurrentGames.previousGame ? oCurrentGames.previousGame : oCurrentGames.nextGame);
 	}
 	//debugOut("new game? " + oCurrentGames.nextGame.gameTime + " <= " + dToday.getTime());
-	if(nCounter++ > 100)
-	{
-		nCounter = 0;
-		collectGarbage();
-	}
 	oPrevGameResults.showResults(dToday);
 }
 
