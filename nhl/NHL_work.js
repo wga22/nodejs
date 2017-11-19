@@ -412,7 +412,7 @@ function GameResults(a_oPrevGameInfo)
 			else if(this.homeScore>0 && this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
 			{
 				this.previousFavTeamScore = this.homeScore;
-				this.playHorn();
+				playHorn();
 			}
 			else if(this.awayScore>0 && this.awayTeam.isFavorite() && this.awayScore > this.previousFavTeamScore)
 			{
@@ -453,15 +453,13 @@ function GameResults(a_oPrevGameInfo)
 	}
 	
 	//look in the config for the "light" and use that as the GPIO pin.  If value not there, false, or 0, dont do anything
-	var playHorn = () =>
+	function playHorn()
 	{
 		setTimeout(turnLight, 100, true);
 		var sTeam = ConfigJSON.myteam.toLowerCase();
 		var sSong = ARTIFACT_DIR + sTeam+".mp3";
 		playMp3(sSong);
 	}
-
-	
 }
 GameResults.MAXGAMEDURATION = 6;
 GameResults.MAXWAITFORGAMEDATA = 100;
