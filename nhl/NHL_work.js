@@ -72,6 +72,7 @@ const lame = require('lame');
 const fs = require('fs');
 const Speaker = require('speaker');
 const httpClient = require('http');
+const nhlcommon = require('./nhl_common.js');
 var GPIO = null;
 
 //vars
@@ -91,8 +92,9 @@ main();
 
 function main()
 {
+	powerAmp(false);	//make sure amp is off
 	//init data
-	ConfigJSON = loadConfig();
+	ConfigJSON = nhlcommon.loadConfig();
 	fTesting = (ConfigJSON.debug == "1" || ConfigJSON.debug == "true");
 	ConfigJSON.lcdaddress =  (parseInt(ConfigJSON.lcdaddress) > 0) ? parseInt(ConfigJSON.lcdaddress) : 0x27;
 	//make sure light is off to start
@@ -105,7 +107,9 @@ function main()
 	setInterval(updateDisplayEachMinute, MILLISPERMINUTE);
 	setInterval(collectGarbage, MILLISPERHOUR);
 	setInterval(dailyCheckForUpdatesToGameList, MILLISPERDAY);
-	powerAmp(false);	//make sure amp is off
+	reportUsage();
+	setInterval(reportUsage, MILLISPERDAY);
+
 }
 
 function collectGarbage()
@@ -118,6 +122,21 @@ function collectGarbage()
 		  + 'when launching node to enable forced garbage collection.');
 	}
 }
+
+
+function reportUsage()
+{
+	function postData(res)
+	{
+		res.on('data', function(chunk){null;});
+		res.on('end', function(){null;});
+	}
+	var THINGSPEAKURL = 'http://api.thingspeak.com/update';
+	var sThingspeakKey = '3EC58LURXG5CETNK';
+	var sURL = THINGSPEAKURL + "?key=" + sThingspeakKey + "&field1=" + ConfigJSON.lightid;
+	httpClient.get(sURL, postData).on('error', function(e){console.log("Report Usage: Got an error: ", e);});
+}
+
 
 function dailyCheckForUpdatesToGameList()
 {
@@ -211,6 +230,7 @@ function GameResults(a_oPrevGameInfo)
 	this.previousFavTeamScore = 0;
 	this.gameId = a_oPrevGameInfo.id;
 	this.nDaysTilNextGame = -1;
+	this.fResetDaysTilGame = true;
 	
 	//we only know the code at this point, dont know the id
 	this.homeTeam = new Team(a_oPrevGameInfo.h, (a_oPrevGameInfo.h == ConfigJSON.myteam));
@@ -441,12 +461,17 @@ function GameResults(a_oPrevGameInfo)
 		{
 			debugOut("showResults: Game values are static, so no need to get active data.");
 			//only do this at midnight!
-			if(this.nDaysTilNextGame == -1 || (dDate.getMinutes == 0 && dDate.getHours == 0))
+			if(this.nDaysTilNextGame == -1 || (this.fResetDaysTilGame && dDate.getHours == 0))
 			{
 				var nMSGameDate = Math.floor((new Date(oCurrentGames.nextGame.gameTime.getYear(), oCurrentGames.nextGame.gameTime.getMonth(), oCurrentGames.nextGame.gameTime.getDate()).getTime())/MILLISPERDAY);
 				var nMSToday = Math.floor((new Date(dDate.getYear(), dDate.getMonth(), dDate.getDate()).getTime())/MILLISPERDAY);
 				this.nDaysTilNextGame = nMSGameDate-nMSToday;
 				debugOut("nDaysTilNextGame =" + this.nDaysTilNextGame);
+				this.fResetDaysTilGame = false;
+			}
+			else if(!this.fResetDaysTilGame && dDate.getHours >0)
+			{
+				this.fResetDaysTilGame = true;
 			}
 			this.displayResults(dDate);  //just reuse old data, nothing new going on
 		}
@@ -805,28 +830,6 @@ function loadURLasJSON(sURL, funcCallback)
 	}).on('error', function(e){
 		  console.log("Got an error: ", e);
 	});
-}
-
-function loadConfig()
-{
-	/* SAMPLE FILE
-		see header 
-	*/
-	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
-	var oJSON =  {};
-	try 
-	{
-		var jsonString = fs.readFileSync("./nhl_config.json").toString();
-		oJSON = JSON.parse(jsonString);
-	} 
-	catch (err) 
-	{
-		oJSON = ConfigJSON;
-		console.warn("The file 'nhl_config.json' does not exist or contains invalid arguments!");
-		console.warn("Going with the best team, instead: " + ConfigJSON.myteam);
-		//process.exit(1);
-	}
-	return oJSON;
 }
 
 function debugOut(sVal)

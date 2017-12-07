@@ -1,7 +1,6 @@
 #!/bin/env node
 
 var fs      = require('fs');
-
 //http://www.nicetimeonice.com/api
 exports.teams = [{"name":"Anaheim Ducks","teamID":"ANA"},
 {"name":"Arizona Coyotes","teamID":"ARI"},
@@ -75,5 +74,6 @@ exports.loadConfig = () =>
 		console.warn("Going with the best team, instead: " + ConfigJSON.myteam);
 		//process.exit(1);
 	}
+	oJSON.lightid = oJSON.lightid ? oJSON.lightid : -1;
 	return oJSON;
 }
