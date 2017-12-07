@@ -123,7 +123,6 @@ function collectGarbage()
 	}
 }
 
-
 function reportUsage()
 {
 	function postData(res)
@@ -135,8 +134,8 @@ function reportUsage()
 	var sThingspeakKey = '3EC58LURXG5CETNK';
 	var sURL = THINGSPEAKURL + "?key=" + sThingspeakKey + "&field1=" + ConfigJSON.lightid;
 	httpClient.get(sURL, postData).on('error', function(e){console.log("Report Usage: Got an error: ", e);});
+	debugOut("TP POST:" + sURL);
 }
-
 
 function dailyCheckForUpdatesToGameList()
 {

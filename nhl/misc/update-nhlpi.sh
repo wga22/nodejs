@@ -27,6 +27,6 @@ if ping -q -c 1 -W 6 google.com >/dev/null; then
 
 	chmod u+x /usr/local/bin/hostapdstart
 
-	pm2 updatePM2
+	#pm2 updatePM2	#TODO: fix this so it doesnt remove the processes that are saved?
 fi
 exit 0
