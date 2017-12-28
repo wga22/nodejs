@@ -460,7 +460,7 @@ function GameResults(a_oPrevGameInfo)
 		{
 			debugOut("showResults: Game values are static, so no need to get active data.");
 			//only do this at midnight!
-			if(this.nDaysTilNextGame == -1 || (this.fResetDaysTilGame && dDate.getHours == 0))
+			if(this.nDaysTilNextGame == -1 || (this.fResetDaysTilGame && dDate.getHours() == 0))
 			{
 				var nMSGameDate = Math.floor((new Date(oCurrentGames.nextGame.gameTime.getYear(), oCurrentGames.nextGame.gameTime.getMonth(), oCurrentGames.nextGame.gameTime.getDate()).getTime())/MILLISPERDAY);
 				var nMSToday = Math.floor((new Date(dDate.getYear(), dDate.getMonth(), dDate.getDate()).getTime())/MILLISPERDAY);
@@ -468,7 +468,7 @@ function GameResults(a_oPrevGameInfo)
 				debugOut("nDaysTilNextGame =" + this.nDaysTilNextGame);
 				this.fResetDaysTilGame = false;
 			}
-			else if(!this.fResetDaysTilGame && dDate.getHours >0)
+			else if(!this.fResetDaysTilGame && dDate.getHours() >0)
 			{
 				this.fResetDaysTilGame = true;
 			}
