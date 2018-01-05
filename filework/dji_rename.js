@@ -1,4 +1,13 @@
 #!/usr/bin/env node
+/*utility to give better names to mavic files
+
+Feature ideas:
+  - keep record of "locations" by lat/long info (even if munged), and use this info to name
+  - pull lat/long to cityname, and if valid, use.
+
+*/
+
+
 const util = require('util');
 const fs = require('fs');	//https://nodejs.org/api/fs.html
 const httpClient = require('http');
