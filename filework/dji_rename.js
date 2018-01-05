@@ -4,6 +4,7 @@
 Feature ideas:
   - keep record of "locations" by lat/long info (even if munged), and use this info to name
   - pull lat/long to cityname, and if valid, use.
+  - automatically post to imagur (https://www.npmjs.com/package/imgur)
 
 */
 
@@ -15,14 +16,17 @@ const ExifImage = require('exif').ExifImage;	//https://github.com/gomfunkel/node
 //  http://maps.googleapis.com/maps/api/geocode/json?sensor=true&latlng=35.119909,-93.867188
 //  http://maps.googleapis.com/maps/api/geocode/json?sensor=true&latlng=32.9764,11.0268
 const geocodeURL = "http://maps.googleapis.com/maps/api/geocode/json?sensor=true&latlng=";
-var photoPath = "D:/stuff/aireal\ photography/stills";
+//var photoPath = "D:/stuff/aireal\ photography/stills";
+var photoPath = "D:\\aerial_photography\\stills";
+var imgur = require('imgur');
+var config = {"album_id" : ""};
 
 //MAIN
 main();
 function main()
 {
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
-	var fs = require('fs');
+	setupImgur();
 	var sNewName = randomString(5);
 	if(process.argv.length > 2)
 	{
@@ -42,6 +46,70 @@ function main()
 }
 //http://maps.googleapis.com/maps/api/geocode/json?latlng=35.119909,-93.867188&sensor=true
 
+function setupImgur()
+{
+	var jsonString = fs.readFileSync("./imgur_settings.json").toString();
+	config = JSON.parse(jsonString);
+	//imgur.setAPIUrl('https://api.imgur.com/3/');
+	imgur.setAPIUrl(config.apiurl);
+	//imgur.setCredentials('email@domain.com', 'password', 'aCs53GSs4tga0ikp');
+	imgur.setCredentials(config.user, config.password, config.client_id);
+	//imgur.setClientId('aCs53GSs4tga0ikp');
+	//imgur.setClientId(config.client_id);
+	console.log("imgur setup completed");
+	//testImgur();
+	
+}
+
+function testImgur()
+{
+	//https://api.imgur.com/3/account/{userid}/albums/ids/
+	console.log("imgur clientid: " + imgur.getClientId());
+
+	var sSampleFile = 'C:\\Users\\Will\\OneDrive\\Pictures\\Screenshots\\20160911_165827.jpg' 
+	//imgur.uploadFile(sSampleFile, null, "TEST", "TESTS")
+	//TODO NOT WORKING?S!
+	//imgur.uploadFile(sSampleFile, config.album_id);
+	imgur.uploadFile(sSampleFile, config.album_id).then(function (json) 
+	{
+        //console.log(json.data.link);
+		//console.log(json);
+		console.log("success");
+    })
+    .catch(function (err) {
+        console.error("Error:" + err.message);
+    });
+
+	console.log("done?" + config.album_id);
+	/*
+	
+		var query = 'cats';
+	//imgur.checkQuery(query);
+	//var optionalParams = {sort: 'top', dateRange: 'week', page: 1}
+	//imgur.search(query, optionalParams)
+	/*
+    .then(function(json) {
+        console.log(json);
+    })
+    .catch(function (err) {
+        console.error(err);
+    });
+	
+	
+	//imgur.uploadFile = function (file, albumId, title, description) {
+	
+	imgur.uploadFile('C:\\Users\\Will\\OneDrive\\Pictures\\Screenshots\\20160911_165827.jpg')
+	.then(function (json) 
+	{
+        //console.log(json.data.link);
+		//console.log(json);
+		console.log("success");
+    })
+    .catch(function (err) {        console.error("error: " + err.message);    throw err;});
+	*/
+	
+}
+
 function getFilesToRename(sPath, sNewName)
 {
 	var aFiles = fs.readdirSync(sPath);
@@ -59,9 +127,19 @@ function getFilesToRename(sPath, sNewName)
 	}
 }
  
+function sendToImgur(sFile)
+{
+	imgur.uploadFile(sFile, config.album_id)
+		.then(function (json) {
+			console.log("successful upload: " + json.data.link);
+		})
+		.catch(function (err) {
+			console.error("Error("+sFile+") uploading: " + err.message );
+		});	 
+}
+ 
 function renameFile(sFile, sNewName)
 {
-	
 	try
 	{
 		var stats = fs.statSync(sFile);
@@ -69,7 +147,9 @@ function renameFile(sFile, sNewName)
 		//console.log(sFileTime)
 		var sUpdatedFileName = sFile.replace(/DJI_(\d+)\.JPG/, (sNewName+"_"+sFileTime+'_$1.jpg'))
 		console.log("old: ", sFile, " new: " , sUpdatedFileName);
-		//fs.rename(sFile,sUpdatedFileName, function(){console.log("renamed: " + sFile )});
+		//ASYNC fs.rename(sFile,sUpdatedFileName, fileIsRenamedfunction(){console.log("renamed: " + sFile )});
+		fs.renameSync(sFile,sUpdatedFileName);
+		sendToImgur(sUpdatedFileName);
 	}
 	catch(e)
 	{
