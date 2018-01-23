@@ -7,27 +7,32 @@ Feature ideas:
   - automatically post to imagur (https://www.npmjs.com/package/imgur)
 
 */
-
-
+//REQUIRES
 const util = require('util');
 const fs = require('fs');	//https://nodejs.org/api/fs.html
 const httpClient = require('http');
 const ExifImage = require('exif').ExifImage;	//https://github.com/gomfunkel/node-exif
+const imgur = require('imgur');
 //  http://maps.googleapis.com/maps/api/geocode/json?sensor=true&latlng=35.119909,-93.867188
 //  http://maps.googleapis.com/maps/api/geocode/json?sensor=true&latlng=32.9764,11.0268
-const geocodeURL = "http://maps.googleapis.com/maps/api/geocode/json?sensor=true&latlng=";
 //var photoPath = "D:/stuff/aireal\ photography/stills";
-var photoPath = "D:\\aerial_photography\\stills";
-var imgur = require('imgur');
+
+//STATICS
+const geocodeURL = "http://maps.googleapis.com/maps/api/geocode/json?sensor=true&latlng=";
+const photoPath = "D:\\aerial_photography\\stills";
+
+//GLOBALS
 var config = {"album_id" : ""};
 
 //MAIN
 main();
+
 function main()
 {
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
 	setupImgur();
 	var sNewName = randomString(5);
+	//allow for user to have passed in a name
 	if(process.argv.length > 2)
 	{
 		sNewName = process.argv[2];
@@ -35,9 +40,7 @@ function main()
 	}
 	try 
 	{
-		
-		var aoFiles = getFilesToRename(photoPath, sNewName);
-		
+		var aoFiles = getFilesToRename(photoPath, sNewName);	
 	} catch (err) {
 		console.warn("Error Exiting..." + err);
 		process.exit(1);
@@ -58,56 +61,6 @@ function setupImgur()
 	//imgur.setClientId(config.client_id);
 	console.log("imgur setup completed");
 	//testImgur();
-	
-}
-
-function testImgur()
-{
-	//https://api.imgur.com/3/account/{userid}/albums/ids/
-	console.log("imgur clientid: " + imgur.getClientId());
-
-	var sSampleFile = 'C:\\Users\\Will\\OneDrive\\Pictures\\Screenshots\\20160911_165827.jpg' 
-	//imgur.uploadFile(sSampleFile, null, "TEST", "TESTS")
-	//TODO NOT WORKING?S!
-	//imgur.uploadFile(sSampleFile, config.album_id);
-	imgur.uploadFile(sSampleFile, config.album_id).then(function (json) 
-	{
-        //console.log(json.data.link);
-		//console.log(json);
-		console.log("success");
-    })
-    .catch(function (err) {
-        console.error("Error:" + err.message);
-    });
-
-	console.log("done?" + config.album_id);
-	/*
-	
-		var query = 'cats';
-	//imgur.checkQuery(query);
-	//var optionalParams = {sort: 'top', dateRange: 'week', page: 1}
-	//imgur.search(query, optionalParams)
-	/*
-    .then(function(json) {
-        console.log(json);
-    })
-    .catch(function (err) {
-        console.error(err);
-    });
-	
-	
-	//imgur.uploadFile = function (file, albumId, title, description) {
-	
-	imgur.uploadFile('C:\\Users\\Will\\OneDrive\\Pictures\\Screenshots\\20160911_165827.jpg')
-	.then(function (json) 
-	{
-        //console.log(json.data.link);
-		//console.log(json);
-		console.log("success");
-    })
-    .catch(function (err) {        console.error("error: " + err.message);    throw err;});
-	*/
-	
 }
 
 function getFilesToRename(sPath, sNewName)
@@ -129,6 +82,7 @@ function getFilesToRename(sPath, sNewName)
  
 function sendToImgur(sFile)
 {
+	//TODO: how to slow this down?
 	imgur.uploadFile(sFile, config.album_id)
 		.then(function (json) {
 			console.log("successful upload: " + json.data.link);
@@ -154,11 +108,9 @@ function renameFile(sFile, sNewName)
 	catch(e)
 	{
 		console.warn("failed to rename " +sFile + " to " +  sUpdatedFileName + "(" + e.desc + ")")
-	}
-	
+	}	
 }
  
-
 function yearDate(a_dDate)
 {
 	if(a_dDate){} else {a_dDate = new Date()};		
@@ -241,13 +193,66 @@ function randomString(nLen)
 {
 	nLen = parseInt(nLen) ? parseInt(nLen) : 5;
 	var text = "";
-	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	//var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	//case insensitive windows, might as well just be lowercase
+	var possible = "willwillwillabcdefghijklmnopqrstuvwxyz0123456789";
 
 	for (var i = 0; i < nLen; i++)
+	{	
 		text += possible.charAt(Math.floor(Math.random() * possible.length));
-
+	}
 	return text;
 }
+
+function testImgur()
+{
+	//https://api.imgur.com/3/account/{userid}/albums/ids/
+	console.log("imgur clientid: " + imgur.getClientId());
+
+	var sSampleFile = 'C:\\Users\\Will\\OneDrive\\Pictures\\Screenshots\\20160911_165827.jpg' 
+	//imgur.uploadFile(sSampleFile, null, "TEST", "TESTS")
+	//TODO NOT WORKING?S!
+	//imgur.uploadFile(sSampleFile, config.album_id);
+	imgur.uploadFile(sSampleFile, config.album_id).then(function (json) 
+	{
+        //console.log(json.data.link);
+		//console.log(json);
+		console.log("success");
+    })
+    .catch(function (err) {
+        console.error("Error:" + err.message);
+    });
+
+	console.log("done?" + config.album_id);
+	/*
+	
+		var query = 'cats';
+	//imgur.checkQuery(query);
+	//var optionalParams = {sort: 'top', dateRange: 'week', page: 1}
+	//imgur.search(query, optionalParams)
+	/*
+    .then(function(json) {
+        console.log(json);
+    })
+    .catch(function (err) {
+        console.error(err);
+    });
+	
+	
+	//imgur.uploadFile = function (file, albumId, title, description) {
+	
+	imgur.uploadFile('C:\\Users\\Will\\OneDrive\\Pictures\\Screenshots\\20160911_165827.jpg')
+	.then(function (json) 
+	{
+        //console.log(json.data.link);
+		//console.log(json);
+		console.log("success");
+    })
+    .catch(function (err) {        console.error("error: " + err.message);    throw err;});
+	*/
+	
+}
+
 
 /*
 {

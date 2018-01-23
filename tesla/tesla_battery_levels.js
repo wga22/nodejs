@@ -99,35 +99,31 @@ function setChargeValues(oChargeVals)
 			console.log("Bat Level: " + oChargeVals.battery_level);
 		}
 		var nCurrentLevel = oChargeVals.battery_level;
+		var nCurrentSetLevel = oChargeVals.charge_limit_soc;
 		//oChargeVals.metric_battery_range = (oChargeVals.battery_range * 1.609344).toFixed(2);
-		console.log("Charge Level:" + nCurrentLevel + "%");
+		console.log("Charge Level:" + nCurrentLevel + "% of " + nCurrentSetLevel + "%");
 		console.log("Range: " + oChargeVals.battery_range + " miles");
+		//console.log("charge %: " + nCurrentSetLevel + " ");
 		console.log("Charge added so far: " + oChargeVals.charge_miles_added_rated + " KWH");
 		//TODO: start storing in a DB the miles added?
-		var nPercent = 90; 	// standard value
-		if(nDistance > 50)	//if more than 50 miles from home, assume full charge is desired
-		{
-			//if far from home, probably want full charge
-			nPercent = 100;
-			console.log('Setting range based on distance from home ' + round2(nDistance) + " miles to " + nPercent + "%");
-		}
-		else	//set the level based on the day of week, if near home
+		var nPercent = parseInt(nCurrentSetLevel) ? parseInt(nCurrentSetLevel) : 90 ; 	// standard value
+		if(nDistance < 50)	//if more than 50 miles from home, assume driver has made adjustment, and do not make a change.
 		{
 			var nToday = (new Date()).getDay();
+			var nYesterday = (nToday-1)% 7;
 			var aDaysOfWeek = ['Sun','Mon','Tues','Wed','Thurs','Fri','Sat']
 			//if lots of miles have been added via charging, or the battery level is low, means previous day was big day, so make sure set to 100 for the next day on the weekend
 			var fCarUsedHeavilyPreviousDay = (oChargeVals.charge_miles_added_rated > 70) || (oChargeVals.battery_level < 50);
-			switch(nToday)
+			var aDayChargeLevels = [90,70,75,60,70,90,80];	//each position is a day of the week, starting with Sunday
+			if( nPercent === 100 && !fCarUsedHeavilyPreviousDay )	//did the user manually change the charge level to 100 percent, even though not driven heavily?
 			{
-				case 0 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90); console.log("44"); break;	//Sunday (runs ~1am sunday)
-				case 1 : nPercent = 70; break;	//Monday
-				case 2 : nPercent = 75; break;	//tuesday
-				case 3 : nPercent = 60; break;	// wednesday
-				case 4 : nPercent = 80; break;	//Thursday
-				case 5 : nPercent = 90; break;	//friday
-				case 6 : nPercent = (fCarUsedHeavilyPreviousDay ? 100 : 90);break; //saturday
+				console.log("looks like the user has made their own update to 100% so leave alone, and car was not driven heavily, so a trip must be upcoming");
 			}
-			console.log('Setting range based on ' + aDaysOfWeek[nToday] + " to " + nPercent + "%");			
+			else //automated mode
+			{
+				nPercent = aDayChargeLevels[nToday];
+				console.log('Setting range based on ' + aDaysOfWeek[nToday] + " to " + nPercent + "%");			
+			}
 		}
 		teslams.charge_range( { id: vid, range: 'set', percent: (nPercent) }, success );
 	}
