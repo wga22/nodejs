@@ -735,7 +735,7 @@ function playMp3(a_sSong)
 		{
 			powerAmp(true);
 			this.pipe(new Speaker(format));
-			setTimeout(powerAmp, MILLISPERMINUTE*.5, false);	//turn off the amp after 30 seconds
+			setTimeout(powerAmp, MILLISPERMINUTE, false);	//turn off the amp after 60 seconds (longest horn song is phili @ 225, but most are around 1 min)
 		} catch (e) 
 		{
 			console.warn("issue with speaker: " + e.message);
