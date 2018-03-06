@@ -5,18 +5,20 @@ var util = require('util');
 var bodyParser = require('body-parser');
 
 /*		INSTRUCTIONS
-	1) change port forwarding on router to monster (enable current rule)
-	2) run this 
-	3) go to https://www.sslforfree.com/
-	4) get the manual string to validate
-	5) put that string in sValidationString
-	6) run the validation from sslforfree
-	7) update the two files
+	1) change port forwarding on router to monster (enable current rule) (record the old location)
+	2) update dns (http://freedns.afraid.org/) to point to "home": https://www.google.com/search?q=whats+my+ip&rlz=1C1CHKZ_enUS430US430&oq=whats+my+ip&aqs=chrome..69i57j0l5.1287j1j7&sourceid=chrome&ie=UTF-8 
+	3) run this 
+	4) go to https://www.sslforfree.com/
+	5) get the manual string to validate
+	6) put that string in sValidationString
+	7) run the validation from sslforfree
+	8) update the two files
 
 nano /etc/letsencrypt/archive/willcloud.crabdance.com/privkey.pem
 nano /etc/letsencrypt/archive/willcloud.crabdance.com/fullchain.pem
 
-	8) disable port forwarding rule
+	9) disable port forwarding rule
+	10) update the forwarding back to the old server location
 
 */
 
