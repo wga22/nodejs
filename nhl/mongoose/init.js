@@ -1,81 +1,4 @@
-#!/usr/bin/env node
-
-/*
-NOTES:
-
-CONFIG values
-{
-	"myteam": {"WSH","CAR",etc}
-	"debug":
-		"1"  //debugging enabled
-		"0"	//debugging disabled
-	"output":  //what device to use
-		"console"
-		"lcd"
-		"oled",
-	"lcdaddress": "0x27",
-	"light":
-		{"type":"alarm,multi-led,none", "gpio":["9", "8", "7"] },
-	"amp": 
-		{"gpio":"14"}
-}
- 
-
-
-DISPLAY features
-	current/latest score
-	standings
-	latest action
-	time and date
-	game time
-	
-sound and light
-
-	
-challenges
-	playoffs?
-	resetting process if it goes down
-	turning off amp/speaker when not in use?
-		test using gpio was not succcessful on opizero
-	
-Architecture
-	
-
-useful URLs - details:
- http://hfboards.hockeysfuture.com/showthread.php?t=1596119
- http://whatsyourtech.ca/2013/06/14/we-scored-app-roars-when-your-nhl-team-scores/
-
- wget --no-cache -O NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js
- 
-Sound files
-	http://wejustscored.com/audio/wsh.mp3
-	http://wejustscored.com/audio/<TEAM>.mp3
-data feeds:
-http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
-
-
- http://live.nhl.com/GameData/GCScoreboard/yyyy-mm-dd.jsonp	
-
- UNsorted
-	http://app.cgy.nhl.yinzcam.com/V2/Stats/Standings
-	http://hfboards.hockeysfuture.com/showthread.php?t=1596119
-	http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
-	http://live.nhl.com/GameData/20162017/2016020733/PlayByPlay.json
-	http://live.nhl.com/GameData/20162017/2016020733/gc/gcbx.jsonp
-	https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#q=nhl+live+game+json
- 
- 
- */
-
-//requires
-const lame = require('lame');
-const fs = require('fs');
-const Speaker = require('speaker');
-const httpClient = require('http');
-const nhlcommon = require('./nhl_common.js');
 var GPIO = null;
-
-//vars
 var ConfigJSON = {myteam: "WSH"};
 const reDateCleanup = /\W\d\d /;
 const MILLISPERMINUTE = 60000;	//1 minute
@@ -92,9 +15,9 @@ main();
 
 function main()
 {
+	powerAmp(false);	//make sure amp is off
 	//init data
 	ConfigJSON = nhlcommon.loadConfig();
-	powerAmp(false);	//make sure amp is off
 	fTesting = (ConfigJSON.debug == "1" || ConfigJSON.debug == "true");
 	ConfigJSON.lcdaddress =  (parseInt(ConfigJSON.lcdaddress) > 0) ? parseInt(ConfigJSON.lcdaddress) : 0x27;
 	//make sure light is off to start
@@ -220,7 +143,7 @@ Team.prototype.isFavorite = function()
 function GameResults(a_oPrevGameInfo)
  {
 	//instance variables
-	debugOut("creating game results: " + a_oPrevGameInfo.id);
+	debugOut("creating game results");
 	this.lastGoalScoredEventID = '';
 	this.homeScore=null;
 	this.awayScore=null;
@@ -228,12 +151,6 @@ function GameResults(a_oPrevGameInfo)
 	this.actionCount = {nCount:0, sLatestEventID:""};
 	this.previousFavTeamScore = 0;
 	this.gameId = a_oPrevGameInfo.id;
-	if(!parseInt(this.gameId))
-	{
-		//problem!  how to best handle?
-		//set to some random game
-		this.gameId = aoMyTeamGames[0];
-	}
 	this.nDaysTilNextGame = -1;
 	this.fResetDaysTilGame = true;
 	
@@ -364,7 +281,7 @@ function GameResults(a_oPrevGameInfo)
 
 	this.loadGameUpdates = () =>
 	{
-		//http://statsapi.web.nhl.com/api/v1/game/2017020022/feed/live
+		//http://live.nhl.com/GameData/20162017/2016020755/PlayByPlay.json
 		var sURL = gameDetailsURL(this.gameId);
 		if(fTesting && false) console.log("loadGameUpdates: " + sURL)
 		httpClient.get(sURL, function(res){
@@ -393,7 +310,7 @@ function GameResults(a_oPrevGameInfo)
 			//console.log("Got a response: ");
 		});
 		}).on('error', function(e){
-			  console.warn("Got an error: "+sURL , e);
+			  console.log("Got an error: ", e);
 		});
 	}
 	
@@ -832,9 +749,8 @@ function loadURLasJSON(sURL, funcCallback)
 			//console.log("Got a response: ");
 			funcCallback(oObj);
 		});
-	}).on('error', function(e)
-	{
-		  console.log("loadURLasJSON Got an error: ", e);
+	}).on('error', function(e){
+		  console.log("Got an error: ", e);
 	});
 }
 
