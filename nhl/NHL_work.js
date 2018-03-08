@@ -387,13 +387,14 @@ function GameResults(a_oPrevGameInfo)
 			catch(e) 
 			{
 				console.warn("Something unexpected with the response from (" + sURL + ") :" + e.message);
-				//throw e;
+				throw e;
 				//just let another loop happen, and do nothing more
 			}
 			//console.log("Got a response: ");
 		});
 		}).on('error', function(e){
 			  console.warn("Got an error: "+sURL , e);
+			  throw e;
 		});
 	}
 	
