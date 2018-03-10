@@ -14,7 +14,7 @@ if ping -q -c 1 -W 6 google.com >/dev/null; then
 	chmod u+x /usr/local/bin/hostapdstart
 	ifconfig br0 down
 else
-	/usr/local/bin/hostapdstart
+	#/usr/local/bin/hostapdstart
 fi
 
 pm2 startup
