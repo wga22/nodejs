@@ -1,22 +1,4 @@
 #!/usr/bin/env node
-
-Object.defineProperty(Object.prototype, "extend", {
-	enumerable: false,
-	value: function(from) {
-		var props = Object.getOwnPropertyNames(from);
-		var dest = this;
-		props.forEach(function(name) {
-			if (name in dest) {
-				var destination = Object.getOwnPropertyDescriptor(from, name);
-				Object.defineProperty(dest, name, destination);
-				console.log("EXTEND:" + name)
-			}
-		});
-		return this;
-	}
-});
-
-
 var util = require('util');
 var http = require('http');
 var querystring = require("querystring");
