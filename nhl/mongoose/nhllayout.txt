@@ -1,0 +1,24 @@
+includes
+	COMMON
+		nhlcommon
+			pull out the load config
+		
+	CUSTOM - ESP32
+		lcd
+		playmp3
+	CUSTOM - rpi
+		rpiInterfaces
+			make new loadconfig
+			playmp3
+			lcd
+functions
+
+
+intermediate steps
+	get LCD to work
+	turn on/off gpio
+	load data from URL
+
+
+
+

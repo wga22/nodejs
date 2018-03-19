@@ -3,6 +3,8 @@ raspi-gpio set 17 op dl
 raspi-gpio set 4 op dl
 raspi-gpio set 14 op dl
 raspi-gpio set 15 op dl
+export NODE_PATH=/usr/local/lib/node_modules
+amixer sset PCM 50
 sleep 30
 if ping -q -c 1 -W 6 www.google.com >/dev/null; then
 	wget --no-cache -O /opt/nhl/NHL_work.js https://github.com/wga22/nodejs/raw/master/nhl/NHL_work.js

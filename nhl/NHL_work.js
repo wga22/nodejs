@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /*
 NOTES:
 
@@ -11,7 +10,7 @@ CONFIG values
 		"0"	//debugging disabled
 	"output":  //what device to use
 		"console"
-		"lcd"
+		"LCD_I2C"
 		"oled",
 	"lcdaddress": "0x27",
 	"light":
@@ -20,6 +19,16 @@ CONFIG values
 		{"gpio":"14"}
 }
  
+ {
+        "myteam": "WSH",
+        "debug":"0" ,
+        "output":  "LCD_I2C",
+        "light": {"type":"alarm", "gpio":"15" },
+        "amp": {"gpio":"14"},
+        "lcdaddress" : "0x3F",
+        "lightid" : "32"
+}
+
 
 
 DISPLAY features
@@ -105,7 +114,7 @@ function main()
 	//load the games
 	loadURLasJSON(getNHLSeasonURL(), initializeTheGamesList);	
 	setInterval(updateDisplayEachMinute, MILLISPERMINUTE);
-	setInterval(collectGarbage, MILLISPERHOUR);
+	//setInterval(collectGarbage, MILLISPERHOUR);
 	setInterval(dailyCheckForUpdatesToGameList, MILLISPERDAY);
 	reportUsage();
 	setInterval(reportUsage, MILLISPERDAY);
