@@ -98,9 +98,11 @@ printf '\ni2c-dev\ni2c-bcm2708\n' >> /etc/modules
 mv /etc/rc.local /etc/rc.local.bak
 touch /etc/rc.local
 chmod u+x /etc/rc.local
+chmod u+x /etc/bootup_nhl.sh
 printf '#!/bin/sh'> /etc/rc.local
 printf '\n /etc/bootup_nhl.sh > /tmp/rclocal.log' >> /etc/rc.local
 printf '\n exit 0' >> /etc/rc.local
+
 
 #TODO: need to add something to do the regular software updates weekly like this
 # Maybe just copy this file directly down to the rc.weekly folder?

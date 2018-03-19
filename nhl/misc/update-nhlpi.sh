@@ -20,13 +20,13 @@ if ping -q -c 1 -W 6 google.com >/dev/null; then
 
 	#shells
 	wget --no-cache -O /etc/bootup_nhl.sh https://github.com/wga22/nodejs/raw/master/nhl/misc/bootup_nhl.sh
-	wget --no-cache -O /etc/network/interfaces https://github.com/wga22/nodejs/raw/master/nhl/misc/interfaces.conf
-	wget --no-cache -O /etc/dnsmasq.conf https://github.com/wga22/nodejs/raw/master/nhl/misc/dnsmasq.conf
-	wget --no-cache -O /usr/local/bin/hostapdstart https://github.com/wga22/nodejs/raw/master/nhl/misc/hostapdstart.sh
-	wget --no-cache -O /etc/hostapd/hostapd.conf https://github.com/wga22/nodejs/raw/master/nhl/misc/hostapd.conf
+	#wget --no-cache -O /etc/network/interfaces https://github.com/wga22/nodejs/raw/master/nhl/misc/interfaces.conf
+	#wget --no-cache -O /etc/dnsmasq.conf https://github.com/wga22/nodejs/raw/master/nhl/misc/dnsmasq.conf
+	#wget --no-cache -O /usr/local/bin/hostapdstart https://github.com/wga22/nodejs/raw/master/nhl/misc/hostapdstart.sh
+	#wget --no-cache -O /etc/hostapd/hostapd.conf https://github.com/wga22/nodejs/raw/master/nhl/misc/hostapd.conf
 
 	chmod u+x /usr/local/bin/hostapdstart
-
+	chmod u+x /etc/bootup_nhl.sh
 	#pm2 updatePM2	#TODO: fix this so it doesnt remove the processes that are saved?
 fi
 exit 0
