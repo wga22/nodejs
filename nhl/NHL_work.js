@@ -198,7 +198,7 @@ function updateDisplayEachMinute()
 		//game just started, so play the horn
 		//TODO TEST more (couldnt tell from logs: fix that this seems to play 2x?
 		
-		playMp3(ARTIFACT_DIR + "gamestart.mp3");
+		playMp3(ARTIFACT_DIR + "gamestart.mp3", 14);
 		setTimeout(turnLight, 100, true);
 		
 		//update the values for the previous game
@@ -442,7 +442,7 @@ function GameResults(a_oPrevGameInfo)
 			{
 				var fWon = (this.homeScore > this.awayScore && this.homeTeam.isFavorite()) || (this.homeScore < this.awayScore && this.awayTeam.isFavorite());	
 				debugOut("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
-				playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3");
+				playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3", 12);
 			}
 			else if(this.homeScore>0 && this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
 			{
@@ -498,7 +498,7 @@ function GameResults(a_oPrevGameInfo)
 		setTimeout(turnLight, 100, true);
 		var sTeam = ConfigJSON.myteam.toLowerCase();
 		var sSong = ARTIFACT_DIR + sTeam+".mp3";
-		playMp3(sSong);
+		playMp3(sSong, 60);
 	}
 }
 GameResults.MAXGAMEDURATION = 6;
@@ -742,16 +742,16 @@ function powerAmp(fOn)
 }
 
 
-function playMp3(a_sSong)
+function playMp3(a_sSong, nLenSecs)
 {
-	
+	nLenSecs = parseInt(nLenSecs) ? parseInt(nLenSecs) : 30;
 	function playSongSpeaker(format)
 	{
 		try 
 		{
 			powerAmp(true);
 			this.pipe(new Speaker(format));
-			setTimeout(powerAmp, MILLISPERMINUTE, false);	//turn off the amp after 60 seconds (longest horn song is phili @ 225, but most are around 1 min)
+			setTimeout(powerAmp, (nLenSecs * 1000) , false);	//turn off the amp after 60 seconds (longest horn song is phili @ 225, but most are around 1 min)
 		} catch (e) 
 		{
 			console.warn("issue with speaker: " + e.message);
