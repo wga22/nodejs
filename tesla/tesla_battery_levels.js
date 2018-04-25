@@ -72,7 +72,9 @@ function setDriveDetailsAndGetChargeDetails(a_oDriveDetails)
 //based on distance from home or day of week, pick a good max charge level
 function setChargeValues(oChargeVals)
 {
-	if (oDriveDetails && oDriveDetails.latitude && oChargeVals && oChargeVals.battery_range !== undefined) 
+	//TODO: see why not working in longer form
+	//if (oDriveDetails && oDriveDetails.latitude && oChargeVals && oChargeVals.battery_range !== undefined) 
+	if ( oDriveDetails && oDriveDetails.latitude && oChargeVals )
 	{
 		var nDistance = distanceFromHome(oDriveDetails.latitude, oDriveDetails.longitude);
 		
