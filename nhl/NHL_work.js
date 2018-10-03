@@ -435,7 +435,8 @@ function GameResults(a_oPrevGameInfo)
 			this.awayScore = iAG ? iAG : 0;
 			this.gameTime = gameStats.currentPeriodTimeRemaining ? gameStats.currentPeriodTimeRemaining : "20:00";
 			this.period = gameStats.currentPeriod ? gameStats.currentPeriod : 1;
-			this.gameInProgress = oRes.gameData.status.detailedState != "Final";
+			//debugOut("showResults: Active game? " + JSON.stringify(oRes.gameData.status));
+			this.gameInProgress = oRes.gameData.status.detailedState != "Final" && oRes.gameData.status.detailedState != "Scheduled";
 			
 			//only should go here when the game is over, 1 time (or maybe at bootup?)
 			if(!this.gameInProgress)
