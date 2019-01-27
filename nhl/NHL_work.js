@@ -81,6 +81,7 @@ const lame = require('lame');
 const fs = require('fs');
 const Speaker = require('speaker');
 const httpClient = require('http');
+const httpsClient = require('https');
 const nhlcommon = require('./nhl_common.js');
 var GPIO = null;
 
@@ -313,7 +314,6 @@ function GameResults(a_oPrevGameInfo)
 	this.genericResults = (dDate) =>
 	{
 		var aRes = [];
-		aRes.push(this.awayTeam.nickname + (this.awayScore>=0 ? ("(" + this.awayScore + ")") : ""));
 		aRes.push(this.homeTeam.nickname + (this.homeScore>=0 ? ("(" + this.homeScore + ")") : ""));
 
 		if(this.gameInProgress)	//during game show score
