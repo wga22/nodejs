@@ -119,7 +119,11 @@ function main()
 	setInterval(dailyCheckForUpdatesToGameList, MILLISPERDAY);
 	reportUsage();
 	setInterval(reportUsage, MILLISPERDAY);
-
+	if(ConfigJSON.pullDCTolls)
+	{
+		debugOut("calling out to run the tolls");
+		setInterval(loadTollInfo, MILLISPERMINUTE*5);
+	}
 }
 
 function collectGarbage()
@@ -314,6 +318,12 @@ function GameResults(a_oPrevGameInfo)
 	this.genericResults = (dDate) =>
 	{
 		var aRes = [];
+		var sTollInfo = "";
+		if(ConfigJSON.pullDCTolls && populateToll.nToll && populateToll.nToll > 0)
+		{
+			sTollInfo = "    " + populateToll.nToll;
+		}
+		aRes.push(this.awayTeam.nickname + (this.awayScore>=0 ? ("(" + this.awayScore + ")") : "") + sTollInfo);
 		aRes.push(this.homeTeam.nickname + (this.homeScore>=0 ? ("(" + this.homeScore + ")") : ""));
 
 		if(this.gameInProgress)	//during game show score
@@ -859,6 +869,90 @@ function debugOut(sVal)
 }
 
 
+function loadTollInfo()
+{
+	var oDate = new Date();
+	var dEvening = {start:15, stop:19}
+	var dMorning = {start:5, stop:10}
+	var dDayRange = {start:1, stop:5}
+	var sURL = "https://i66toll.firebaseio.com/"
+	var sQS = "/tolls.json?orderBy=%22$key%22&limitToLast=1"
+	var sDirection = ""; //outside rush our
+	//TESTING!!
+	//sDirection = fTesting ? "eb/belt/washington" : "";
+
+	if(oDate.getDay()>=dDayRange.start && oDate.getDay() <= dDayRange.stop )
+	{
+		//morning - eastbound
+		if(oDate.getHours() >= dDayRange.start && oDate.getHours() <= dDayRange.stop )
+		{
+			sDirection = "eb/belt/washington"
+		}
+		//evening - westbound
+		else if (oDate.getHours()>= dDayRange.start && oDate.getHours() <= dDayRange.stop)
+		{
+			sDirection = "wb/washington/belt";
+		}
+		else
+		{
+			console.log("outside rushhour");
+		}
+	}
+	else
+	{
+		debugOut("weekend: " + oDate.getDay());
+	}
+	
+	if(sDirection)
+	{
+		//call service
+		var sCompletedURL = sURL+sDirection+sQS;
+		console.log(sCompletedURL)
+		populateToll(sCompletedURL);
+	}
+}
+
+function populateToll(sURL)
+{
+	//http://statsapi.web.nhl.com/api/v1/game/2017020022/feed/live
+	httpsClient.get(sURL, 
+	function(res){
+	var body = '';
+
+	res.on('data', function(chunk)
+	{
+		body += chunk;
+	});
+
+	res.on('end', function()
+	{
+		var oObj = {};
+		try
+		{
+			//{"1548275420681":{"price":5.5}}
+			oObj = JSON.parse(body);
+			console.log(body);
+			for(var x in oObj)
+			{
+				populateToll.nToll = parseInt(oObj[x].price);
+			}
+			debugOut("the toll:" + populateToll.nToll);
+			
+		}
+		catch(e) 
+		{
+			console.warn("Something unexpected with the response from (" + sURL + ") :" + e.message);
+			throw e;
+			//just let another loop happen, and do nothing more
+		}
+		//console.log("Got a response: ");
+	});
+	}).on('error', function(e){
+		  console.warn("Got an error: "+sURL , e);
+		  throw e;
+	});
+}
+populateToll.nToll = "";
 /*
 -------------OUTPUTS:--------------------
  
