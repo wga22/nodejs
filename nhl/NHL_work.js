@@ -878,18 +878,22 @@ function loadTollInfo()
 	var sURL = "https://i66toll.firebaseio.com/"
 	var sQS = "/tolls.json?orderBy=%22$key%22&limitToLast=1"
 	var sDirection = ""; //outside rush our
+	var fWeekday = oDate.getDay()>=dDayRange.start && oDate.getDay() <= dDayRange.stop
+	var fMorning = oDate.getHours() >= dMorning.start && oDate.getHours() <= dMorning.stop;
+	var fAfternoon = oDate.getHours()>= dEvening.start && oDate.getHours() <= dEvening.stop
 	//TESTING!!
 	//sDirection = fTesting ? "eb/belt/washington" : "";
-
-	if(oDate.getDay()>=dDayRange.start && oDate.getDay() <= dDayRange.stop )
+	debugOut("logic test (" +oDate.getHours() + ") :" + (fWeekday ? "weekday":"weekend") + " " +(fMorning ? "morning" : "not morning") + " " + (fAfternoon ? "evening" : "not evening") );
+	debugOut()
+	if(fWeekday )
 	{
 		//morning - eastbound
-		if(oDate.getHours() >= dDayRange.start && oDate.getHours() <= dDayRange.stop )
+		if(fMorning )
 		{
 			sDirection = "eb/belt/washington"
 		}
 		//evening - westbound
-		else if (oDate.getHours()>= dDayRange.start && oDate.getHours() <= dDayRange.stop)
+		else if (fAfternoon)
 		{
 			sDirection = "wb/washington/belt";
 		}
