@@ -785,17 +785,17 @@ function parseDateStr(a_sDate)
 {
 	//20170318 19:00:00
 	var dDate = new Date();
-	//console.log(a_sDate);
 	var nYear = parseInt(a_sDate.substr(0,4));
 	var nMon = parseInt(a_sDate.substr(4,2))-1;
 	var nDay = parseInt(a_sDate.substr(6,2));
 	var nHour = parseInt(a_sDate.substr(9,2));
 	var nMin = parseInt(a_sDate.substr(12,2));
-	dDate.setYear(nYear);
-	dDate.setMonth(nMon);
-	dDate.setDate(nDay);
-	dDate.setHours(nHour);
 	dDate.setMinutes(nMin);
+	dDate.setHours(nHour);
+	dDate.setDate(nDay);
+	dDate.setMonth(nMon);
+	dDate.setYear(nYear);
+	//debugOut(a_sDate + " parsed to " + dDate.toString());
 	return dDate;
 }
 
