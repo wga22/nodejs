@@ -884,7 +884,6 @@ function loadTollInfo()
 	//TESTING!!
 	//sDirection = fTesting ? "eb/belt/washington" : "";
 	debugOut("logic test (" +oDate.getHours() + ") :" + (fWeekday ? "weekday":"weekend") + " " +(fMorning ? "morning" : "not morning") + " " + (fAfternoon ? "evening" : "not evening") );
-	debugOut()
 	if(fWeekday )
 	{
 		//morning - eastbound
@@ -900,6 +899,7 @@ function loadTollInfo()
 		else
 		{
 			console.log("outside rushhour");
+			populateToll.nToll = "";
 		}
 	}
 	else
