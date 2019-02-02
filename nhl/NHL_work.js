@@ -122,7 +122,7 @@ function main()
 	if(ConfigJSON.pullDCTolls)
 	{
 		debugOut("calling out to run the tolls");
-		setInterval(loadTollInfo, MILLISPERMINUTE*5);
+		setInterval(loadTollInfo, (MILLISPERMINUTE*5 + 1122));	//add some salt so work is out of step with other activity
 	}
 }
 
