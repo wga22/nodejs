@@ -166,7 +166,7 @@ function loadCreds()
 {
 	try {
 
-		var jsonString = fs.readFileSync("./config.json").toString();
+		var jsonString = fs.readFileSync("./gmusic_config.json").toString();
 		creds = JSON.parse(jsonString);
 		
 		if(creds.email === null || creds.password === null)
@@ -178,4 +178,5 @@ function loadCreds()
 		console.warn("The file 'config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
 	}
+	return creds;
 }
