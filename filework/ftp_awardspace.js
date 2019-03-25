@@ -16,6 +16,9 @@ Object.defineProperty(Object.prototype, "extend", {
 	}
 });
 
+//cd "C:\Users\Will\Documents\development\github\nodejs\filework"
+//"C:\Program Files\nodejs\node.exe"  ftp_awardspace.js
+//http://willallencoding.scienceontheweb.net/attict.html
 
 var util = require('util');
 var http = require('ftp');	//https://github.com/mscdex/node-ftp
