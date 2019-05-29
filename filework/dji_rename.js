@@ -19,7 +19,7 @@ const imgur = require('imgur');
 
 //STATICS
 const geocodeURL = "http://maps.googleapis.com/maps/api/geocode/json?sensor=true&latlng=";
-const photoPath = "D:\\aerial_photography\\mavic\\2018-10 Outershore";
+const photoPath = "D:\\aerial_photography\\processing\\";
 
 //GLOBALS
 var config = {"album_id" : ""};
