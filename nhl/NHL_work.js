@@ -107,6 +107,8 @@ function main()
 	powerAmp(false);	//make sure amp is off
 	fTesting = (ConfigJSON.debug == "1" || ConfigJSON.debug == "true");
 	ConfigJSON.lcdaddress =  (parseInt(ConfigJSON.lcdaddress) > 0) ? parseInt(ConfigJSON.lcdaddress) : 0x27;
+	ConfigJSON.quietHours = (parseInt(ConfigJSON.quietHours) >= 0) ? parseInt(ConfigJSON.quietHours) : 4;
+	playMp3(ARTIFACT_DIR + "gamestart.mp3", 14, (new Date).getHours());
 	//make sure light is off to start
 	if(fUsingALight())
 	{
@@ -203,7 +205,7 @@ function updateDisplayEachMinute()
 		//game just started, so play the horn
 		//TODO TEST more (couldnt tell from logs: fix that this seems to play 2x?
 		
-		playMp3(ARTIFACT_DIR + "gamestart.mp3", 14);
+		playMp3(ARTIFACT_DIR + "gamestart.mp3", 14, dToday.getHours());
 		setTimeout(turnLight, 100, true);
 		
 		//update the values for the previous game
@@ -453,17 +455,17 @@ function GameResults(a_oPrevGameInfo)
 			{
 				var fWon = (this.homeScore > this.awayScore && this.homeTeam.isFavorite()) || (this.homeScore < this.awayScore && this.awayTeam.isFavorite());	
 				debugOut("Game over and  your team ("+ConfigJSON.myteam+") " +  (fWon ? "won" : "lost"));
-				playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3", 12);
+				playMp3(ARTIFACT_DIR + "game"+(fWon ? "won" : "lost")+".mp3", 12, dDate.getHours());
 			}
 			else if(this.homeScore>0 && this.homeTeam.isFavorite() && this.homeScore > this.previousFavTeamScore)
 			{
 				this.previousFavTeamScore = this.homeScore;
-				playHorn();
+				playHorn(dDate.getHours());
 			}
 			else if(this.awayScore>0 && this.awayTeam.isFavorite() && this.awayScore > this.previousFavTeamScore)
 			{
 				this.previousFavTeamScore = this.awayScore;
-				playHorn();
+				playHorn(dDate.getHours());
 			}
 		}
 	}
@@ -504,12 +506,12 @@ function GameResults(a_oPrevGameInfo)
 	}
 	
 	//look in the config for the "light" and use that as the GPIO pin.  If value not there, false, or 0, dont do anything
-	function playHorn()
+	function playHorn(nHours)
 	{
 		setTimeout(turnLight, 100, true);
 		var sTeam = ConfigJSON.myteam.toLowerCase();
 		var sSong = ARTIFACT_DIR + sTeam+".mp3";
-		playMp3(sSong, 60);
+		playMp3(sSong, 60, nHours);
 	}
 }
 GameResults.MAXGAMEDURATION = 6;
@@ -753,8 +755,14 @@ function powerAmp(fOn)
 }
 
 
-function playMp3(a_sSong, nLenSecs)
+function playMp3(a_sSong, nLenSecs, nHour)
 {
+	//no music after hours - test for morning and evenings
+	if(parseInt(nHour) &&  ((ConfigJSON.quietHours < 6 && nHour < 6)||(ConfigJSON.quietHours > 18 && nHour > 18)))
+	{
+		debugOut("not playing sound - hour:" + nHour + " qh:" + ConfigJSON.quietHours)
+		return;
+	}
 	nLenSecs = parseInt(nLenSecs) ? parseInt(nLenSecs) : 30;
 	function playSongSpeaker(format)
 	{
