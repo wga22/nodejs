@@ -97,7 +97,8 @@ function renameFile(sFile, sNewName)
 	try
 	{
 		var stats = fs.statSync(sFile);
-		var sFileTime = yearDate(stats.ctime);
+		//var sFileTime = yearDate(stats.ctime);
+		var sFileTime = yearDate(stats.birthtime);
 		//console.log(sFileTime)
 		var sUpdatedFileName = sFile.replace(/DJI_(\d+)\.JPG/, (sNewName+"_"+sFileTime+'_$1.jpg'))
 		console.log("old: ", sFile, " new: " , sUpdatedFileName);
@@ -187,6 +188,13 @@ function loadURLasJSON(sURL, funcCallback)
 	}).on('error', function(e){
 		  console.log("Got an error: ", e);
 	});
+}
+
+function createdDate (file) 
+{  
+  const { birthtime } = fs.statSync(file)
+
+  return birthtime
 }
 
 function randomString(nLen) 
