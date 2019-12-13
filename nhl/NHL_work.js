@@ -108,7 +108,7 @@ function main()
 	fTesting = (ConfigJSON.debug == "1" || ConfigJSON.debug == "true");
 	ConfigJSON.lcdaddress =  (parseInt(ConfigJSON.lcdaddress) > 0) ? parseInt(ConfigJSON.lcdaddress) : 0x27;
 	ConfigJSON.quietHours = (parseInt(ConfigJSON.quietHours) >= 0) ? parseInt(ConfigJSON.quietHours) : 4;
-	playMp3(ARTIFACT_DIR + "gamestart.mp3", 14, (new Date).getHours());
+	//playMp3(ARTIFACT_DIR + "gamestart.mp3", 14, (new Date()).getHours());
 	//make sure light is off to start
 	if(fUsingALight())
 	{
@@ -506,12 +506,12 @@ function GameResults(a_oPrevGameInfo)
 	}
 	
 	//look in the config for the "light" and use that as the GPIO pin.  If value not there, false, or 0, dont do anything
-	function playHorn(nHours)
+	function playHorn(nCurrentHour)
 	{
 		setTimeout(turnLight, 100, true);
 		var sTeam = ConfigJSON.myteam.toLowerCase();
 		var sSong = ARTIFACT_DIR + sTeam+".mp3";
-		playMp3(sSong, 60, nHours);
+		playMp3(sSong, 60, nCurrentHour);
 	}
 }
 GameResults.MAXGAMEDURATION = 6;
@@ -757,8 +757,8 @@ function powerAmp(fOn)
 
 function playMp3(a_sSong, nLenSecs, nHour)
 {
-	//no music after hours - test for morning and evenings
-	if(parseInt(nHour) &&  ((ConfigJSON.quietHours < 6 && nHour < 6)||(ConfigJSON.quietHours > 18 && nHour > 18)))
+	//no music after hours - test for morning and evenings, always quiet after midnight?
+	if(parseInt(nHour) &&  (( nHour < 6)||(ConfigJSON.quietHours <=nHour )))
 	{
 		debugOut("not playing sound - hour:" + nHour + " qh:" + ConfigJSON.quietHours)
 		return;
