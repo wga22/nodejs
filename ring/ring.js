@@ -31,7 +31,7 @@ async function turnOnAlarm()
 	{
 		const house = locations[0];
 		console.log("loc len:" + locations.length)
-		house.armHome();
+		await house.armHome();
 		//house.disarm();
 		//console.log("Alarm has been Enabled");
 		//testing for the state seems to prevent the arm from happening!
