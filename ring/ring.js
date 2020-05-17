@@ -5,6 +5,7 @@
 var fs = require('fs');
 const RingApi = require ('ring-client-api').RingApi;
 const RingDeviceType = require ('ring-client-api').RingDeviceType;
+var  ENABLEALARM = true;
 var token;
 async function loadConfig()
 {
@@ -18,83 +19,58 @@ async function loadConfig()
 		console.warn("The file 'ring_config.json' does not exist or contains invalid arguments!");
 		process.exit(1);
 	}
+	var myArgs = process.argv.slice(2);
+	if(myArgs.length > 0)
+	{
+		ENABLEALARM = !("DISABLE" == myArgs[0]);
+	}
+	console.log("USAGE: ring.js <DISABLE>");
+	
 }
-async function turnOnAlarm() 
+async function turnOnOffAlarm(fEnableAlarm) 
 {
-  const ringApi = new RingApi({
+   var ringApi2 = new RingApi({
       // Replace with your refresh token
       refreshToken: token,
       debug: false,
     });
-	const locations = await ringApi.getLocations();
+	var locations = await ringApi2.getLocations();
 	if(locations && locations.length > 0 && locations[0].hasHubs)
 	{
-		const house = locations[0];
-		console.log("loc len:" + locations.length)
-		await house.armHome();
-		//house.disarm();
-		//console.log("Alarm has been Enabled");
-		//testing for the state seems to prevent the arm from happening!
-		/*
-		checking mode seems to prevent later arming it!
-		var currentState = await house.getAlarmMode();
-		var cs = JSON.stringify(currentState);
-		//console.log("state:" + cs + ": " + cs.length + " + " + (cs == '"none"'))
-		//console.log(JSON.stringify(house));
-		if(cs == '"none"')
+		var house = locations[0];
+		var alarmMode = await house.getAlarmMode();
+		console.log("current mode:" + alarmMode);
+		var fAway = ("all"==alarmMode);
+		if(fAway)
 		{
-			house.armHome();
-			house.soundSiren();
-			console.log("Alarm has been Enabled");			
+			console.log("away, so dont touch the alarm");
 		}
 		else
-		{
-			console.log("alarm already enabled");
+		{ //home modes
+			if(fEnableAlarm)
+			{
+				await house.armHome();
+			}
+			else
+			{
+				//dont want to do this if away!
+				await house.disarm();
+			}			
 		}
-		//house.armHome();
-		*/
 	}
 	else
 	{
 		console.log("Error: cannot find location");
 		process.exit(1);
 	}
-	//location.getHistory() // historical events from alarm/lights
 	return true;
 }
 
-async function testDevices() 
-{
-  const ringApi = new RingApi({
-      // Replace with your refresh token
-      refreshToken: token,
-      debug: true,
-    });
-	const locations = await ringApi.getLocations();
-	if(locations && locations.length > 0 && locations[0].hasHubs)
-	{
-		const house = locations[0];
-		console.log("loc len:" + locations.length)
-		var devices = await house.getDevices();
-		house.armHome();
-		console.log(`\nLocation ${house.name} has the following `);
-		//const baseStation = devices.find(device => device.data.deviceType === RingDeviceType.BaseStation);
-		//console.log("volume: " + baseStation.getVolume())
-	}
-	else
-	{
-		console.log("Error: cannot find location");
-		process.exit(1);
-	}
-	//location.getHistory() // historical events from alarm/lights
-	return true;
-}
 
 async function main()
 {
 	await loadConfig();
-	//await turnOnAlarm();
-	await testDevices();
+	await turnOnOffAlarm(ENABLEALARM);
 	console.log("all done!")
 	process.exit(0);
 }
