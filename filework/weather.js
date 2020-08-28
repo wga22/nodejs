@@ -1,16 +1,6 @@
 #!/usr/bin/env node
 const csv = require('csv-parser');
 const fs = require('fs');
-
-/*
-App ID
-3FoETUVr
-Client ID (Consumer Key)
-dj0yJmk9bEJDanVGSjQ3U2Z4JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PThj
-Client Secret (Consumer Secret)
-974b9f8d7a143508d4b9bb2720eaadfc1b9d83e6
-*/
-
 //https://weather-ydn-yql.media.yahoo.com/forecastrss?location=sunnyvale,ca&format=json
 
 // Require node-oauth package: npm install oauth
