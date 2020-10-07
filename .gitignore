@@ -60,3 +60,4 @@ filework/imgur_settings.json
 nhl/testdate.js
 nhl/misc/junk.js
 filework/yahoo_oauth.json
+*.json
