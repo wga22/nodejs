@@ -1,22 +1,25 @@
 //https://github.com/dgreif/ring
 //https://developer.amazon.com/blogs/alexa/post/7064802d-1f63-4be1-aa78-8a65bc1016b4/alexa-arm-my-security-system-customers-can-now-control-their-security-systems-with-alexa-using-the-security-panel-controller-api
+//refresh token: npx -p ring-client-api ring-auth-cli
 // arm the ring alarm (use cron to call nightly)
 
 var fs = require('fs');
 const RingApi = require ('ring-client-api').RingApi;
+const JSONFILE = "./ring_config.json";
 const RingDeviceType = require ('ring-client-api').RingDeviceType;
 var  ENABLEALARM = true;
 var token;
+var ringApi2;
 async function loadConfig()
 {
 	try 
 	{
-		var jsonString = fs.readFileSync("./ring_config.json").toString();
+		var jsonString = fs.readFileSync(JSONFILE).toString();
 		token = JSON.parse(jsonString).refreshToken;
 	} 
 	catch (err) 
 	{
-		console.warn("The file 'ring_config.json' does not exist or contains invalid arguments!");
+		console.warn("The file '"+JSONFILE+"' does not exist or contains invalid arguments!");
 		process.exit(1);
 	}
 	var myArgs = process.argv.slice(2);
@@ -29,11 +32,12 @@ async function loadConfig()
 }
 async function turnOnOffAlarm(fEnableAlarm) 
 {
-   var ringApi2 = new RingApi({
+   ringApi2 = new RingApi({
       // Replace with your refresh token
       refreshToken: token,
       debug: false,
     });
+	await updateToken();
 	var locations = await ringApi2.getLocations();
 	if(locations && locations.length > 0 && locations[0].hasHubs)
 	{
@@ -74,4 +78,26 @@ async function main()
 	console.log("all done!")
 	process.exit(0);
 }
+
+//https://github.com/dgreif/ring/blob/02515613123584e2aafc67c84941650698f7eefc/examples/example.ts
+function updateToken()	
+{
+  ringApi2.onRefreshTokenUpdated.subscribe(
+    async ({ newRefreshToken, oldRefreshToken }) => {
+      console.log('Refresh Token Updated: ', newRefreshToken)
+
+      // If you are implementing a project that use `ring-client-api`, you should subscribe to onRefreshTokenUpdated and update your config each time it fires an event
+      // Here is an example using a .env file for configuration
+      if (!oldRefreshToken) {
+        return
+      }
+		fs.writeFileSync(JSONFILE, '{"refreshToken": "' + newRefreshToken + '"}');
+      //const currentConfig = await promisify(readFile)("./ring_config.json"), updatedConfig = currentConfig.toString().replace(oldRefreshToken, newRefreshToken);
+      //await promisify(writeFile)("./ring_config.json", updatedConfig)
+    }
+  )
+}
+
+
+
 main();
