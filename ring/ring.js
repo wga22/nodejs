@@ -12,6 +12,15 @@ var token;
 var ringApi2;
 async function loadConfig()
 {
+	//TODO: for odd reason, this arg work needs to be BEFORE loading config file
+	var myArgs = process.argv.slice(2);
+	if(myArgs.length > 0)
+	{
+		ENABLEALARM = !("DISABLE" == myArgs[0]);
+	}
+	console.log("USAGE: ring.js <DISABLE>");
+	console.log("full args: " + JSON.stringify(process.argv));
+	console.log("args: " + JSON.stringify(myArgs));
 	try 
 	{
 		var jsonString = fs.readFileSync(JSONFILE).toString();
@@ -22,12 +31,7 @@ async function loadConfig()
 		console.warn("The file '"+JSONFILE+"' does not exist or contains invalid arguments!");
 		process.exit(1);
 	}
-	var myArgs = process.argv.slice(2);
-	if(myArgs.length > 0)
-	{
-		ENABLEALARM = !("DISABLE" == myArgs[0]);
-	}
-	console.log("USAGE: ring.js <DISABLE>");
+
 	
 }
 async function turnOnOffAlarm(fEnableAlarm) 
@@ -51,13 +55,14 @@ async function turnOnOffAlarm(fEnableAlarm)
 		}
 		else
 		{ //home modes
-			if(fEnableAlarm)
+			if(fEnableAlarm && "none"==alarmMode)
 			{
+				console.log("enabling alarm");
 				await house.armHome();
 			}
-			else
+			else if ("some" == alarmMode)
 			{
-				//dont want to do this if away!
+				console.log("disarming alarm");
 				await house.disarm();
 			}			
 		}
