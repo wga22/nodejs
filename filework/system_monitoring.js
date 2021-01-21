@@ -13,20 +13,20 @@ const debuggerObj = require('debug');
 
 //CONSTS
 const JSONFILE = "./system_monitoring.json"
+const NODEMAILER = "./nodemailer.json";
 const MILLISPERDAY = 24*3600000;
 
 
 //set DEBUG
-const debug = debuggerObj('debug:XX');
+const debug = debuggerObj('debug:*');
 const info = debuggerObj('info:*');	//always show info
 const error = debuggerObj('error:*');	//always show errors
 
 //GLOBAL
-var configFile = {params:{}, sites:[]};
+var configFile = {params:{}, sites:[], updated:0};
 
 //MAIN
-main();
-function main()
+async function main()
 {
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
 	//debug = console.log.bind(console);
@@ -35,6 +35,7 @@ function main()
 	{
 		var jsonString = fs.readFileSync(JSONFILE).toString();
 		configFile = JSON.parse(jsonString);
+		configFile.updated=0;
 		//debug("-----Running-----");
 	} 
 	catch (err) 
@@ -44,8 +45,67 @@ function main()
 		process.exit(1);
 	}
 	monitorSystems();
-	//listFilesToMove();	
+	waitForSitesThenRespond();
+
 }
+
+waitForSitesThenRespond.counter = 60;
+function waitForSitesThenRespond()
+{
+	//max timeout of "counter"
+	if(waitForSitesThenRespond.counter>0 && configFile.updated != configFile.sites.length)
+	{
+		waitForSitesThenRespond.counter--;
+		debug("waiting on sites %s (%s)", configFile.updated ,waitForSitesThenRespond.counter);
+		setTimeout(waitForSitesThenRespond, 1000);
+	}
+	else	//move forward!
+	{
+		debug("done monitoring (%s)", configFile.updated);
+		//TODO: sendEmails();
+		//TODO: rewrite JSON with new monitoring
+	}
+}
+
+
+function sendEmails()
+{
+	//TODO: test for need to send email
+	if(false)
+	{
+		sendSystemErrorEmail();
+	}
+}
+
+async function sendSystemErrorEmail(sErrorMessage) 
+{
+	var jsonString = fs.readFileSync(NODEMAILER).toString();
+	var emailPropertiesFile = JSON.parse(jsonString);
+  
+  let transporter = nodemailer.createTransport({
+	host: "smtp.office365.com",
+	port: 587,
+	requireTLS: true,
+    auth: { user: emailPropertiesFile.user,  pass: emailPropertiesFile.pass  }
+  });
+
+  //send mail with defined transport object
+  let info = await transporter.sendMail({
+    from: emailPropertiesFile.from, // sender address
+    to: configFile.params.mailto, // list of receivers
+    subject: configFile.params.subject, // Subject line
+    text: sErrorMessage, // plain text body
+    //html: sErrorMessage.replace('\n', "<br/>") // html body
+  });
+
+  console.log("Message sent: %s", info.messageId);
+  // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+
+  // Preview only available when sending through an Ethereal account
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+}
+
 
 function monitorSystems()
 {
@@ -163,6 +223,7 @@ function thingspeak(oSite)
 function handleFail(oSite)
 {
 	info("FAIL: " + oSite.title + "(%s)", (oSite.url ? oSite.url : ""));
+	configFile.updated++;
 	//TODO: check if fail is first time and system active, and email
 	//TODO: rewrite config
 }
@@ -171,6 +232,7 @@ function handleSuccess(oSite)
 {
 	const sURL = oSite.url;
 	info("Success: %s", oSite.title);
+	configFile.updated++;
 	//TODO: check if success is first time, and write log
 	//TODO: rewrite config	
 }
@@ -181,7 +243,8 @@ function withinDayOfNow(dTime)
 {
 	var date = new Date();
 	var nDiff = Math.abs(date.getTime() - dTime.getTime());
-	debug(nDiff + " < " +  dTime.getTime());
+	//debug("The site was updated %s", yearDate(dTime));
+	//debug(nDiff + " < " +  dTime.getTime());
 	return nDiff < MILLISPERDAY;
 }
 
@@ -195,6 +258,9 @@ function pad2(nMin)
 {
 	return nMin < 10 ? ("0" +nMin) : nMin 
 }
+
+main().catch(console.error);
+
 
 /*
 JUNK

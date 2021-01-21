@@ -10,18 +10,18 @@ const fs = require('fs');
 var OAuth = require('oauth');
 
 const JSONFILE = "./yahoo_oauth.json"
-var jsomConfig = loadConfig(JSONFILE);
+var jsonConfig = loadConfig(JSONFILE);
 //var util = require('util');
 main();
 
 function main()
 {
-	var header = {	"X-Yahoo-App-Id": jsomConfig.app_id	};
+	var header = {	"X-Yahoo-App-Id": jsonConfig.app_id	};
 	var request = new OAuth.OAuth(
 		null,
 		null,
-		jsomConfig.client_id,
-		jsomConfig.client_secret,
+		jsonConfig.client_id,
+		jsonConfig.client_secret,
 		'1.0',
 		null,
 		'HMAC-SHA1',
