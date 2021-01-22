@@ -6,10 +6,12 @@
 
 
 //libraries
+const debuggerObj = require('debug');
+const fs = require('fs');	//https://nodejs.org/api/fs.html
+
 const axios = require('axios');	//https://github.com/axios/
 const cheerio = require('cheerio');	//https://cheerio.js.org/
-const fs = require('fs');	//https://nodejs.org/api/fs.html
-const debuggerObj = require('debug');
+const nodemailer = require("nodemailer");
 
 //CONSTS
 const JSONFILE = "./system_monitoring.json"
@@ -62,18 +64,34 @@ function waitForSitesThenRespond()
 	else	//move forward!
 	{
 		debug("done monitoring (%s)", configFile.updated);
-		//TODO: sendEmails();
+		sendEmail();
 		//TODO: rewrite JSON with new monitoring
 	}
 }
 
 
-function sendEmails()
+function sendEmail()
 {
 	//TODO: test for need to send email
-	if(false)
+	debug("Sending email %s", )
+	if(true)
 	{
-		sendSystemErrorEmail();
+		var aOutput = [];
+		var aSites = configFile.sites;
+		for(var x in aSites)
+		{
+			var oSite = aSites[x]
+			if(oSite.success)
+			{
+				aOutput.push("Success: " + oSite.title + " was last seen " + yearDate(oSite.lastSeen));
+			}
+			else
+			{
+				aOutput.push("FAIL: " + oSite.title + " was last seen " + yearDate(oSite.lastSeen));
+			}
+		}
+		debug("Sending email %s", aOutput.join('\n'));
+		sendSystemErrorEmail(aOutput.join('\n'));
 	}
 }
 
@@ -90,7 +108,7 @@ async function sendSystemErrorEmail(sErrorMessage)
   });
 
   //send mail with defined transport object
-  let info = await transporter.sendMail({
+  let inf = await transporter.sendMail({
     from: emailPropertiesFile.from, // sender address
     to: configFile.params.mailto, // list of receivers
     subject: configFile.params.subject, // Subject line
@@ -98,11 +116,11 @@ async function sendSystemErrorEmail(sErrorMessage)
     //html: sErrorMessage.replace('\n', "<br/>") // html body
   });
 
-  console.log("Message sent: %s", info.messageId);
+  info("Message sent: %s", inf.messageId);
   // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 
   // Preview only available when sending through an Ethereal account
-  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  info("Preview URL: %s", nodemailer.getTestMessageUrl(inf));
   // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
 }
 
@@ -136,6 +154,7 @@ function ping(oSite)
 	const sURL = oSite.url;
 	debug("ping: " + sURL);
 	axios.get(sURL).then((response) => {
+		oSite.lastSeen = new Date();
 		handleSuccess(oSite);
 	}, 
 	(error) => 
@@ -162,6 +181,7 @@ function parseEthmine(oSite)
 		{
 			var dLastSeen = new Date(ethMineResp.data[0].lastSeen*1000);	//1000X for millis
 			debug("ethmine last running on %s", yearDate(dLastSeen));
+			oSite.lastSeen = dLastSeen;
 			if(withinDayOfNow(dLastSeen))
 			{
 				debug("good, system seems to have been running in past day");
@@ -204,6 +224,7 @@ function thingspeak(oSite)
 			debug("tpoutput: %s", thingSpData.feeds[0].created_at);
 			var lastDataDate = new Date(thingSpData.feeds[0].created_at);
 			debug("last seen %s", yearDate(lastDataDate));
+			oSite.lastSeen = lastDataDate;
 			if(withinDayOfNow(lastDataDate))
 			{
 				handleSuccess(oSite);
@@ -224,6 +245,7 @@ function handleFail(oSite)
 {
 	info("FAIL: " + oSite.title + "(%s)", (oSite.url ? oSite.url : ""));
 	configFile.updated++;
+	oSite.success = false;
 	//TODO: check if fail is first time and system active, and email
 	//TODO: rewrite config
 }
@@ -232,6 +254,7 @@ function handleSuccess(oSite)
 {
 	const sURL = oSite.url;
 	info("Success: %s", oSite.title);
+	oSite.success = true;
 	configFile.updated++;
 	//TODO: check if success is first time, and write log
 	//TODO: rewrite config	
