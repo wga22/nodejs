@@ -26,6 +26,7 @@ const error = debuggerObj('error:*');	//always show errors
 
 //GLOBAL
 var configFile = {params:{}, sites:[], updated:0};
+var sEmailTo = "";
 
 //MAIN
 async function main()
@@ -47,8 +48,13 @@ async function main()
 		process.exit(1);
 	}
 	monitorSystems();
-	waitForSitesThenRespond();
-
+	
+	if(process.argv.length > 2 && process.argv[2])
+	{
+		sEmailTo = process.argv[2];
+		debug('emailing %s', sEmailTo);
+		waitForSitesThenRespond();
+	}
 }
 
 waitForSitesThenRespond.counter = 60;
@@ -91,11 +97,11 @@ function sendEmail()
 			}
 		}
 		debug("Sending email %s", aOutput.join('\n'));
-		sendSystemErrorEmail(aOutput.join('\n'));
+		sendSystemErrorEmail(sEmailTo, aOutput.join('\n'));
 	}
 }
 
-async function sendSystemErrorEmail(sErrorMessage) 
+async function sendSystemErrorEmail(sTo, sErrorMessage) 
 {
 	var jsonString = fs.readFileSync(NODEMAILER).toString();
 	var emailPropertiesFile = JSON.parse(jsonString);
@@ -110,7 +116,7 @@ async function sendSystemErrorEmail(sErrorMessage)
   //send mail with defined transport object
   let inf = await transporter.sendMail({
     from: emailPropertiesFile.from, // sender address
-    to: configFile.params.mailto, // list of receivers
+    to: sTo, // list of receivers
     subject: configFile.params.subject, // Subject line
     text: sErrorMessage, // plain text body
     //html: sErrorMessage.replace('\n', "<br/>") // html body

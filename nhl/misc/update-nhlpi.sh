@@ -5,6 +5,7 @@
 if ping -q -c 1 -W 6 google.com >/dev/null; then
 	(apt-get update && apt-get -y upgrade) > /dev/null
 	apt-get dist-upgrade -y
+	apt-get autoremove -y
 	apt-get clean -y
 
 
