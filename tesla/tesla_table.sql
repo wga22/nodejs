@@ -1,42 +1,25 @@
-create table tesla_logs(
+--   WARNING drop table tesla.tesla_logs;
+create table tesla.tesla_logs(
 	entry_id SERIAL PRIMARY KEY,
 	tp_entry_id integer,
 	created_at timestamp DEFAULT current_timestamp,
 	battery_level integer,
 	speed integer,
-	heading float,
-	battery_range float,
-	est_battery_range float,
-	ideal_battery_range float,
-	latitude float,
-	longitude float,
+	odometer real,
+	battery_range real,
+	est_battery_range real,
+	ideal_battery_range real,
+	latitude real,
+	longitude real,
 	car_version	varchar(32),
-	CONSTRAINT pkey1 UNIQUE(entry_id)
+	CONSTRAINT tesla_logs_pkey1 UNIQUE(entry_id)
 );
 
 
-INSERT INTO tesla.tesla_logs
-(tp_entry_id, created_at, battery_level, speed, heading, battery_range, est_battery_range, ideal_battery_range, latitude, longitude, car_version)
-VALUES(0, now(), 0, 0, 0, 0, 0, 0, 0, 0, '');
-
-INSERT INTO tesla.tesla_logs
-(created_at,
-tp_entry_id,
- battery_level,
- speed,
-heading,
- battery_range,
- est_battery_range,
- ideal_battery_range,
- latitude,
- longitude,
- car_version)
-values
-('2019-01-30 06:17:06 EST',26455,75,null,48537.093528,175.26,136.78,218.69,38.924889,-77.278816,'2018.48.12.1 d6999f5'),
-('2019-01-30 07:17:08 EST',26456,75,null,48537.093528,175.26,136.78,218.69,38.924889,-77.278816,'2018.48.12.1 d6999f5'),
-
 --max entries
 select max(tp_entry_id) from tesla.tesla_logs tl;
+select min(created_at) from tesla.tesla_logs tl;
+select count(*) from tesla.tesla_logs tl;
 
 --versions
 select car_version, count(*), max(created_at) from tesla.tesla_logs tl group by car_version order by max(created_at);
@@ -67,8 +50,5 @@ round((max(t1.battery_range)-min(t1.battery_range))/min(t1.battery_range)*100) a
 from tesla.tesla_logs t1
 where t1.battery_level is not null and t1.battery_range is not null
 group by t1.battery_level
+having min(t1.battery_range) > 0
 order by t1.battery_level desc
-
-
-
-

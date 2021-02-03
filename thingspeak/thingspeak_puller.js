@@ -115,7 +115,7 @@ async function main()
 	nMaxExistingRow = await getDbLatestRow(oTPDataStructure["pk_name"]);
 	debug("latest row in TP %s", nMaxExistingRow);
 	var oMonthToLoad = new Date();
-	oMonthToLoad.setMonth(oMonthToLoad.getMonth()+1);	//increment the date one month forward
+	oMonthToLoad.setMonth(oMonthToLoad.getMonth()+1);	//increment the date one month forward for end date	
 	await pullTPDataintoDB(oMonthToLoad);	//kick off recursion
 	debug("ending main");
 }
@@ -156,7 +156,7 @@ async function pullTPDataintoDB(aoEndDate)
 	
 	*/
 	var sStopDate = getDateToTSStringFirstDay(aoEndDate);	//it'll start off as 1 month in future
-	aoEndDate.setMonth(aoEndDate.getMonth()-1);
+	aoEndDate.setMonth(aoEndDate.getMonth()-2);
 	var sURL = TPURL + oTPDataStructure["tp_channel"] 
 		+ "/feeds.json?timezone=America%2FNew_York&status=true&api_key=" 
 		+ oTPDataStructure["tp_read_key"]
@@ -324,7 +324,7 @@ function getDateToTSStringFirstDay(a_oDate)
 function updateJSONFile()	
 {
 	//TODO - do we need this?  need ot know last entry written, so maybe use DB instead?
-	// TODO fs.writeFileSync(JSONFILE, oTPDataStructure);
+	// fs.writeFileSync(JSONFILE, oTPDataStructure);
 }
 
 /////////////////////////  MAIN		///////////////////////////////
