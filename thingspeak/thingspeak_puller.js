@@ -22,6 +22,7 @@ const errorLogger = debuggerObj('error:*');	//always show errors
 var dbclient = null;
 var sJSONFileName = "./thingspeak_solar.json"
 var nMaxExistingRow = -1;
+var nInsertCount =0;
 
 //initiate with sample structure and values
 var oTPDataStructure = 
@@ -116,6 +117,7 @@ async function main()
 	var oMonthToLoad = new Date();
 	oMonthToLoad.setMonth(oMonthToLoad.getMonth()+1);	//increment the date one month forward
 	await pullTPDataintoDB(oMonthToLoad);	//kick off recursion
+	debug("ending main");
 }
 
 async function getDbLatestRow(pk_name)
@@ -175,20 +177,29 @@ async function pullTPDataintoDB(aoEndDate)
 			}
 			else	//we've reached top of the existing data set
 			{
-				debug("Entry already in system: %s  == %s",thingSpData.feeds[y]["entry_id"], nMaxExistingRow );
+				debug("Entry already in system: %s <= %s",thingSpData.feeds[y]["entry_id"], nMaxExistingRow );
 				fStopRecursion = true;	//dont bother loading older months
 			}
 		}
 		//TODO: do we trust this?
 		if(!fStopRecursion)
 		{
+			debug("fStopRecursion");
 			pullTPDataintoDB(aoEndDate);	//recursion for pros!
+			//return pullTPDataintoDB(aoEndDate);	//recursion for pros!
+		}
+		else
+		{
+			debug("leaving");
+			cleanUp();
+			//return 1;
 		}
 	}
 	else	//no new records found
 	{
 		debug("ENDING: dataset as prior month has no records %s", sStopDate);
 		cleanUp();
+		//return 1;
 	}
 	}, 
 	(error) => 
@@ -196,7 +207,8 @@ async function pullTPDataintoDB(aoEndDate)
 		cleanUp();
 		errorLogger(error)
 		process.exit(22);
-	});		
+	});
+	debug("ending pullTPDataintoDB");
 }
 
 async function insertTPData(aoTPRow)
@@ -234,22 +246,52 @@ VALUES(0, now(), 0, 0, 0, 0, 0, 0, 0, 0);
 		}
 		else
 		{
-			aValues.push((aoTPRow[oField["tp_field"]] || aoTPRow[oField["tp_field"]]==0)  ? aoTPRow[oField["tp_field"]] : "null");
+			var res = "null";	//default to null
+			if((aoTPRow[oField["tp_field"]]) || parseInt(aoTPRow[oField["tp_field"]])==0 )
+			{
+				res = 0; //handle 0
+				if("int" == oField["dbtype"])
+				{
+					res = parseInt(aoTPRow[oField["tp_field"]]);
+				}
+				else if(parseFloat(aoTPRow[oField["tp_field"]]))
+				{
+					res = parseFloat(aoTPRow[oField["tp_field"]])
+				}
+			}
+			aValues.push(res);
 		}	
 	}
 	
 	var sInsertStatement = "insert into " + oTPDataStructure["tablename"] 
 		+ " (" +  (aFields.join(",")) + ") values (" +
 		aValues.join(",") + ")";
-	debug(sInsertStatement);
+	nInsertCount++;
+	debug("insert (%s): %s", nInsertCount, sInsertStatement);
 	//TODO look at batching the inserts
 	return res = await dbclient.query(sInsertStatement);
 }
 
-
-function cleanUp()
+async function runUpdates()
 {
-	debug("Processing completed, doing commit");
+	debug("running updates");
+	if(oTPDataStructure["updates"] && oTPDataStructure["updates"].length)
+	{
+		debug("running updates %s", oTPDataStructure["updates"].length);
+		for(var x=0; x <oTPDataStructure["updates"].length; x++ )
+		{
+			var sUpdate = oTPDataStructure["updates"][x];
+			debug("running cleanup query %s" , sUpdate);
+			await dbclient.query(sUpdate);
+		}
+	}	
+}
+
+
+async function cleanUp()
+{
+	await runUpdates();
+	info("Processing completed, doing commit for %s inserts", nInsertCount);
 	dbclient.query('COMMIT', err => {
           if (err) 
 		  {
@@ -286,5 +328,5 @@ function updateJSONFile()
 }
 
 /////////////////////////  MAIN		///////////////////////////////
-main();
+main().catch(console.error);
 /////////////////////////  MAIN		///////////////////////////////

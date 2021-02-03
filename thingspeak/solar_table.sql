@@ -30,56 +30,25 @@ INSERT INTO tesla.solar_panel
 (tp_entry_id, created_at, batt_volt, batt_current, panel_volt, lifetime_power, charge_state, load_current, daily_yield, daily_max_power)
 VALUES(0, now(), 0, 0, 0, 0, 0, 0, 0, 0);
 
-INSERT INTO tesla.tesla_logs
-(created_at,
-tp_entry_id,
- battery_level,
- speed,
-heading,
- battery_range,
- est_battery_range,
- ideal_battery_range,
- latitude,
- longitude,
- car_version)
-values
-('2019-01-30 06:17:06 EST',26455,75,null,48537.093528,175.26,136.78,218.69,38.924889,-77.278816,'2018.48.12.1 d6999f5'),
-('2019-01-30 07:17:08 EST',26456,75,null,48537.093528,175.26,136.78,218.69,38.924889,-77.278816,'2018.48.12.1 d6999f5'),
-
 --max entries
-select max(tp_entry_id) from tesla.tesla_logs tl;
+select max(tp_entry_id) from tesla.solar_panel;
 
---versions
-select car_version, count(*), max(created_at) from tesla.tesla_logs tl group by car_version order by max(created_at);
 
---max speed
-select max(speed) from tesla.tesla_logs tl;
+--max stuff
+select max(batt_volt) from tesla.solar_panel spl;
+select max(batt_current) from tesla.solar_panel spl;
+select max(panel_volt) from tesla.solar_panel spl;
+select max(lifetime_power) from tesla.solar_panel spl;
+select max(daily_max_power) from tesla.solar_panel spl;
+select max(daily_yield) from tesla.solar_panel spl;
 
---furthest
-select latitude, longitude, 
-((sqrt(power((latitude-38.924874),2)+power((longitude+77.278824),2)))*55) as dist_approx_miles
-from tesla.tesla_logs tl
-where latitude is not null and longitude is not null
-order by dist_approx_miles desc;
-
---battery range per level
-select t1.battery_level, Max(t1.battery_range) as max_range, min(t1.battery_range) min_range, 
-max(t1.created_at ) created
-from tesla.tesla_logs t1
-where t1.battery_level is not null and t1.battery_range is not null
-group by t1.battery_level
-order by t1.battery_level desc;
-
---battery loss per battery level (with max and min dates)
-select t1.battery_level, max(t1.battery_range) as max_range, min(t1.battery_range) min_range, 
-round((max(t1.battery_range)-min(t1.battery_range))/min(t1.battery_range)*100) as perc_diff,
-(select t2.created_at from tesla.tesla_logs t2 where t2.battery_level = t1.battery_level and max(t1.battery_range) = t2.battery_range order by t2.created_at desc limit 1) as time_of_max,
-(select t3.created_at from tesla.tesla_logs t3 where t3.battery_level = t1.battery_level and min(t1.battery_range) = t3.battery_range order by t3.created_at desc limit 1) as time_of_min
-from tesla.tesla_logs t1
-where t1.battery_level is not null and t1.battery_range is not null
-group by t1.battery_level
-order by t1.battery_level desc
-
+--best days
+select sp1.mbv batt_volt, sp2.created_at::date  from tesla.solar_panel sp2, (select max(batt_volt) as mbv from tesla.solar_panel) as sp1 where sp1.mbv = sp2.batt_volt;
+select sp1.mbv batt_current, sp2.created_at::date  from tesla.solar_panel sp2, (select max(batt_current) as mbv from tesla.solar_panel) as sp1 where sp1.mbv = sp2.batt_current;
+select sp1.mbv panel_volt, sp2.created_at::date  from tesla.solar_panel sp2, (select max(panel_volt) as mbv from tesla.solar_panel) as sp1 where sp1.mbv = sp2.panel_volt;
+select sp1.mbv lifetime_power, sp2.created_at::date  from tesla.solar_panel sp2, (select max(lifetime_power) as mbv from tesla.solar_panel) as sp1 where sp1.mbv = sp2.lifetime_power;
+select sp1.mbv daily_max_power, sp2.created_at::date  from tesla.solar_panel sp2, (select max(daily_max_power) as mbv from tesla.solar_panel) as sp1 where sp1.mbv = sp2.daily_max_power;
+select sp1.mbv daily_yield, sp2.created_at::date  from tesla.solar_panel sp2, (select max(daily_yield) as mbv from tesla.solar_panel) as sp1 where sp1.mbv = sp2.daily_yield;
 
 
 
