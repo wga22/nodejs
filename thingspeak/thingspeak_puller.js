@@ -111,7 +111,6 @@ async function main()
 	//DB connection	
 	dbclient = new Client(oTPDataStructure["database"]);
 	await dbclient.connect();
-
 	nMaxExistingRow = await getDbLatestRow(oTPDataStructure["pk_name"]);
 	debug("latest row in TP %s", nMaxExistingRow);
 	var oMonthToLoad = new Date();
@@ -123,7 +122,7 @@ async function main()
 async function getDbLatestRow(pk_name)
 {
 	//const res = await dbclient.query('SELECT $1::text as message', ['Hello world!'])
-	var sMaxValQuery = 'SELECT max('+pk_name+') as maxid from tesla.solar_panel';
+	var sMaxValQuery = 'SELECT max('+pk_name+') as maxid from ' + oTPDataStructure["tablename"] ;
 	debug("max val query %s", sMaxValQuery);
 	var res = await dbclient.query(sMaxValQuery);
 	var nMaxID = (res.rows.length && parseInt(res.rows[0]["maxid"])>0)  ? parseInt(res.rows[0]["maxid"]) : -1;
