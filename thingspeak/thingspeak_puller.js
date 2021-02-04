@@ -316,10 +316,6 @@ function getDateToTSStringFirstDay(a_oDate)
 	return (a_oDate.getFullYear()+0) + "-" + sMonth + "-01%2000:00:00"
 }
 
-
-
-
-//https://github.com/dgreif/ring/blob/02515613123584e2aafc67c84941650698f7eefc/examples/example.ts
 function updateJSONFile()	
 {
 	//TODO - do we need this?  need ot know last entry written, so maybe use DB instead?

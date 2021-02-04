@@ -4,7 +4,7 @@
 // arm the ring alarm (use cron to call nightly)
 
 var fs = require('fs');
-const RingApi = require ('ring-client-api').RingApi;
+const RingApi = require ('ring-client-api').RingApi;	//https://www.npmjs.com/package/ring-client-api
 const JSONFILE = "./ring_config.json";
 const RingDeviceType = require ('ring-client-api').RingDeviceType;
 var  ENABLEALARM = true;
