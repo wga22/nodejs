@@ -1,137 +1,148 @@
 #!/usr/bin/env node
 //Version: 1.2 - Jan 22, 2018
-var fTesting = false;	//gets set based on config values
-var util = require('util');
-//var express    = require("express");
-//var mysql      = require('mysql');
-var teslams = require('teslams');
-var oDriveDetails = {};
-var vid = null;
+// updated: Feb 4, 2021
 
-//MAIN
-//testing();
-main();
-function pr( jsonVals ) {
-	console.log( util.inspect( jsonVals ) );
-	//writeValuesToThingSpeak(jsonVals)
+//manage the battery level of tesla to vary throughout the week, except when within home base
+
+const debuggerObj = require('debug');
+const util = require('util');
+const http = require('http');
+const fs = require('fs');	//https://nodejs.org/api/fs.html
+const querystring = require("querystring");
+const teslajs = require('teslajs');	//https://www.npmjs.com/package/teslajs
+const tslaFramework = require('./teslaFramework.js');
+
+
+//CONSTS
+const debug = debuggerObj('debug:*');
+const info = debuggerObj('info:*');	//always show info
+const warnLogger = debuggerObj('warn:*');	//always warn info
+const errorLogger = debuggerObj('error:*');	//always show errors
+
+var oConfig = 
+{
+        "username": "xxxxx",
+        "password": "xxxx",
+		"mfaPassCode" : "xxx",
+		"home" : {"latitude": 38.929997, "longitude":-77.1910347},
+		"chargeLevels" : [90,70,75,60,70,90,80]
 }
+
+
+
 function main()
 {
-
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
-	console.log("-----tesla_batt_levels.js : "+ (new Date()).toLocaleString() + "-----");
-	var fs = require('fs');
+	info("-----tesla_batt_levels.js %s ", (new Date()).toLocaleString());
 	try 
 	{
 		var jsonString = fs.readFileSync("./tesla_config.json").toString();
-		var config = JSON.parse(jsonString);
-		var creds = { 
-			email: config.username, 
-			password: config.password 
-		};
-		fTesting = (config.debug == "1" || config.debug == "true");
-	} catch (err) 
+		oConfig = JSON.parse(jsonString);
+	} 
+	catch (err) 
 	{
-/*
-{
-        "portal_url": "https://owner-api.teslamotors.com/api/1/vehicles/",
-        "stream_url": "https://streaming.vn.teslamotors.com/stream/",
-        "username": "xxxxxxxx",
-        "password": "xxxxxxxx",
-        "output_file": "stream_output.txt",
-		"debug": "1"
-}
-*/
-
-		console.warn("The file 'tesla_config.json' does not exist or contains invalid arguments! Exiting...");
+		errorLogger("The file 'tesla_config.json' does not exist or contains invalid arguments! Exiting...");
+		errorLogger(err);
 		process.exit(1);
 	}
-	teslams.get_vid( { email: creds.email, password: creds.password }, setVidAndGetDriveDetails);
+	var tsFramework = new tslaFramework.TeslaFramework(oConfig, setBatteryLevel);
+	tsFramework.run();
 }
 
-function setVidAndGetDriveDetails(a_vid)
+function setBatteryLevel(tjs, options)
 {
-	vid = a_vid;	//set global vid
-	if(fTesting) console.log("retrieved VID: " + vid);
-	try
+    tjs.vehicleDataAsync(options).then( 
+	function(vehicleData) 
 	{
-		teslams.get_drive_state(vid, setDriveDetailsAndGetChargeDetails)
-	}
-	catch(e)
-	{
-		console.log("ERROR: setVidAndGetDriveDetails " + e.error);
-	}
-}
+        var vehicle_state = vehicleData.vehicle_state;
+        var charge_state = vehicleData.charge_state;
+		var drive_state = vehicleData.drive_state;
 
-function setDriveDetailsAndGetChargeDetails(a_oDriveDetails)
-{
-	oDriveDetails = a_oDriveDetails;
-	teslams.get_charge_state( vid, setChargeValues );
-}
-
-//based on distance from home or day of week, pick a good max charge level
-function setChargeValues(oChargeVals)
-{
-	//TODO: see why not working in longer form
-	//if (oDriveDetails && oDriveDetails.latitude && oChargeVals && oChargeVals.battery_range !== undefined) 
-	if ( oDriveDetails && oDriveDetails.latitude && oChargeVals )
+	if ( drive_state && drive_state.latitude && charge_state )
 	{
-		var nDistance = distanceFromHome(oDriveDetails.latitude, oDriveDetails.longitude);
+		var nDistance = distanceFromHome(drive_state.latitude, drive_state.longitude);
 		
-		if(fTesting)
-		{
-			console.log("Distance from Home: " + round2(nDistance));
-			console.log("Lat, Lng : " + oDriveDetails.latitude+", "+ oDriveDetails.longitude);
-			console.log("Bat Level: " + oChargeVals.battery_level);
-		}
-		var nCurrentLevel = oChargeVals.battery_level;
-		var nCurrentSetLevel = oChargeVals.charge_limit_soc;
-		//oChargeVals.metric_battery_range = (oChargeVals.battery_range * 1.609344).toFixed(2);
-		console.log("Charge Level:" + nCurrentLevel + "% of " + nCurrentSetLevel + "%");
-		console.log("Range: " + oChargeVals.battery_range + " miles");
-		//console.log("charge %: " + nCurrentSetLevel + " ");
-		console.log("Charge added so far: " + oChargeVals.charge_miles_added_rated + " KWH");
+		debug("Distance from Home: %s", round2(nDistance));
+		debug("Lat, Lng: [%s, %s]", drive_state.latitude, drive_state.longitude);
+		debug("Bat Level: " + charge_state.battery_level);
+		var nCurrentLevel = charge_state.battery_level;
+		var nCurrentSetLevel = charge_state.charge_limit_soc;
+		//charge_state.metric_battery_range = (charge_state.battery_range * 1.609344).toFixed(2);
+		debug("Charge Level: %s % of %s %",  nCurrentLevel, nCurrentSetLevel);
+		debug("Range: %s miles ", charge_state.battery_range);
+		//debug("charge %: " + nCurrentSetLevel + " ");
+		debug("Charge added so far: " + charge_state.charge_miles_added_rated + " KWH");
 		//TODO: start storing in a DB the miles added?
 		var nPercent = parseInt(nCurrentSetLevel) ? parseInt(nCurrentSetLevel) : 90 ; 	// standard value
-		if(nDistance < 50)	//if more than 50 miles from home, assume driver has made adjustment, and do not make a change.
+		if(nDistance < 50 )	//if more than 50 miles from home, assume driver has made adjustment, and do not make a change.
 		{
 			var nToday = (new Date()).getDay();
 			var nYesterday = (nToday-1)% 7;
-			var aDaysOfWeek = ['Sun','Mon','Tues','Wed','Thurs','Fri','Sat']
+			var aDaysOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 			//if lots of miles have been added via charging, or the battery level is low, means previous day was big day, so make sure set to 100 for the next day on the weekend
-			var fCarUsedHeavilyPreviousDay = (oChargeVals.charge_miles_added_rated > 70) || (oChargeVals.battery_level < 50);
-			var aDayChargeLevels = [90,70,75,60,70,90,80];	//each position is a day of the week, starting with Sunday
-			if( nPercent === 100 && !fCarUsedHeavilyPreviousDay )	//did the user manually change the charge level to 100 percent, even though not driven heavily?
+			var fCarUsedHeavilyPreviousDay = (charge_state.charge_miles_added_rated > 70) || (charge_state.battery_level < 50);
+			
+			//each position is a day of the week, starting with Sunday
+			var aDayChargeLevels = (oConfig["chargeLevels"] && oConfig["chargeLevels"].length === 7) ? oConfig["chargeLevels"] : [90,70,75,60,70,90,80];
+			if( nPercent >= 95 && !fCarUsedHeavilyPreviousDay )	//did the user manually change the charge level to 100 percent, even though not driven heavily?
 			{
-				console.log("looks like the user has made their own update to 100% so leave alone, and car was not driven heavily, so a trip must be upcoming");
+				info("looks like the user has made their own update to 100% so leave alone, and car was not driven heavily, so a trip must be upcoming");
 			}
 			else //automated mode
 			{
 				nPercent = aDayChargeLevels[nToday];
-				console.log('Setting range based on ' + aDaysOfWeek[nToday] + " to " + nPercent + "%");			
+				debug('Setting range based on %s to %s %', aDaysOfWeek[nToday], nPercent);
+			}
+			if(nPercent != nCurrentSetLevel)
+			{
+				tjs.setChargeLimit(options, nPercent, function (err, result) 
+				{
+					if (result.result) 
+					{
+						info("completed setting battery level %s", nPercent );
+					} 
+					else
+					{
+						warnLogger("issue with setting charge limit: %s", result.reason);
+					}
+				});
+			}
+			else
+			{
+				info("Battery level(%s) is already %s",nCurrentSetLevel, nPercent);
 			}
 		}
-		teslams.charge_range( { id: vid, range: 'set', percent: (nPercent) }, success );
+		else
+		{
+			info("not changing charge percentage (%s %) due to being %s miles from home", nPercent, nDistance)
+		}
 	}
 	else
 	{
-		console.log("Issue getting values...");
-		//pr(oChargeVals);
+		warnLogger("missing values needed for changing charge state");
 	}
+	}).catch(e =>  errorLogger(e));
+	//errorLogger("unable to run")
 }
 
-function success()
-{
-	console.log("Successful exit");
-	//process.exit(0);
-}
+main();
+
 
 function distanceFromHome(a_nLat, a_nLng)
 {
-	var nHomeLat = 38.924997;
-	var nHomeLng =-77.2810247;
-	var nMilesFactor = 69;
-	return Math.sqrt(Math.pow(a_nLat-nHomeLat, 2) + Math.pow(a_nLng-nHomeLng,2))*nMilesFactor;
+	if(oConfig && oConfig.home && oConfig.home.latitude && oConfig.home.longitude)
+	{
+		var nHomeLat = oConfig.home.latitude;
+		var nHomeLng = oConfig.home.longitude;
+		debug("%s <> %s , %s <> %s",a_nLat,nHomeLat,a_nLng,nHomeLng )
+		var nMilesFactor = 69;
+		return Math.sqrt(Math.pow(a_nLat-nHomeLat, 2) + Math.pow(a_nLng-nHomeLng,2))*nMilesFactor;
+	}
+	else
+	{
+		warnLogger("distanceFromHome unable to find distance (%s, %s)", a_nLat, a_nLng );
+		warnLogger("home: %s", oConfig.home);
+	}
 }
 
 function round2(nNum)

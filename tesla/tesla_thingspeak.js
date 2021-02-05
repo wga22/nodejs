@@ -32,7 +32,7 @@ var oConfig = {
 function main()
 {
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
-	debug("-----will_tesla.js %s ", (new Date()).toLocaleString());
+	debug("-----tesla_thingspeak.js %s ", (new Date()).toLocaleString());
 	try {
 		var jsonString = fs.readFileSync("./tesla_config.json").toString();
 		oConfig = JSON.parse(jsonString);
@@ -129,7 +129,7 @@ function writeToThingspeak(tjs, options)
 			req.end();		
 		}
 		debug("fields: " + sQS);
-		infoLogger("completed writing to thingspeak");
+		info("completed writing to thingspeak");
 	});
 }
 
