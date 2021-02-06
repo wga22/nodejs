@@ -7,6 +7,8 @@ var fs = require('fs');
 var tjs = require('teslajs');
 require('colors');
 
+var nRetries = 10;
+
 function logo() {
     console.log("\n");
     console.log("TTTTT EEEEE SSSSS L     AAAAA     J SSSSS");
@@ -19,6 +21,8 @@ function logo() {
     console.log("=========================================");
 }
 
+
+
 exports.TeslaFramework = function TeslaFramework(options, main) {
     this.options = options;
     this.tokenFound = false;
@@ -30,6 +34,12 @@ exports.TeslaFramework = function TeslaFramework(options, main) {
 		{
             console.error("Login failed!".red);
             console.warn(JSON.stringify(result.error));
+			nRetries--;
+			if(nRetries > 0)
+			{
+				console.warn("retrying..." +  nRetries)
+				setTimeout(this.run, 5000);	//wait 5 seconds, and retry
+			}
             return;
         }
 
