@@ -4,7 +4,7 @@
 
 //manage the battery level of tesla to vary throughout the week, except when within home base
 
-const debuggerObj = require('debug');
+const debuggerObj = require('debug');	//https://www.npmjs.com/package/debug
 const util = require('util');
 const http = require('http');
 const fs = require('fs');	//https://nodejs.org/api/fs.html

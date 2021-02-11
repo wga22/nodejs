@@ -1,11 +1,15 @@
 //=====================================================================
 //framework to access tesla data
 //=====================================================================
-"use strict";
 
 var fs = require('fs');
 var tjs = require('teslajs');
 require('colors');
+
+process.on('uncaughtException', function (error) 
+{
+   console.log(error.stack);
+});
 
 var nRetries = 10;
 
@@ -26,29 +30,70 @@ function logo() {
 exports.TeslaFramework = function TeslaFramework(options, main) {
     this.options = options;
     this.tokenFound = false;
+	this.maxTries = 10;
+
     this.main = main;
-
-    this.login_cb = function (err, result) 
+	this.login_cb = _login_cb;
+    this.process = _process;
+    this.run = _run;
+	
+	function _login_cb(err, result) 
 	{
-        if (result.error) 
+        console.log("login_cb");
+		if (result.error) 
 		{
-            console.error("Login failed!".red);
-            console.warn(JSON.stringify(result.error));
-			nRetries--;
-			if(nRetries > 0)
-			{
-				console.warn("retrying..." +  nRetries)
-				setTimeout(this.run, 5000);	//wait 5 seconds, and retry
-			}
-            return;
+			this.maxTries--;
+            console.error(("Login failed! tries left: " + this.maxTries).red );
+			console.warn(JSON.stringify(err));
+
         }
+		else
+		{
+			console.log("login SUCCESS".green);
+			console.log("this.success " + this.success );
+			this.success = true;
+			console.log("this.success " + this.success );
+			
+			logo();
+			var options = { authToken: result.authToken };
+			tjs.vehicles(options, function (err, vehicles) 
+			{
+				if (err) 
+				{
+					console.log("\nError: " + err.red);
+					return;
+				}
 
-        logo();
+				var vehicle = vehicles[options.index || 0];
+				options.vehicleID = vehicle.id_s;
+				options.vehicle_id = vehicle.vehicle_id;
+				options.tokens = vehicle.tokens;
 
+				if (vehicle.state.toUpperCase() == "OFFLINE") 
+				{	
+					console.log("\nResult: " + "Unable to contact vehicle, exiting!".bold.red);
+					return;
+				}
+
+				var carType = tjs.getModel(vehicle);
+				console.log("\nVehicle " + vehicle.vin.green + " - " + carType.green + " ( '" + vehicle.display_name.cyan + "' ) is: " + vehicle.state.toUpperCase().bold.green);
+
+				if (main) 
+				{
+					main(tjs, options);
+				}
+			});
+		}
+	}
+	
+	function _process(err, result) 
+	{
+		logo();
         var options = { authToken: result.authToken };
         tjs.vehicles(options, function (err, vehicles) 
 		{
-            if (err) {
+            if (err) 
+			{
                 console.log("\nError: " + err.red);
                 return;
             }
@@ -58,13 +103,13 @@ exports.TeslaFramework = function TeslaFramework(options, main) {
             options.vehicle_id = vehicle.vehicle_id;
             options.tokens = vehicle.tokens;
 
-            if (vehicle.state.toUpperCase() == "OFFLINE") {
+            if (vehicle.state.toUpperCase() == "OFFLINE") 
+			{	
                 console.log("\nResult: " + "Unable to contact vehicle, exiting!".bold.red);
                 return;
             }
 
             var carType = tjs.getModel(vehicle);
-            
             console.log("\nVehicle " + vehicle.vin.green + " - " + carType.green + " ( '" + vehicle.display_name.cyan + "' ) is: " + vehicle.state.toUpperCase().bold.green);
 
             if (main) 
@@ -74,33 +119,44 @@ exports.TeslaFramework = function TeslaFramework(options, main) {
         });
     }
 
-    this.run = function () 
+	function _run() 
 	{
-        try {
+		console.log("run");       
+	   try 
+		{
             this.tokenFound = fs.statSync('.token').isFile();
-        } catch (e) {
+        } 
+		catch (e) 
+		{
+			console.log("didnt get token...")
+			//console.log(e);
         }
 
-        if (options.uri) {
+        if (options.uri) 
+		{
             console.log("Setting portal URI to: " + options.uri);
             tjs.setPortalBaseURI(options.uri);
         }
 
-        if (this.tokenFound) {
-            var fileStr = fs.readFileSync('.token', 'utf8');
+        if (this.tokenFound) 
+		{
+            console.log("token found 1");
+			var fileStr = fs.readFileSync('.token', 'utf8');
             var token = JSON.parse(fileStr);
 
             if (token.access_token) 
 			{
-				console.log("found token")
+				console.log("found token 2")
                 token = token.access_token;
             }
 
             this.login_cb(null, { error: false, authToken: token });
-        } else {
+        } 
+		else 
+		{
+			console.log("attempting login");
             var username = options.username || process.env.TESLAJS_USER;
             var password = options.password || process.env.TESLAJS_PASS;
-
             tjs.login(username, password, this.login_cb);
         }
     }

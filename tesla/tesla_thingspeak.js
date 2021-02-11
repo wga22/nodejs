@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 //libraries
-const debuggerObj = require('debug');
-const util = require('util');
-const http = require('http');
+const debuggerObj = require('debug');	//https://www.npmjs.com/package/debug
+//const util = require('util');	//https://nodejs.org/docs/latest-v8.x/api/util.html
+const axios = require('axios');	//https://github.com/axios/
 const fs = require('fs');	//https://nodejs.org/api/fs.html
 const querystring = require("querystring");
 const teslajs = require('teslajs');	//https://www.npmjs.com/package/teslajs
@@ -17,6 +17,8 @@ const debug = debuggerObj('debug:*');
 const info = debuggerObj('info:*');	//always show info
 const errorLogger = debuggerObj('error:*');	//always show errors
 
+//globals
+var tsFramework = null;
 
 var oConfig = {
         "portal_url": "https://owner-api.teslamotors.com/api/1/vehicles/",
@@ -33,31 +35,35 @@ function main()
 {
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
 	debug("-----tesla_thingspeak.js %s ", (new Date()).toLocaleString());
-	try {
+	try 
+	{
 		var jsonString = fs.readFileSync("./tesla_config.json").toString();
 		oConfig = JSON.parse(jsonString);
 		fTesting = (oConfig.debug == "1" || oConfig.debug == "true");
 	} 
 	catch (err) 
 	{
-		console.warn("The file 'tesla_config.json' does not exist or contains invalid arguments! Exiting...");
+		errorLogger("The file 'tesla_config.json' does not exist or contains invalid arguments! Exiting...");
 		process.exit(1);
 	}
 
-	var tsFramework = new tslaFramework.TeslaFramework(oConfig, writeToThingspeak);
-	tsFramework.run();
+	tsFramework = new tslaFramework.TeslaFramework(oConfig, writeToThingspeak);
+	holdForLogin();
 }
 
-
-function postValues()
+function holdForLogin()
 {
-	debug(oResults);
+	if(tsFramework.maxTries > 0)
+	{
+		debug("trying again for login.... %s", tsFramework.maxTries);
+		tsFramework.run();
+		setTimeout(holdForLogin, 15000);
+	}
 }
-
-
 
 function writeToThingspeak(tjs, options)
 {
+	console.log("writeToThingspeak")
     tjs.vehicleDataAsync(options).then( function(vehicleData) 
 	{
         var vehicle_state = vehicleData.vehicle_state;
@@ -100,38 +106,35 @@ function writeToThingspeak(tjs, options)
 		//dont bother writing to TP if not enough useful values
 		if(sQS.length > 10)
 		{
-			var qsOptions = {
-			  host: 'api.thingspeak.com',
-			  port: 80,
-			  path: '/update?api_key='+ oConfig["tp_api"] + sQS,
-			  method: 'GET'
-			};
-			var req = http.request(qsOptions, function(res) 
-			{
-			  debug('STATUS: %s', res.statusCode);
-			  debug('HEADERS: %s', JSON.stringify(res.headers));
-			  res.setEncoding('utf8');
-			  res.on('data', function (chunk) 
+			var sURL = 'http://api.thingspeak.com/update?api_key='+ oConfig["tp_api"] + sQS
+			debug(sURL);
+			axios.get(sURL)
+			  .then(function (response) 
 			  {
-				debug('BODY: %s', chunk);
-			  });
-			});
-
-			req.on('error', function(e) 
+				info("Successfully contacted thingspeak: %s" + sURL);
+				//debug(response);
+				process.exit(0);//HACK - end here
+			  })
+			  .catch(function (error) {
+				// handle error
+				errorLogger("issue uploading to QS %s", sURL);
+				errorLogger(error);
+			  })
+			  .then(function () 
+			  {
+				// always executed
+			  });			
+			
+			req.on('end', function(e) 
 			{
-			  errorLogger('problem with request: ' + e.message);
-			  errorLogger(e);
-			});
-
-			// write data to request body
-			req.write('data\n');
-			req.write('data\n');
-			req.end();		
+				debug("fields: " + sQS);
+				info("completed writing to thingspeak");
+				process.exit(0);//HACK - end here
+			});			
 		}
-		debug("fields: " + sQS);
-		info("completed writing to thingspeak");
 	});
 }
+
 
 function validField(oObj, sField, sFieldName)
 {
