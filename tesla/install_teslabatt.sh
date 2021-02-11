@@ -3,7 +3,7 @@
 # USAGE
 #		curl -sL https://raw.githubusercontent.com/wga22/nodejs/master/nhl/misc/update-nhlpi.sh | sudo -E bash -
 if ping -q -c 1 -W 1 google.com >/dev/null; then
-	export PROG="tesla_battery_levels.js"
+	export PROG="update_tesla.sh"
 	export PROGLOC="/opt/tesla/"
 	export LOGFILELOC="/var/log/will_progs/"
 	export CRONTSLFILE="/etc/cron.daily/tesla_battery_levels"
@@ -20,6 +20,10 @@ if ping -q -c 1 -W 1 google.com >/dev/null; then
 	if [ -f "${CRONTSLFILE}" ]; then
 		rm ${CRONTSLFILE}
 	fi
+	
+	# go ahead and run the upgrade program now
+	${PROG}
+	
 	touch ${CRONTSLFILE}
 	chmod u+x ${CRONTSLFILE}
 	printf '#!/bin/sh'> ${CRONTSLFILE}

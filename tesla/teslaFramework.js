@@ -45,7 +45,6 @@ exports.TeslaFramework = function TeslaFramework(options, main) {
 			this.maxTries--;
             console.error(("Login failed! tries left: " + this.maxTries).red );
 			console.warn(JSON.stringify(err));
-
         }
 		else
 		{
