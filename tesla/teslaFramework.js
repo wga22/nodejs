@@ -48,11 +48,7 @@ exports.TeslaFramework = function TeslaFramework(options, main) {
         }
 		else
 		{
-			console.log("login SUCCESS".green);
-			console.log("this.success " + this.success );
-			this.success = true;
-			console.log("this.success " + this.success );
-			
+			console.log("login SUCCESS".green);			
 			logo();
 			var options = { authToken: result.authToken };
 			tjs.vehicles(options, function (err, vehicles) 
