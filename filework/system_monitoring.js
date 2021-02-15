@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /*
 * monitoring tool for checking availability, or certain specific values (such as update in past 24hrs)
 */
@@ -10,7 +9,6 @@ const debuggerObj = require('debug');
 const fs = require('fs');	//https://nodejs.org/api/fs.html
 
 const axios = require('axios');	//https://github.com/axios/
-const cheerio = require('cheerio');	//https://cheerio.js.org/
 const nodemailer = require("nodemailer");
 
 //CONSTS
