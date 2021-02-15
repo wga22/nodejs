@@ -27,14 +27,25 @@ const { start } = require('repl');
 const debug = debuggerObj('debug:*');
 const info = debuggerObj('info:*');	//always show info
 const errorLogger = debuggerObj('error:*');	//always show errors
-
 const configFile = "./weather_data_config.json";
 
+const weatherURL = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/weatherdata/history?aggregateHours=1&combinationMethod=aggregate&maxStations=1&maxDistance=-1&contentType=json&unitGroup=us&locationMode=single&dataElements=default&dayEndTime=23%3A0%3A0";
+const MILLISPERDAY = 24*3600000;
 //globals
 var dbclient = null;
 
 
 var oConfig = {
+	"database":
+	{
+		"user": "xx",
+		"host": "xxx.lan",
+		"database": "dbname",
+		"password": "myPass",
+		"port": "5432"
+	},
+	"weather_key": "xxx",
+	"locations": "12345"
 }
 
 async function main()
@@ -55,26 +66,74 @@ async function main()
 		process.exit(1);
 	}
 	await startIt();
-	await cleanUp();
+}
+
+
+async function loadDataFromDate(oDateToLoad)
+{
+	//&startDateTime=2019-07-01T00%3A00%3A00&endDateTime=2019-07-02T00%3A00%3A00
+	var dTomorrow = new Date();
+	dTomorrow.setTime(oDateToLoad.getTime() + MILLISPERDAY);
+	var sLoadURL = weatherURL 
+		+ "&key=" + oConfig["weather_key"]
+		+ "&locations=" + oConfig["locations"]
+		+ "&startDateTime=" + getDateToTSString(oDateToLoad)
+		+ "&endDateTime=" + getDateToTSString(dTomorrow)
+
+	debug(sLoadURL);
+	axios.get(sLoadURL).then((response) => {
+		var weatherVCData = response.data;
+		doTempUpdates(weatherVCData);
+	}, 
+	(error) => 
+	{
+		handleFail(sLoadURL);
+	});
+}
+
+function handleFail(sLoadURL)
+{
+	//TODO
+	errorLogger("unable to load the data %s", sLoadURL);
+	cleanUp(false);
 }
 
 async function startIt()
 {
 	//getNextDateFromDB();
-	var oJSONData = readDataFromSampleFile();
-	if(oJSONData &&  oJSONData.location && oJSONData.location.values)
+	//var oJSONData = readDataFromSampleFile();
+	//get the date we are pulling
+	var oDateToLoad = await getNextDateFromDB();
+	//test for valid date
+	if(oDateToLoad && oDateToLoad.getTime() > 0)
 	{
-		var hourOfTemp =  oJSONData.location.values;
+		info("loading data from %s",  oDateToLoad.toLocaleString())
+		loadDataFromDate(oDateToLoad);
+	}
+	else
+	{
+		info("There are no dates for which we need data");
+	}
+}
+
+async function doTempUpdates(oJSONTemps)
+{
+	if(oJSONTemps &&  oJSONTemps.location && oJSONTemps.location.values)
+	{
+		var hourOfTemp =  oJSONTemps.location.values;
 		debug("found the weather data %s rows", hourOfTemp.length);
 		for(var x=0; x <hourOfTemp.length; x++)
 		{
 			var oDate = new Date(hourOfTemp[x].datetimeStr);			
 			debug( oDate.toLocaleString()+ " : " + hourOfTemp[x].temp);
-			var sUpdate = "update tesla.attic_temps set internet_temp=" + hourOfTemp[x].temp + " where internet_temp is null and date_trunc('hour', created_at) = date_trunc('hour', timestamp '"+oDate.toLocaleString()+"')";
+			var sUpdate = "update tesla.attic_temps set internet_temp=" 
+				+ hourOfTemp[x].temp + " where internet_temp is null and date_trunc('hour', created_at) = date_trunc('hour', timestamp '"
+				+ oDate.toLocaleString()+"')";
 			debug(sUpdate);
 			await dbclient.query(sUpdate);
 		}
 	}
+	cleanUp(false);	
 }
 
 function readDataFromSampleFile()
@@ -86,36 +145,59 @@ function readDataFromSampleFile()
 	return oWeatherData;
 }
 
-async function getNextDateFromDB(pk_name)
+async function getNextDateFromDB()
 {
+	var oResDate = null;
 	//const res = await dbclient.query('SELECT $1::text as message', ['Hello world!'])
-	var sMaxValQuery = "select count(*), date_trunc('month', created_at) as next_date \
+	var sMaxValQuery = "select count(*), date_trunc('day', created_at) as next_date \
 	from tesla.attic_temps	\
 	where internet_temp is null	\
-	group by date_trunc('month', created_at)	\
+	group by date_trunc('day', created_at)	\
 	order by count(*) desc \
-	limit 1'";
+	limit 1";
 	debug("max val query %s", sMaxValQuery);
 	var res = await dbclient.query(sMaxValQuery);
-	var nMaxDate = (res.rows.length && parseInt(res.rows[0]["next_date"])>0)  ? parseInt(res.rows[0]["next_date"]) : -1;
-	debug("max id from table is %s", nMaxDate);
-	return nMaxDate;
+	if(res.rows.length && res.rows[0]["next_date"])
+	{
+		var sMaxDate = res.rows[0]["next_date"];
+		debug("found a date to use from DB: %s",sMaxDate )
+		oResDate = new Date(sMaxDate);
+	}
+	//debug("max id from table is %s", sMaxDate);
+	return oResDate;
 }
 
 
-async function cleanUp()
+async function cleanUp(doRollback)
 {
-	dbclient.query('COMMIT', err => {
-		if (err) 
-		{
-		  errorLogger('Error committing transaction', err.stack)
-		  dbclient.end();
-		  process.exit(3);
-		}
-	  dbclient.end();
-	  info("exiting cleanly, db connection closed");
-	  process.exit(0);
-	  });
+	if(doRollback)//rollback
+	{
+		dbclient.query('ROLLBACK', err => {
+			if (err) 
+			{
+				errorLogger('Error rolling back', err.stack)
+				dbclient.end();
+				process.exit(5);
+			}
+		dbclient.end();
+		info("---ROLLBACK ---- exiting cleanly");
+		process.exit(1);		  
+		});
+	}
+	else //commit
+	{
+		dbclient.query('COMMIT', err => {
+			if (err) 
+			{
+			  errorLogger('Error committing transaction', err.stack)
+			  dbclient.end();
+			  process.exit(3);
+			}
+			dbclient.end();
+			info("++ COMMIT ++ exiting cleanly, db connection closed");
+			process.exit(0);
+		  });
+	}
 }
 
 main().catch(console.error);
@@ -125,6 +207,19 @@ function isNullOrUndefined(oObj)
 	return !((oObj && true) || oObj == 0)
 }
 
+
+function getDateToTSString(a_oDate)
+{
+	//YYYY-MM-DD
+	if(!a_oDate)
+	{
+		a_oDate = new Date();
+	}
+	var sMonth = (a_oDate.getMonth() + 1);
+	sMonth = (sMonth < 10)? ("0"+sMonth) : (sMonth + "");
+	var sDate = a_oDate.getDate()
+	return (a_oDate.getFullYear()+0) + "-" + sMonth + "-" + sDate
+}
 
 /*
 
