@@ -62,3 +62,4 @@ nhl/misc/junk.js
 filework/yahoo_oauth.json
 *.json
 filework/ftp_awardspace.bat
+*.csv
