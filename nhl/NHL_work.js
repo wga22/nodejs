@@ -77,6 +77,7 @@ http://live.nhl.com/GameData/GCScoreboard/2017-01-26.jsonp
  */
 
 //requires
+//const lame = require('@suldashi/lame');
 const lame = require('lame');
 const fs = require('fs');
 const Speaker = require('speaker');
@@ -179,14 +180,31 @@ function dailyCheckForUpdatesToGameList()
 	}
 }
 
+function teamSort(a, b) 
+{
+	if (a.est < b.est) 
+	{
+	  return -1;
+	}
+	if (a.est > b.est) 
+	{
+	  return 1;
+	}
+	return 0;
+  }
+
+
 function initializeTheGamesList(aoGames)
 {
 	//https://www.reddit.com/r/nhl/comments/2i13xa/places_to_get_raw_statistics/
 	//http://live.nhl.com/GameData/SeasonSchedule-20162017.json
 	debugOut("loaded all the games: " + aoGames.length);
 	var sMyTeam = ConfigJSON.myteam;
-	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam});
+	aoMyTeamGames = aoGames.filter(function(game){return game.a===sMyTeam || game.h === sMyTeam}).sort(teamSort);
 	debugOut("filtered just the " + sMyTeam + " games: " + aoMyTeamGames.length);
+	//const debug = require('debug')('debug:*');
+	//debug(aoMyTeamGames);
+
 	oCurrentGames = getPreviousAndNextGames();
 	oPrevGameResults = new GameResults(oCurrentGames.previousGame ? oCurrentGames.previousGame : oCurrentGames.nextGame);
 	aoGames = null;
@@ -447,8 +465,9 @@ function GameResults(a_oPrevGameInfo)
 			this.awayScore = iAG ? iAG : 0;
 			this.gameTime = gameStats.currentPeriodTimeRemaining ? gameStats.currentPeriodTimeRemaining : "20:00";
 			this.period = gameStats.currentPeriod ? gameStats.currentPeriod : 1;
-			//debugOut("showResults: Active game? " + JSON.stringify(oRes.gameData.status));
-			this.gameInProgress = oRes.gameData.status.detailedState != "Final" && oRes.gameData.status.detailedState != "Scheduled";
+			debugOut("showResults: Active game? " + JSON.stringify(oRes.gameData.status));
+			// {"abstractGameState":"Preview","codedGameState":"9","detailedState":"Postponed","statusCode":"9","startTimeTBD":false}
+			this.gameInProgress = oRes.gameData.status.detailedState != "Final" && oRes.gameData.status.detailedState != "Scheduled" && oRes.gameData.status.detailedState != "Postponed";
 			
 			//only should go here when the game is over, 1 time (or maybe at bootup?)
 			if(!this.gameInProgress)

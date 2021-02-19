@@ -73,7 +73,7 @@ async function loadDataFromDate(oDateToLoad)
 {
 	//&startDateTime=2019-07-01T00%3A00%3A00&endDateTime=2019-07-02T00%3A00%3A00
 	var dTomorrow = new Date();
-	dTomorrow.setTime(oDateToLoad.getTime() + MILLISPERDAY);
+	dTomorrow.setTime(oDateToLoad.getTime() + (MILLISPERDAY));
 	var sLoadURL = weatherURL 
 		+ "&key=" + oConfig["weather_key"]
 		+ "&locations=" + oConfig["locations"]
