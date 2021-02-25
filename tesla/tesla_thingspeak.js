@@ -91,13 +91,13 @@ function writeToThingspeak(tjs, options)
 		aFields.push(validField(charge_state, "ideal_battery_range", "field6") );
 
 		//vehicle
-		aFields.push(validField(vehicle_state, "speed", "field2") );
 		aFields.push(validField(vehicle_state, "odometer", "field3") );
+		aFields.push(validField(vehicle_state, "car_version", "status") );
 		
 		//drive state
 		aFields.push(validField(drive_state, "latitude", "field7") );
 		aFields.push(validField(drive_state, "longitude", "field8") );
-		aFields.push(validField(drive_state, "car_version", "status") );
+		aFields.push(validField(drive_state, "speed", "field2") );
 		
 		//console.log(aFields.join(""));
 		//return;
