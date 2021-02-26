@@ -11,8 +11,6 @@ process.on('uncaughtException', function (error)
    console.log(error.stack);
 });
 
-var nRetries = 10;
-
 function logo() {
     console.log("\n");
     console.log("TTTTT EEEEE SSSSS L     AAAAA     J SSSSS");
@@ -42,7 +40,7 @@ exports.TeslaFramework = function TeslaFramework(options, main) {
         console.log("login_cb");
 		if (result.error) 
 		{
-			this.maxTries--;
+			//this.maxTries--;
             console.error(("Login failed! tries left: " + this.maxTries).red );
 			console.warn(JSON.stringify(err));
         }

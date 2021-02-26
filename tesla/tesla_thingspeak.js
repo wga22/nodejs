@@ -55,7 +55,7 @@ function holdForLogin()
 {
 	if(tsFramework.maxTries > 0)
 	{
-		debug("trying again for login.... %s", tsFramework.maxTries);
+		debug("trying again for login.... %s", tsFramework.maxTries--);
 		tsFramework.run();
 		setTimeout(holdForLogin, 15000);
 	}
