@@ -8,6 +8,7 @@ const fs = require('fs');	//https://nodejs.org/api/fs.html
 const querystring = require("querystring");
 const teslajs = require('teslajs');	//https://www.npmjs.com/package/teslajs
 const tslaFramework = require('./teslaFramework.js');
+const RETRYTIMEOUT = 15 * 1000;	//seconds X 1000ms
 
 //const axios = require('axios');	//https://github.com/axios/
 //const { Client } = require('pg'); //npm install -g pg	//https://www.npmjs.com/package/pg
@@ -57,7 +58,12 @@ function holdForLogin()
 	{
 		debug("trying again for login.... %s", tsFramework.maxTries--);
 		tsFramework.run();
-		setTimeout(holdForLogin, 15000);
+		setTimeout(holdForLogin, RETRYTIMEOUT);
+	}
+	else
+	{
+		info("unable to connect, giving up after 10 tries");
+		process.exit(1);
 	}
 }
 
