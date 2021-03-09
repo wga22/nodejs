@@ -7,7 +7,7 @@ if ping -q -c 1 -W 6 google.com >/dev/null; then
 	apt-get dist-upgrade -y
 	apt-get autoremove -y
 	apt-get clean -y
-	npm update
+	# CANNOT DO DUE TO LAME npm update
 	#pip-review --auto
 
 	#pull git code
