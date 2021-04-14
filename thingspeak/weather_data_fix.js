@@ -57,15 +57,27 @@ async function main()
 		var jsonString = fs.readFileSync(configFile).toString();
 		oConfig = JSON.parse(jsonString);
 		debug("read in file %s", configFile )
-		dbclient = new Client(oConfig["database"]);
-		await dbclient.connect();
 	} 
 	catch (err) 
 	{
 		errorLogger("The file '%s' does not exist or contains invalid arguments! Exiting...", configFile);
 		process.exit(1);
 	}
+	try
+	{
+		dbclient = new Client(oConfig["database"]);
+		await dbclient.connect();
+	}
+	catch(err)
+	{
+		errorLogger("Issue with the database %s", oConfig["database"].host);
+		process.exit(1);
+	}
+
+
 	await startIt();
+	info("done");
+	process.exit(0);
 }
 
 
@@ -73,7 +85,8 @@ async function loadDataFromDate(oDateToLoad)
 {
 	//&startDateTime=2019-07-01T00%3A00%3A00&endDateTime=2019-07-02T00%3A00%3A00
 	var dTomorrow = new Date();
-	dTomorrow.setTime(oDateToLoad.getTime() + (MILLISPERDAY));
+	//dTomorrow.setTime(oDateToLoad.getTime() + (MILLISPERDAY));
+    dTomorrow.setTime(oDateToLoad.getTime() +( MILLISPERDAY + ((dTomorrow.getHours()%2==1) ?1 :0 )*MILLISPERDAY   ));   //every other hour, pull 2 days worth
 	var sLoadURL = weatherURL 
 		+ "&key=" + oConfig["weather_key"]
 		+ "&locations=" + oConfig["locations"]

@@ -9,7 +9,6 @@ const querystring = require("querystring");
 const teslajs = require('teslajs');	//https://www.npmjs.com/package/teslajs
 const tslaFramework = require('./teslaFramework.js');
 const RETRYTIMEOUT = 15 * 1000;	//seconds X 1000ms
-
 //const axios = require('axios');	//https://github.com/axios/
 //const { Client } = require('pg'); //npm install -g pg	//https://www.npmjs.com/package/pg
 

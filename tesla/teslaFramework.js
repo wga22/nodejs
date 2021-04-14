@@ -26,9 +26,9 @@ function logo() {
 
 
 exports.TeslaFramework = function TeslaFramework(options, main) {
-    this.options = options;
+	this.options = options;
     this.tokenFound = false;
-	this.maxTries = 10;
+	this.maxTries = 22;
 
     this.main = main;
 	this.login_cb = _login_cb;
