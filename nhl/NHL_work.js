@@ -973,6 +973,7 @@ function populateToll(sURL)
 		catch(e) 
 		{
 			console.warn("Something unexpected with the response from (" + sURL + ") :" + e.message);
+			populateToll.nToll= -1;
 			throw e;
 			//just let another loop happen, and do nothing more
 		}
@@ -983,7 +984,7 @@ function populateToll(sURL)
 		  throw e;
 	});
 }
-populateToll.nToll = "";
+populateToll.nToll = -1;
 /*
 -------------OUTPUTS:--------------------
  
