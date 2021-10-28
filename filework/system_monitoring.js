@@ -441,6 +441,13 @@ Sample file
 	"active" : "Y"
 },
 {
+	"title":"nc photos will",
+	"url":"/var/www/nextcloud/data/will/files/InstantUpload/Camera",
+    "method": "latestFileTest",
+	"monitoring" : "Y",
+	"active" : "Y"
+},
+{
 	"title":"attic temps",
 	"url":"https://api.thingspeak.com/channels/XXXXXX/feeds.json?results=1",
     "method": "thingspeak",
