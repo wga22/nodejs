@@ -63,3 +63,5 @@ filework/yahoo_oauth.json
 *.json
 filework/ftp_awardspace.bat
 *.csv
+filework/latestFileFromPath.js
+tesla/tesla_config.json.bak

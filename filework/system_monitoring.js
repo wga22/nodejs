@@ -25,6 +25,7 @@ const error = debuggerObj('error:*');	//always show errors
 //GLOBAL
 var configFile = {params:{}, sites:[], updated:0};
 var sEmailTo = "";
+var recLastModified = null;
 
 //MAIN
 async function main()
@@ -146,6 +147,9 @@ function monitorSystems()
 			case "parseEthmine":
 				parseEthmine(aSites[x]);
 				break;
+            case "latestFileTest":
+                confirmRecentFile(aSites[x]);
+                break;
 			default:
 				ping(aSites[x]);
 				break;
@@ -245,6 +249,56 @@ function thingspeak(oSite)
 	});	
 }
 
+
+function confirmRecentFile(oSite)
+{
+    const ACCEPTABLEFILEAGE=14;
+    if(recLastModified == null)
+    {
+        try
+        {
+            recLastModified = require('recursive-last-modified');
+        }
+        catch(e)
+        {
+             //TODO
+        }        
+    }
+
+    if(recLastModified!=null)
+    {
+        const sPath = oSite.url;
+        debug("confirm dir: " + sPath);
+        var nDateStamp = recLastModified(sPath);
+        
+        if(nDateStamp)
+        {
+           var latestFileDate = new Date(nDateStamp);
+           if(withinDayOfNow(latestFileDate ,ACCEPTABLEFILEAGE) )
+           {
+               oSite.message=("Good Date: " + latestFileDate.toDateString());
+               handleSuccess(oSite);
+           }
+           else
+           {
+            oSite.message="File too old: " + latestFileDate.toDateString();
+            handleFail(oSite);
+           }
+        }
+        else
+        {
+            oSite.message="Date not found.  No file?";
+            handleFail(oSite);
+        }
+    }
+    else
+    {
+        oSite.message="recursive-last-modified not installed";
+        handleFail(oSite);
+    }    
+}
+
+
 function handleFail(oSite)
 {
 	info("FAIL: " + oSite.title + "(%s)", (oSite.url ? oSite.url : ""));
@@ -266,13 +320,14 @@ function handleSuccess(oSite)
 
 
 /////////////////  HELPERS /////////////////////////////////////
-function withinDayOfNow(dTime)
+function withinDayOfNow(dTime, nDays)
 {
 	var date = new Date();
+    nDays = nDays ? nDays : 1;
 	var nDiff = Math.abs(date.getTime() - dTime.getTime());
 	//debug("The site was updated %s", yearDate(dTime));
 	//debug(nDiff + " < " +  dTime.getTime());
-	return nDiff < MILLISPERDAY;
+	return nDiff < (MILLISPERDAY*nDays);
 }
 
 function yearDate(a_dDate)
