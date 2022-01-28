@@ -60,7 +60,7 @@ var oTPDataStructure =
 
 async function loadConfig(a_sJSONFileName)
 {
-	console.log("USAGE: thingspeak_puller.js");
+	info("USAGE: thingspeak_puller.js");
 	try 
 	{
 		var jsonString = fs.readFileSync(a_sJSONFileName).toString();
