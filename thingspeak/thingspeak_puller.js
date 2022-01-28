@@ -3,7 +3,7 @@
 	JSON file contains info on the db and TP structure
 */
 
-const debuggerObj = require('debug');
+const { createLogger, format, transports } = require('winston');
 const fs = require('fs');	//https://nodejs.org/api/fs.html
 //const ThingSpeakClient = require('thingspeakclient');	//npm install -g thingspeakclient	//https://www.npmjs.com/package/thingspeakclient
 const axios = require('axios');	//https://github.com/axios/
@@ -14,9 +14,15 @@ const MILLISPERDAY = 24*3600000;
 const TPURL = "https://api.thingspeak.com/channels/";
 
 //set DEBUG
-const debug = debuggerObj('debug:*');
-const info = debuggerObj('info:*');	//always show info
-const errorLogger = debuggerObj('error:*');	//always show errors
+const logger = createLogger({
+  level: 'info',
+  format: format.combine(
+    format.splat(),
+    format.simple()
+  ),  //https://github.com/winstonjs/winston#formats
+  //defaultMeta: { service: 'user-service' },
+  transports: [new transports.Console() ],
+});
 
 //GLOBALS
 var dbclient = null;
@@ -60,16 +66,16 @@ var oTPDataStructure =
 
 async function loadConfig(a_sJSONFileName)
 {
-	info("USAGE: thingspeak_puller.js");
+	logger.info("USAGE: thingspeak_puller.js");
 	try 
 	{
 		var jsonString = fs.readFileSync(a_sJSONFileName).toString();
 		oTPDataStructure = validateJSON(JSON.parse(jsonString), oTPDataStructure);
-		debug(oTPDataStructure);
+		logger.debug(JSON.stringify(oTPDataStructure));
 	} 
 	catch (err)
 	{
-		errorLogger("Error with processing arguments or JSON file ");
+		logger.error("Error with processing arguments or JSON file %o", err);
 		errorLogger(err);
 		process.exit(1);
 	}
@@ -81,7 +87,7 @@ function validateJSON(newObject, oValidObject)
 	{
 		if(newObject[x])	//test for existance 
 		{
-			//debug("good, found %s", x);
+			//logger.debug("good, found %s", x);
 		}
 		else
 		{
@@ -100,33 +106,32 @@ async function main()
 	if(process.argv.length > 2 && process.argv[2] && fs.existsSync(process.argv[2]))
 	{
 		sJSONFileName = process.argv[2];
-		info('Pulling file from Arguments %s', sJSONFileName);
+		logger.info('Pulling file from Arguments %s', sJSONFileName);
 	}
 	else
 	{
-		info('Using default file %s', sJSONFileName);
+		logger.info('Using default file %s', sJSONFileName);
 	}
 	await loadConfig(sJSONFileName);
-	
 	//DB connection	
 	dbclient = new Client(oTPDataStructure["database"]);
 	await dbclient.connect();
 	nMaxExistingRow = await getDbLatestRow(oTPDataStructure["pk_name"]);
-	debug("latest row in TP %s", nMaxExistingRow);
+	logger.debug("latest row in TP %s", nMaxExistingRow);
 	var oMonthToLoad = new Date();
 	oMonthToLoad.setMonth(oMonthToLoad.getMonth()+1);	//increment the date one month forward for end date	
 	await pullTPDataintoDB(oMonthToLoad);	//kick off recursion
-	debug("ending main");
+	logger.debug("ending main");
 }
 
 async function getDbLatestRow(pk_name)
 {
 	//const res = await dbclient.query('SELECT $1::text as message', ['Hello world!'])
 	var sMaxValQuery = 'SELECT max('+pk_name+') as maxid from ' + oTPDataStructure["tablename"] ;
-	debug("max val query %s", sMaxValQuery);
+	logger.debug("max val query %s", sMaxValQuery);
 	var res = await dbclient.query(sMaxValQuery);
 	var nMaxID = (res.rows.length && parseInt(res.rows[0]["maxid"])>0)  ? parseInt(res.rows[0]["maxid"]) : -1;
-	debug("max id from table is %s", nMaxID);
+	logger.debug("max id from table is %s", nMaxID);
 	return nMaxID;
 }
 
@@ -161,7 +166,7 @@ async function pullTPDataintoDB(aoEndDate)
 		+ oTPDataStructure["tp_read_key"]
 		+ "&start=" + getDateToTSStringFirstDay(aoEndDate)
 		+ "&end=" + sStopDate;
-	debug("TP URL: %s", sURL);
+	logger.debug("TP URL: %s", sURL);
 	axios.get(sURL).then((response) => {
 	var thingSpData = response.data;
 	var fStopRecursion = false;
@@ -171,32 +176,32 @@ async function pullTPDataintoDB(aoEndDate)
 		{
 			if(thingSpData.feeds[y]["entry_id"] > nMaxExistingRow)
 			{
-				debug("Found entry %s in TP dataset.", thingSpData.feeds[y]["entry_id"]);
+				logger.debug("Found entry %s in TP dataset.", thingSpData.feeds[y]["entry_id"]);
 				insertTPData(thingSpData.feeds[y]);	
 			}
 			else	//we've reached top of the existing data set
 			{
-				debug("Entry already in system: %s <= %s",thingSpData.feeds[y]["entry_id"], nMaxExistingRow );
+				logger.debug("Entry already in system: %s <= %s",thingSpData.feeds[y]["entry_id"], nMaxExistingRow );
 				fStopRecursion = true;	//dont bother loading older months
 			}
 		}
 		//TODO: do we trust this?
 		if(!fStopRecursion)
 		{
-			debug("fStopRecursion");
+			logger.debug("fStopRecursion");
 			pullTPDataintoDB(aoEndDate);	//recursion for pros!
 			//return pullTPDataintoDB(aoEndDate);	//recursion for pros!
 		}
 		else
 		{
-			debug("leaving");
+			logger.debug("leaving");
 			cleanUp();
 			//return 1;
 		}
 	}
 	else	//no new records found
 	{
-		debug("ENDING: dataset as prior month has no records %s", sStopDate);
+		logger.debug("ENDING: dataset as prior month has no records %s", sStopDate);
 		cleanUp();
 		//return 1;
 	}
@@ -207,7 +212,7 @@ async function pullTPDataintoDB(aoEndDate)
 		errorLogger(error)
 		process.exit(22);
 	});
-	debug("ending pullTPDataintoDB");
+	logger.debug("ending pullTPDataintoDB");
 }
 
 async function insertTPData(aoTPRow)
@@ -266,21 +271,21 @@ VALUES(0, now(), 0, 0, 0, 0, 0, 0, 0, 0);
 		+ " (" +  (aFields.join(",")) + ") values (" +
 		aValues.join(",") + ")";
 	nInsertCount++;
-	debug("insert (%s): %s", nInsertCount, sInsertStatement);
+	logger.debug("insert (%s): %s", nInsertCount, sInsertStatement);
 	//TODO look at batching the inserts
 	return res = await dbclient.query(sInsertStatement);
 }
 
 async function runUpdates()
 {
-	debug("running updates");
+	logger.debug("running updates");
 	if(oTPDataStructure["updates"] && oTPDataStructure["updates"].length)
 	{
-		debug("running updates %s", oTPDataStructure["updates"].length);
+		logger.debug("running updates %s", oTPDataStructure["updates"].length);
 		for(var x=0; x <oTPDataStructure["updates"].length; x++ )
 		{
 			var sUpdate = oTPDataStructure["updates"][x];
-			debug("running cleanup query %s" , sUpdate);
+			logger.debug("running cleanup query %s" , sUpdate);
 			await dbclient.query(sUpdate);
 		}
 	}	
@@ -290,7 +295,7 @@ async function runUpdates()
 async function cleanUp()
 {
 	await runUpdates();
-	info("Processing completed, doing commit for %s inserts", nInsertCount);
+	logger.info("Processing completed, doing commit for %s inserts", nInsertCount);
 	dbclient.query('COMMIT', err => {
           if (err) 
 		  {
@@ -299,7 +304,7 @@ async function cleanUp()
 			process.exit(3);
           }
 		dbclient.end();
-		info("exiting cleanly, db connection closed");
+		logger.info("exiting cleanly, db connection closed");
 		process.exit(0);
         });
 }
