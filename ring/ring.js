@@ -6,7 +6,8 @@
 // arm the ring alarm (use cron to call nightly)
 
 var fs = require('fs');
-const debuggerObj = require('debug');
+const debugToken = require('debug')('ringjs:token');
+const debugAlarm = require('debug')('ringjs:alarm');
 const RingApi = require ('ring-client-api').RingApi;	//https://www.npmjs.com/package/ring-client-api
 const JSONFILE = "./ring_config.json";
 const RingDeviceType = require ('ring-client-api').RingDeviceType;
@@ -14,16 +15,11 @@ var  ENABLEALARM = true;
 var token;
 var ringApi2;
 
-//set DEBUG
-const debug = debuggerObj('debug:*');
-const info = debuggerObj('info:*');	//always show info
-const errorLogger = debuggerObj('error:*');	//always show errors
-
 async function main()
 {
 	await loadConfig();
 	await turnOnOffAlarm(ENABLEALARM);
-	info("all done!")
+	debugAlarm("all done!")
 	process.exit(0);
 }
 
@@ -35,9 +31,9 @@ async function loadConfig()
 	{
 		ENABLEALARM = !("DISABLE" == myArgs[0]);
 	}
-	info("USAGE: ring.js <DISABLE>");
-	info("full args: " + JSON.stringify(process.argv));
-	info("args: " + JSON.stringify(myArgs));
+	debugAlarm("USAGE: ring.js <DISABLE>");
+	debugAlarm("full args: " + JSON.stringify(process.argv));
+	debugAlarm("args: " + JSON.stringify(myArgs));
 	try 
 	{
 		var jsonString = fs.readFileSync(JSONFILE).toString();
@@ -64,29 +60,29 @@ async function turnOnOffAlarm(fEnableAlarm)
 	{
 		var house = locations[0];
 		var alarmMode = await house.getAlarmMode();
-		info("current mode:" + alarmMode);
+		debugAlarm("current mode:" + alarmMode);
 		var fAway = ("all"==alarmMode);
 		if(fAway)
 		{
-			info("away, so dont touch the alarm");
+			debugAlarm("away, so dont touch the alarm");
 		}
 		else
 		{ //home modes
 			if(fEnableAlarm && "none"==alarmMode)
 			{
-				info("enabling alarm");
+				debugAlarm("enabling alarm");
 				await house.armHome();
 			}
 			else if ("some" == alarmMode)
 			{
-				info("disarming alarm");
+				debugAlarm("disarming alarm");
 				await house.disarm();
 			}			
 		}
 	}
 	else
 	{
-		errorLogger("Error: cannot find ring location");
+		debugAlarm("Error: cannot find ring location");
 		process.exit(1);
 	}
 	return true;
@@ -99,7 +95,7 @@ function updateToken()
   ringApi2.onRefreshTokenUpdated.subscribe(
     async ({ newRefreshToken, oldRefreshToken }) => 
     {
-        debug('Refresh Token Updated: ', newRefreshToken)
+        debugToken('Refresh Token Updated: ', newRefreshToken)
 
         // If you are implementing a project that use `ring-client-api`, you should subscribe to onRefreshTokenUpdated and update your config each time it fires an event
         // Here is an example using a .env file for configuration
