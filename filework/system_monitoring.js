@@ -281,8 +281,9 @@ function confirmRecentFile(oSite)
            }
            else
            {
-            oSite.message="File too old: " + latestFileDate.toDateString();
-            handleFail(oSite);
+               //need to fix that it is failing, but showing wrong date
+               oSite.message="File too old("+nDateStamp+"): " + latestFileDate.toDateString();
+               handleFail(oSite);
            }
         }
         else
@@ -327,7 +328,7 @@ function withinDayOfNow(dTime, nDays)
 	var nDiff = Math.abs(date.getTime() - dTime.getTime());
 	//debug("The site was updated %s", yearDate(dTime));
 	//debug(nDiff + " < " +  dTime.getTime());
-	return nDiff < (MILLISPERDAY*nDays);
+	return nDiff <= (MILLISPERDAY*nDays);
 }
 
 function yearDate(a_dDate)
