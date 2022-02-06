@@ -5,11 +5,13 @@
 
 
 //libraries
-const debuggerObj = require('debug');
+//TODO: introduce winston instead of debug
+const { createLogger, format, transports } = require('winston');
 const fs = require('fs');	//https://nodejs.org/api/fs.html
 
 const axios = require('axios');	//https://github.com/axios/
 const nodemailer = require("nodemailer");
+const reEmailMatch =/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
 //CONSTS
 const JSONFILE = "./system_monitoring.json"
@@ -18,31 +20,37 @@ const MILLISPERDAY = 24*3600000;
 
 
 //set DEBUG
-const debug = debuggerObj('debug:*');
-const info = debuggerObj('info:*');	//always show info
-const error = debuggerObj('error:*');	//always show errors
+const logger = createLogger({
+  level: 'debug',
+  format: format.combine(
+    format.splat(),
+    format.simple()
+  ),  //https://github.com/winstonjs/winston#formats
+  //defaultMeta: { service: 'user-service' },
+  transports: [new transports.Console() ],
+});
 
 //GLOBAL
 var configFile = {params:{}, sites:[], updated:0};
 var sEmailTo = "";
 var recLastModified = null;
+var nActiveSiteLength = 0;
 
 //MAIN
 async function main()
 {
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
-	//debug = console.log.bind(console);
 	var fs = require('fs');
 	try 
 	{
 		var jsonString = fs.readFileSync(JSONFILE).toString();
 		configFile = JSON.parse(jsonString);
 		configFile.updated=0;
-		//debug("-----Running-----");
+		logger.debug("-----Running-----");
 	} 
 	catch (err) 
 	{
-		error("The file '%s' does not exist or contains invalid arguments! Exiting...", JSONFILE);
+		logger.error("The file '%s' does not exist or contains invalid arguments! Exiting...", JSONFILE);
 		console.warn(err);
 		process.exit(1);
 	}
@@ -51,8 +59,16 @@ async function main()
 	if(process.argv.length > 2 && process.argv[2])
 	{
 		sEmailTo = process.argv[2];
-		debug('emailing %s', sEmailTo);
-		waitForSitesThenRespond();
+        if (null != sEmailTo.match(reEmailMatch))
+        {
+            logger.debug('emailing %s', sEmailTo);
+            waitForSitesThenRespond();            
+        }
+        else
+        {
+            logger.info("the argument %s is not a valid email address.  Not emailing", sEmailTo);
+        }
+        
 	}
 }
 
@@ -60,15 +76,15 @@ waitForSitesThenRespond.counter = 60;
 function waitForSitesThenRespond()
 {
 	//max timeout of "counter"
-	if(waitForSitesThenRespond.counter>0 && configFile.updated != configFile.sites.length)
+	if(waitForSitesThenRespond.counter>0 && configFile.updated != nActiveSiteLength)
 	{
 		waitForSitesThenRespond.counter--;
-		debug("waiting on sites %s (%s)", configFile.updated ,waitForSitesThenRespond.counter);
+		logger.debug("waiting on sites %s (%s)", configFile.updated ,waitForSitesThenRespond.counter);
 		setTimeout(waitForSitesThenRespond, 1000);
 	}
 	else	//move forward!
 	{
-		debug("done monitoring (%s)", configFile.updated);
+		logger.debug("done monitoring (%s)", configFile.updated);
 		sendEmail();
 		//TODO: rewrite JSON with new monitoring
 	}
@@ -78,39 +94,46 @@ function waitForSitesThenRespond()
 function sendEmail()
 {
 	//TODO: test for need to send email
-	debug("Sending email %s", )
+	logger.debug("Sending email %s", sEmailTo)
 	if(true)
 	{
 		var aOutput = [];
 		var aSites = configFile.sites;
-		for(var x in aSites)
+		siteList: for(var x in aSites)
 		{
 			var oSite = aSites[x]
+            if("N" == aSites[x].active)
+            {
+                logger.debug("skipping site: %s", oSite.title);
+                continue siteList;
+            }
 			if(oSite.success)
 			{
-				aOutput.push("Success: " + oSite.title + " was last seen " + yearDate(oSite.lastSeen));
+                var successString = "Success: " + oSite.title + " was last seen " + yearDate(oSite.lastSeen);
+				logger.debug(successString);
+                aOutput.push(successString);
 			}
 			else
 			{
 				aOutput.push("FAIL: " + oSite.title + " was last seen " + yearDate(oSite.lastSeen));
 			}
 		}
-		debug("Sending email %s", aOutput.join('\n'));
 		sendSystemErrorEmail(sEmailTo, aOutput.join('\n'));
 	}
 }
 
 async function sendSystemErrorEmail(sTo, sErrorMessage) 
 {
-	var jsonString = fs.readFileSync(NODEMAILER).toString();
-	var emailPropertiesFile = JSON.parse(jsonString);
-  
-  let transporter = nodemailer.createTransport({
-	host: "smtp.office365.com",
-	port: 587,
-	requireTLS: true,
-    auth: { user: emailPropertiesFile.user,  pass: emailPropertiesFile.pass  }
-  });
+    var jsonString = fs.readFileSync(NODEMAILER).toString();
+    var emailPropertiesFile = JSON.parse(jsonString);
+    logger.debug("sendSystemErrorEmail %s", sTo);
+    let transporter = nodemailer.createTransport(
+    {
+        host: "smtp.mail.yahoo.com",
+        port: 587,
+        requireTLS: true,
+        auth: { user: emailPropertiesFile.user,  pass: emailPropertiesFile.pass  }
+    });
 
   //send mail with defined transport object
   let inf = await transporter.sendMail({
@@ -121,11 +144,11 @@ async function sendSystemErrorEmail(sTo, sErrorMessage)
     //html: sErrorMessage.replace('\n', "<br/>") // html body
   });
 
-  info("Message sent: %s", inf.messageId);
+  logger.info("Message sent: %s", inf.messageId);
   // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 
   // Preview only available when sending through an Ethereal account
-  info("Preview URL: %s", nodemailer.getTestMessageUrl(inf));
+  logger.info("Preview URL: %s", nodemailer.getTestMessageUrl(inf));
   // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
 }
 
@@ -133,9 +156,16 @@ async function sendSystemErrorEmail(sTo, sErrorMessage)
 function monitorSystems()
 {
 	var aSites = configFile.sites;
-	for(var x in aSites)
+    nActiveSiteLength = configFile.sites.length;
+	siteList: for(var x in aSites)
 	{
-		//debug("site:" + debugconfig[x].title);
+        if("N" == aSites[x].active)
+        {
+            logger.debug("skipping site: %s", aSites[x].title);
+            nActiveSiteLength--;
+            continue siteList;
+        }
+		logger.debug("site: %s", aSites[x].title);
 		switch(aSites[x].method)	//yes, wanted to do something more agile
 		{
 			case "ping":
@@ -157,10 +187,18 @@ function monitorSystems()
 	}
 }
 
+function nextcloudStatus()
+{
+    //TODO: pull from this info on DB, diskspace, uptime, etc
+    //https://willcloud.crabdance.com/nextcloud/ocs/v2.php/apps/serverinfo/api/v1/info
+    //https://willcloud.crabdance.com/nextcloud/ocs/v2.php/apps/serverinfo/api/v1/info?format=json
+    
+}
+
 function ping(oSite)
 {
 	const sURL = oSite.url;
-	debug("ping: " + sURL);
+	logger.debug("ping: " + sURL);
 	axios.get(sURL).then((response) => {
 		oSite.lastSeen = new Date();
 		handleSuccess(oSite);
@@ -184,15 +222,15 @@ function parseEthmine(oSite)
 	
 	axios.get(sURL).then((response) => {
 		var ethMineResp = response.data;
-		debug("miner status: " + ethMineResp.status);
+		logger.debug("miner status: " + ethMineResp.status);
 		if(ethMineResp.status == "OK" && ethMineResp.data && ethMineResp.data.length > 0 && ethMineResp.data[0].lastSeen)
 		{
 			var dLastSeen = new Date(ethMineResp.data[0].lastSeen*1000);	//1000X for millis
-			debug("ethmine last running on %s", yearDate(dLastSeen));
+			logger.debug("ethmine last running on %s", yearDate(dLastSeen));
 			oSite.lastSeen = dLastSeen;
 			if(withinDayOfNow(dLastSeen))
 			{
-				debug("good, system seems to have been running in past day");
+				logger.debug("good, system seems to have been running in past day");
 				handleSuccess(oSite);
 			}
 		}
@@ -229,9 +267,9 @@ function thingspeak(oSite)
 		var thingSpData = response.data;
 		if(thingSpData && thingSpData.feeds && thingSpData.feeds.length > 0 && thingSpData.feeds[0].created_at)
 		{
-			debug("tpoutput: %s", thingSpData.feeds[0].created_at);
+			logger.debug("tpoutput: %s", thingSpData.feeds[0].created_at);
 			var lastDataDate = new Date(thingSpData.feeds[0].created_at);
-			debug("last seen %s", yearDate(lastDataDate));
+			logger.debug("last seen %s", yearDate(lastDataDate));
 			oSite.lastSeen = lastDataDate;
 			if(withinDayOfNow(lastDataDate))
 			{
@@ -268,7 +306,7 @@ function confirmRecentFile(oSite)
     if(recLastModified!=null)
     {
         const sPath = oSite.url;
-        debug("confirm dir: " + sPath);
+        logger.debug("confirm dir: " + sPath);
         var nDateStamp = recLastModified(sPath);
         
         if(nDateStamp)
@@ -302,17 +340,16 @@ function confirmRecentFile(oSite)
 
 function handleFail(oSite)
 {
-	info("FAIL: " + oSite.title + "(%s)", (oSite.url ? oSite.url : ""));
+	logger.info("FAIL: " + oSite.title + "(%s)", (oSite.url ? oSite.url : ""));
 	configFile.updated++;
 	oSite.success = false;
-	//TODO: check if fail is first time and system active, and email
 	//TODO: rewrite config
 }
 
 function handleSuccess(oSite)
 {
 	const sURL = oSite.url;
-	info("Success: %s", oSite.title);
+	logger.info("Success: %s", oSite.title);
 	oSite.success = true;
 	configFile.updated++;
 	//TODO: check if success is first time, and write log
@@ -326,8 +363,8 @@ function withinDayOfNow(dTime, nDays)
 	var date = new Date();
     nDays = nDays ? nDays : 1;
 	var nDiff = Math.abs(date.getTime() - dTime.getTime());
-	//debug("The site was updated %s", yearDate(dTime));
-	//debug(nDiff + " < " +  dTime.getTime());
+	//logger.debug("The site was updated %s", yearDate(dTime));
+	//logger.debug(nDiff + " < " +  dTime.getTime());
 	return nDiff <= (MILLISPERDAY*nDays);
 }
 
