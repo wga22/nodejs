@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 /*
 * monitoring tool for checking availability, or certain specific values (such as update in past 24hrs)
+TODO: 
+- incorportate system info from <SERVER>/systems.php
+- OR system info from <SERVER>/nextcloud/ocs/v2.php/apps/serverinfo/api/v1/info
+- get system access info <SERVER>/access.latest.htm
+- check status of <SERVER>/temp.php
 */
 
 
@@ -86,16 +91,13 @@ function waitForSitesThenRespond()
 	{
 		logger.debug("done monitoring (%s)", configFile.updated);
 		sendEmail();
-		//TODO: rewrite JSON with new monitoring
 	}
 }
 
-
 function sendEmail()
 {
-	//TODO: test for need to send email
 	logger.debug("Sending email %s", sEmailTo)
-	if(true)
+	if(true)    //placeholder for logic on when to send email, for now assume if email passed in
 	{
 		var aOutput = [];
 		var aSites = configFile.sites;
