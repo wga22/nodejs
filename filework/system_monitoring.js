@@ -6,6 +6,7 @@ TODO:
 - OR system info from <SERVER>/nextcloud/ocs/v2.php/apps/serverinfo/api/v1/info
 - get system access info <SERVER>/access.latest.htm
 - check status of <SERVER>/temp.php
+- rewrite to work 2 ways, 1- hourly, just report outage, 2 -weekly summary
 */
 
 
