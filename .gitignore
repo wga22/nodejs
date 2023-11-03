@@ -65,3 +65,4 @@ filework/ftp_awardspace.bat
 *.csv
 filework/latestFileFromPath.js
 tesla/tesla_config.json.bak
+filework/system_monitoring_2.js

@@ -20,7 +20,7 @@ const reEmailMatch =/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"
 
 //CONSTS
 //const JSONFILE = "./filework/system_monitoring.json"
-const JSONFILE = "./test_system_monitoring.json"
+const JSONFILE = "./system_monitoring.json"
 const NODEMAILER = "./nodemailer.json";
 const MILLISPERDAY = 24*3600000;
 
@@ -56,13 +56,9 @@ async function main()
 	var sEmailAddr = getEmailAddress([mailTo1, mailTo2]);
 	if(sEmailAddr)
 	{
-		logger.debug('emailing %s', sEmailAddr);
 		await sendEmail(sEmailAddr);
 	}
-	if(true)
-	{
-		await rewriteConfigFile(JSONFILE, configFile);
-	}
+	await rewriteConfigFile(JSONFILE, configFile);
 }
 
 function getEmailAddress(aOptions)
@@ -133,13 +129,17 @@ async function sendEmail(sEmailTo)
 		var aSites = configFile.sites;
 		siteList: for(var x in aSites)
 		{
-			var oSite = aSites[x]
+			var oSite = aSites[x];
             if("N" == oSite.active)
             {
                 logger.debug("skipping site: %s", oSite.title);
                 continue siteList;
             }
-            var successString = (oSite.success ? "Success: ": "FAIL") + oSite.title + " was last seen " + yearDate(oSite.lastSeen);
+			var successString = (oSite.success ? "Success: ": "FAIL") + oSite.title + " was last seen " + yearDate(oSite.lastSeen);
+			if(oSite.message)
+			{
+				successString += oSite.message;
+			}
 			logger.debug(successString);
             aOutput.push(successString);
 		}
