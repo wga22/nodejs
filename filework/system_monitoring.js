@@ -19,7 +19,8 @@ const nodemailer = require("nodemailer");
 const reEmailMatch =/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
 //CONSTS
-const JSONFILE = "./system_monitoring.json"
+//const JSONFILE = "./filework/system_monitoring.json"
+const JSONFILE = "./test_system_monitoring.json"
 const NODEMAILER = "./nodemailer.json";
 const MILLISPERDAY = 24*3600000;
 
@@ -39,92 +40,114 @@ const logger = createLogger({
 var configFile = {params:{}, sites:[], updated:0};
 var sEmailTo = "";
 var recLastModified = null;
-var nActiveSiteLength = 0;
 
 //MAIN
 async function main()
 {
 	// edit the config.json file to contain your teslamotors.com login email and password, and the name of the output file
 	var fs = require('fs');
+	configFile = getConfigFile(JSONFILE);
+
+	await monitorSystems();
+	
+	const mailTo1 = ((configFile.params)?configFile.params.mailto : "" )
+	const mailTo2 = (process.argv.length > 2 && process.argv[2] ? process.argv[2]: "");
+
+	var sEmailAddr = getEmailAddress([mailTo1, mailTo2]);
+	if(sEmailAddr)
+	{
+		logger.debug('emailing %s', sEmailAddr);
+		await sendEmail(sEmailAddr);
+	}
+	if(true)
+	{
+		await rewriteConfigFile(JSONFILE, configFile);
+	}
+}
+
+function getEmailAddress(aOptions)
+{
+	var sRes = null;
+	if(aOptions && aOptions.length)
+	{
+		for(var x=0; x< aOptions.length; x++)
+		{
+			var sEmailTo = aOptions[x];
+			if(null != sEmailTo.match(reEmailMatch))
+			{
+				logger.debug('emailing %s', sEmailTo);
+				sRes = sEmailTo
+				break;
+			}
+			else
+			{
+				logger.info("the argument %s is not a valid email address.  Not emailing", sEmailTo);
+			}
+		}
+	}
+	return sRes;
+}
+
+async function rewriteConfigFile(sFileLoc, oJSON)
+{
 	try 
 	{
-		var jsonString = fs.readFileSync(JSONFILE).toString();
-		configFile = JSON.parse(jsonString);
-		configFile.updated=0;
-		logger.debug("-----Running-----");
+		var sJSONString = JSON.stringify(oJSON, null, 4);
+		fs.writeFileSync(sFileLoc, sJSONString);
+		logger.debug('Successfully Writing out Config File %s', sFileLoc);
 	} 
 	catch (err) 
 	{
-		logger.error("The file '%s' does not exist or contains invalid arguments! Exiting...", JSONFILE);
+		logger.error("ERROR writing out the json file '%s'", sFileLoc);
+		console.warn(err);
+		//process.exit(1);
+	}
+}
+
+function getConfigFile(sFileLoc)
+{
+	logger.debug('Getting Config File %s', sFileLoc);
+	try 
+	{
+		const jsonString = fs.readFileSync(sFileLoc).toString();
+		var oJSONOBJ = JSON.parse(jsonString);
+		oJSONOBJ.updated=0;
+		logger.debug('Successfully loaded config file: %s', oJSONOBJ.length);
+		return oJSONOBJ
+	} 
+	catch (err) 
+	{
+		logger.error("The file '%s' does not exist or contains invalid arguments! Exiting...", sFileLoc);
 		console.warn(err);
 		process.exit(1);
 	}
-	monitorSystems();
-	
-	if(process.argv.length > 2 && process.argv[2])
-	{
-		sEmailTo = process.argv[2];
-        if (null != sEmailTo.match(reEmailMatch))
-        {
-            logger.debug('emailing %s', sEmailTo);
-            waitForSitesThenRespond();            
-        }
-        else
-        {
-            logger.info("the argument %s is not a valid email address.  Not emailing", sEmailTo);
-        }
-        
-	}
+
 }
 
-waitForSitesThenRespond.counter = 60;
-function waitForSitesThenRespond()
+async function sendEmail(sEmailTo)
 {
-	//max timeout of "counter"
-	if(waitForSitesThenRespond.counter>0 && configFile.updated != nActiveSiteLength)
-	{
-		waitForSitesThenRespond.counter--;
-		logger.debug("waiting on sites %s (%s)", configFile.updated ,waitForSitesThenRespond.counter);
-		setTimeout(waitForSitesThenRespond, 1000);
-	}
-	else	//move forward!
-	{
-		logger.debug("done monitoring (%s)", configFile.updated);
-		sendEmail();
-	}
-}
-
-function sendEmail()
-{
-	logger.debug("Sending email %s", sEmailTo)
 	if(true)    //placeholder for logic on when to send email, for now assume if email passed in
 	{
+		logger.debug("Sending email %s", sEmailTo)
 		var aOutput = [];
 		var aSites = configFile.sites;
 		siteList: for(var x in aSites)
 		{
 			var oSite = aSites[x]
-            if("N" == aSites[x].active)
+            if("N" == oSite.active)
             {
                 logger.debug("skipping site: %s", oSite.title);
                 continue siteList;
             }
-			if(oSite.success)
-			{
-                var successString = "Success: " + oSite.title + " was last seen " + yearDate(oSite.lastSeen);
-				logger.debug(successString);
-                aOutput.push(successString);
-			}
-			else
-			{
-				aOutput.push("FAIL: " + oSite.title + " was last seen " + yearDate(oSite.lastSeen));
-			}
+            var successString = (oSite.success ? "Success: ": "FAIL") + oSite.title + " was last seen " + yearDate(oSite.lastSeen);
+			logger.debug(successString);
+            aOutput.push(successString);
 		}
-		sendSystemErrorEmail(sEmailTo, aOutput.join('\n'));
+		await sendSystemErrorEmail(sEmailTo, aOutput.join('\n'));
 	}
 }
 
-async function sendSystemErrorEmail(sTo, sErrorMessage) 
+async function sendSystemErrorEmail(sTo, sMessageBody) 
 {
     var jsonString = fs.readFileSync(NODEMAILER).toString();
     var emailPropertiesFile = JSON.parse(jsonString);
@@ -142,7 +165,7 @@ async function sendSystemErrorEmail(sTo, sErrorMessage)
     from: emailPropertiesFile.from, // sender address
     to: sTo, // list of receivers
     subject: configFile.params.subject, // Subject line
-    text: sErrorMessage, // plain text body
+    text: sMessageBody, // plain text body
     //html: sErrorMessage.replace('\n', "<br/>") // html body
   });
 
@@ -155,39 +178,56 @@ async function sendSystemErrorEmail(sTo, sErrorMessage)
 }
 
 
-function monitorSystems()
+async function monitorSystems()
 {
 	var aSites = configFile.sites;
-    nActiveSiteLength = configFile.sites.length;
 	siteList: for(var x in aSites)
 	{
-        if("N" == aSites[x].active)
+		const oSite = aSites[x];
+        if("N" == oSite.active)
         {
-            logger.debug("skipping site: %s", aSites[x].title);
-            nActiveSiteLength--;
+            logger.debug("skipping site: %s", oSite.title);
             continue siteList;
         }
-		logger.debug("site: %s", aSites[x].title);
-		switch(aSites[x].method)	//yes, wanted to do something more agile
+		logger.debug("site: %s", oSite.title);
+		switch(oSite.method)	//yes, wanted to do something more agile
 		{
 			case "ping":
-				ping(aSites[x]);
+				await ping(oSite);
 				break;
 			case "thingspeak":
-				thingspeak(aSites[x]);
+				await thingspeak(oSite);
 				break;
 			case "parseEthmine":
-				parseEthmine(aSites[x]);
+				await parseEthmine(oSite);
 				break;
             case "latestFileTest":
-                confirmRecentFile(aSites[x]);
+                await confirmRecentFile(oSite);
                 break;
+			case "publicip":
+				await checkPublicIPAddressForChange(oSite);
+				break;
 			default:
-				ping(aSites[x]);
+				await ping(oSite);
 				break;
 		}
 	}
 }
+
+async function checkPublicIPAddressForChange(oSite)
+{
+	var sCurrentIP = await getPublicIpAddress();
+	if(sCurrentIP === oSite.publicip )
+	{
+		handleSuccess(oSite);
+	}
+	else
+	{
+		oSite.publicip = sCurrentIP;
+		handleFail(oSite);
+	}
+}
+
 
 function nextcloudStatus()
 {
@@ -197,22 +237,22 @@ function nextcloudStatus()
     
 }
 
-function ping(oSite)
+async function ping(oSite)
 {
 	const sURL = oSite.url;
 	logger.debug("ping: " + sURL);
-	axios.get(sURL).then((response) => {
-		oSite.lastSeen = new Date();
+	try
+	{
+		await axios.get(sURL);
 		handleSuccess(oSite);
-	}, 
-	(error) => 
+	}
+	catch(err)
 	{
 		handleFail(oSite);
 	}
-	);
 }
 
-function parseEthmine(oSite)
+async function parseEthmine(oSite)
 {
 	const wallet = oSite.wallet;
 	var sURL = "https://api.ethermine.org/miner/"+wallet+"/workers"
@@ -220,12 +260,13 @@ function parseEthmine(oSite)
 	/*
 	{"status":"OK","data":[{"worker":"monster-lol","time":1611190800,"lastSeen":1611190721,"reportedHashrate":51693709,"currentHashrate":50000000,
 	"validShares":45,"invalidShares":0,"staleShares":0,"averageHashrate":47200617.28395061}]}
-	*/
-	
-	axios.get(sURL).then((response) => {
-		var ethMineResp = response.data;
+	*/	
+	try
+	{
+		var response = await axios.get(sURL);
+		const ethMineResp = response.data;
 		logger.debug("miner status: " + ethMineResp.status);
-		if(ethMineResp.status == "OK" && ethMineResp.data && ethMineResp.data.length > 0 && ethMineResp.data[0].lastSeen)
+		if(ethMineResp && ethMineResp.status == "OK" && ethMineResp.data && ethMineResp.data.length > 0 && ethMineResp.data[0].lastSeen)
 		{
 			var dLastSeen = new Date(ethMineResp.data[0].lastSeen*1000);	//1000X for millis
 			logger.debug("ethmine last running on %s", yearDate(dLastSeen));
@@ -236,26 +277,15 @@ function parseEthmine(oSite)
 				handleSuccess(oSite);
 			}
 		}
-		else
-		{
-			//console.log("no miner??");
-			handleFail(oSite);
-		}
-	}, 
-	(error) => 
+	}
+	catch(e)
 	{
-		//issues loading page
-		//console.log("issues loading URL: " + sURL);
-		//console.log(error);
 		handleFail(oSite);
-	});
-	
-	
-	
-	//console.log("parseEthmine: " + sURL);
+		logger.error(e);
+	}
 }
 
-function thingspeak(oSite)
+async function thingspeak(oSite)
 {
 	/*
 	{"channel":{"id":39741,"name":"1835Temperatures","description":"temperature and humidity of attic and other parts",
@@ -265,7 +295,9 @@ function thingspeak(oSite)
 	*/
 	
 	const sURL = oSite.url;
-	axios.get(sURL).then((response) => {
+	try
+	{
+		const response = await axios.get(sURL);
 		var thingSpData = response.data;
 		if(thingSpData && thingSpData.feeds && thingSpData.feeds.length > 0 && thingSpData.feeds[0].created_at)
 		{
@@ -282,11 +314,11 @@ function thingspeak(oSite)
 				handleFail(oSite);	
 			}
 		}
-	}, 
-	(error) => 
+	}
+	catch(e)
 	{
 		handleFail(oSite);
-	});	
+	}
 }
 
 
@@ -343,19 +375,14 @@ function confirmRecentFile(oSite)
 function handleFail(oSite)
 {
 	logger.info("FAIL: " + oSite.title + "(%s)", (oSite.url ? oSite.url : ""));
-	configFile.updated++;
 	oSite.success = false;
-	//TODO: rewrite config
 }
 
 function handleSuccess(oSite)
 {
-	const sURL = oSite.url;
-	logger.info("Success: %s", oSite.title);
+	oSite.lastSeen = new Date();
 	oSite.success = true;
-	configFile.updated++;
-	//TODO: check if success is first time, and write log
-	//TODO: rewrite config	
+	logger.info("Success: %s", oSite.title);
 }
 
 
@@ -381,10 +408,84 @@ function pad2(nMin)
 	return nMin < 10 ? ("0" +nMin) : nMin 
 }
 
+async function getPublicIpAddress() {
+	try {
+	  const response = await axios.get('https://ifconfig.me/ip');
+	  return response.data.trim();
+	} catch (error) {
+	  console.error('Failed to fetch public IP:', error.message);
+	  return null;
+	}
+  }
+
+
 main().catch(console.error);
+//main();
 
 
 /*
+--Check IP address
+const axios = require('axios');
+const fs = require('fs');
+
+// File to store the last known public IP address
+const ipFilePath = 'public_ip.txt';
+
+// Function to fetch the current public IP address
+async function getPublicIpAddress() {
+  try {
+    const response = await axios.get('https://ifconfig.me/ip');
+    return response.data.trim();
+  } catch (error) {
+    console.error('Failed to fetch public IP:', error.message);
+    return null;
+  }
+}
+
+// Function to read the last known public IP address from a file
+function readLastKnownIp() {
+  try {
+    return fs.readFileSync(ipFilePath, 'utf8').trim();
+  } catch (error) {
+    return null;
+  }
+}
+
+// Function to save the current public IP address to a file
+function savePublicIp(ipAddress) {
+  try {
+    fs.writeFileSync(ipFilePath, ipAddress);
+    console.log(`Public IP address saved: ${ipAddress}`);
+  } catch (error) {
+    console.error('Failed to save public IP address:', error.message);
+  }
+}
+
+// Function to check for IP address changes
+async function checkIpChange() {
+  const currentIp = await getPublicIpAddress();
+  if (!currentIp) {
+    return;
+  }
+
+  const lastKnownIp = readLastKnownIp();
+
+  if (currentIp !== lastKnownIp) {
+    console.log('Public IP address has changed:', currentIp);
+    savePublicIp(currentIp);
+  } else {
+    console.log('Public IP address has not changed:', currentIp);
+  }
+}
+
+// Run the IP check every minute (adjust the interval as needed)
+setInterval(checkIpChange, 60000);
+
+// Initial check on script startup
+checkIpChange();
+
+
+
 JUNK
 
 		try
@@ -499,4 +600,3 @@ Sample file
 
 
 */
-
