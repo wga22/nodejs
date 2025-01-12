@@ -147,7 +147,7 @@ exports.TeslaFramework = function TeslaFramework(options, main) {
         } 
 		else 
 		{
-			console.log("attempting login");
+			console.log("attempting login else");
             var username = options.username || process.env.TESLAJS_USER;
             var password = options.password || process.env.TESLAJS_PASS;
             tjs.login(username, password, this.login_cb);

@@ -73,8 +73,6 @@ async function main()
 		errorLogger("Issue with the database %s", oConfig["database"].host);
 		process.exit(1);
 	}
-
-
 	await startIt();
 	info("done");
 	process.exit(0);

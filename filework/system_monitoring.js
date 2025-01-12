@@ -136,10 +136,10 @@ async function sendEmail(sEmailTo)
                 logger.debug("skipping site: %s", oSite.title);
                 continue siteList;
             }
-			var successString = (oSite.success ? "Success: ": "FAIL") + oSite.title + " was last seen " + yearDate(oSite.lastSeen);
+			var successString = (oSite.success ? "Success: ": "FAIL: ") + oSite.title + " was last seen " + yearDate(oSite.lastSeen);
 			if(oSite.message)
 			{
-				successString += oSite.message;
+				successString +=" M:"+ oSite.message;
 			}
 			logger.debug(successString);
             aOutput.push(successString);
@@ -400,7 +400,7 @@ function withinDayOfNow(dTime, nDays)
 
 function yearDate(a_dDate)
 {
-	if(a_dDate){} else {a_dDate = new Date()};		
+	if(a_dDate && typeof a_dDate.getYear === "function"){} else {a_dDate = new Date()};	
 	return ((1900+a_dDate.getYear()) + "-" + pad2(1+a_dDate.getMonth()) + "-"+ pad2(a_dDate.getDate()));
 }
 

@@ -21,7 +21,7 @@ const errorLogger = debuggerObj('error:*');	//always show errors
 var tsFramework = null;
 
 var oConfig = {
-        "portal_url": "https://owner-api.teslamotors.com/api/1/vehicles/",
+        "portal_url": "https://owner-api.teslamotors.com",
         "stream_url": "https://streaming.vn.teslamotors.com/stream/",
         "username": "xxxx",
         "password": "xxxxx",
