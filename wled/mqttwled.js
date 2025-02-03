@@ -1,7 +1,7 @@
 const mqtt = require('mqtt');
 const fs = require('fs');	//https://nodejs.org/api/fs.html
 const { createLogger, format, transports } = require('winston');
-const JSONFILE = "./wled.json"
+const JSONFILE = "./mqttwled.json"
 var client  = null; 
 var configFile = {    
     "broker": "mqtt://broker.hivemq.com/",
