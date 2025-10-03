@@ -74,10 +74,10 @@ async function main()
 	}
 	await startIt();
     
-    if (dbclient) {
-        await dbclient.end();
-        debug("Database connection closed");
-    }    
+//    if (dbclient) {
+//        await dbclient.end();
+//        debug("Database connection closed");
+ //   }    
     
     
     debug("end main");
@@ -131,6 +131,13 @@ async function startIt()
 	{
         debug("found a 33");
 		info("There are no dates for which we need data");
+
+
+	    if (dbclient) {
+        	await dbclient.end();
+	        debug("Database connection closed");
+	   }
+
 	}
     debug("exit startid");
 }
