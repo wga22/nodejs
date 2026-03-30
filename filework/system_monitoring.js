@@ -49,13 +49,14 @@ async function main()
 	var fs = require('fs');
 	configFile = getConfigFile(JSONFILE);
 
-	await monitorSystems();
+	const hasFailures = await monitorSystems();
 	
 	const mailTo1 = ((configFile.params)?configFile.params.mailto : "" )
 	const mailTo2 = (process.argv.length > 2 && process.argv[2] ? process.argv[2]: "");
+	const emailOnFailure = (process.argv.length > 3 && process.argv[3] ? ('email-on-failure'== process.argv[3]): false);
 
 	var sEmailAddr = getEmailAddress([mailTo1, mailTo2]);
-	if(sEmailAddr)
+	if (sEmailAddr && (!emailOnFailure || hasFailures))
 	{
 		await sendEmail(sEmailAddr);
 	}
@@ -123,29 +124,26 @@ function getConfigFile(sFileLoc)
 
 async function sendEmail(sEmailTo)
 {
-	if(true)    //placeholder for logic on when to send email, for now assume if email passed in
+	logger.debug("Sending email %s", sEmailTo)
+	var aOutput = [];
+	var aSites = configFile.sites;
+	siteList: for(var x in aSites)
 	{
-		logger.debug("Sending email %s", sEmailTo)
-		var aOutput = [];
-		var aSites = configFile.sites;
-		siteList: for(var x in aSites)
+		var oSite = aSites[x];
+		if("N" == oSite.active)
 		{
-			var oSite = aSites[x];
-            if("N" == oSite.active)
-            {
-                logger.debug("skipping site: %s", oSite.title);
-                continue siteList;
-            }
-			var successString = (oSite.success ? "Success: ": "FAIL: ") + oSite.title + " was last seen " + yearDate(oSite.lastSeen);
-			if(oSite.message)
-			{
-				successString +=" M:"+ oSite.message;
-			}
-			logger.debug(successString);
-            aOutput.push(successString);
+			logger.debug("skipping site: %s", oSite.title);
+			continue siteList;
 		}
-		await sendSystemErrorEmail(sEmailTo, aOutput.join('\n'));
+		var successString = (oSite.success ? "Success: ": "FAIL: ") + oSite.title + " was last seen " + yearDate(oSite.lastSeen);
+		if(oSite.message)
+		{
+			successString +=" M:"+ oSite.message;
+		}
+		logger.debug(successString);
+		aOutput.push(successString);
 	}
+	await sendSystemErrorEmail(sEmailTo, aOutput.join('\n'));
 }
 
 async function sendSystemErrorEmail(sTo, sMessageBody) 
@@ -182,6 +180,7 @@ async function sendSystemErrorEmail(sTo, sMessageBody)
 async function monitorSystems()
 {
 	var aSites = configFile.sites;
+	let hasFailures = false;
 	siteList: for(var x in aSites)
 	{
 		const oSite = aSites[x];
@@ -212,7 +211,12 @@ async function monitorSystems()
 				await ping(oSite);
 				break;
 		}
+		// Update failure status
+        if (!oSite.success) {
+            hasFailures = true;
+        }
 	}
+	return hasFailures;
 }
 
 async function checkPublicIPAddressForChange(oSite)
